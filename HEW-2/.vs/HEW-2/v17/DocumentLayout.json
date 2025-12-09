@@ -1,10 +1,10 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\takoo\\Documents\\GitHub\\HEW-2\\HEW-2\\",
+  "WorkspaceRootPath": "C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\takoo\\Documents\\GitHub\\HEW-2\\HEW-2\\HEW-2\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:HEW-2\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|solutionrelative:HEW-2\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,27 +14,31 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
-            },
-            {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "main.cpp",
-              "DocumentMoniker": "C:\\Users\\takoo\\Documents\\GitHub\\HEW-2\\HEW-2\\HEW-2\\main.cpp",
+              "DocumentMoniker": "C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\main.cpp",
               "RelativeDocumentMoniker": "HEW-2\\main.cpp",
-              "ToolTip": "C:\\Users\\takoo\\Documents\\GitHub\\HEW-2\\HEW-2\\HEW-2\\main.cpp",
+              "ToolTip": "C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\main.cpp",
               "RelativeToolTip": "HEW-2\\main.cpp",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAALAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-09T09:19:10.578Z",
+              "WhenOpened": "2025-12-09T08:42:15.61Z",
               "EditorCaption": ""
             }
           ]
