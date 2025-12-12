@@ -19,12 +19,12 @@
       "RelativeMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|solutionrelative:HEW-2\\testte.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|solutionrelative:HEW-2\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\test1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|solutionrelative:HEW-2\\test1.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{DAC11868-64CA-42DC-A0A0-91ABD7575477}|HEW-2\\HEW-2.vcxproj|solutionrelative:HEW-2\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 8,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Bookmark",
@@ -59,7 +59,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "Game.cpp",
               "DocumentMoniker": "C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\Game.cpp",
               "RelativeDocumentMoniker": "HEW-2\\Game.cpp",
@@ -84,12 +84,8 @@
               "EditorCaption": ""
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
               "Title": "test1.cpp",
               "DocumentMoniker": "C:\\Users\\haya24\\Desktop\\HEW\u4E8C\u5E74\\HEW-2\\HEW-2\\HEW-2\\test1.cpp",
               "RelativeDocumentMoniker": "HEW-2\\test1.cpp",
@@ -97,7 +93,8 @@
               "RelativeToolTip": "HEW-2\\test1.cpp",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-10T03:03:58.314Z"
+              "WhenOpened": "2025-12-10T03:03:58.314Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
