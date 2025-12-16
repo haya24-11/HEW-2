@@ -1,6 +1,4 @@
 #include "Game.h"
-#include "Application.h"
-#include <windows.h>
 
 //コンストラクタ
 Game::Game()
