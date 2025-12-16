@@ -1,4 +1,5 @@
 #include    "main.h"
+#include "Application.h"
 //#include    "Application.h"
 
 //=======================================
@@ -13,8 +14,8 @@ int main(void)
 	//FreeConsole();
 
 	// アプリケーション実行     アプリケーション.cppを作ったら動かす
-	//Application app(SCREEN_WIDTH, SCREEN_HEIGHT);
-	//app.Run();
+	Application app(SCREEN_WIDTH, SCREEN_HEIGHT);
+	app.Run();
 
 	return 0;
 }
