@@ -13,6 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ソース ファイル\Mode">
+      <UniqueIdentifier>{867b9589-d52c-45b1-b7d7-e50867400f76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Objects">
+      <UniqueIdentifier>{7e8a9cc3-ce35-450c-9184-43cc50f8fad2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Mode">
+      <UniqueIdentifier>{42962c03-503b-4ece-9d08-957e1ba8a6c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\GameMechanics">
+      <UniqueIdentifier>{02db614c-8a8c-4c77-b4cc-bfd4d1e7fac9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Objects">
+      <UniqueIdentifier>{d3130039-bc91-468c-b482-46978e8db6e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\GameMechanics">
+      <UniqueIdentifier>{b9f7a246-48db-4ee4-8901-07d0d9ded73d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -33,8 +51,41 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
+    <ClCompile Include="Player.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="AMode.cpp">
+      <Filter>ソース ファイル\Mode</Filter>
+    </ClCompile>
+    <ClCompile Include="Mode.cpp">
+      <Filter>ソース ファイル\Mode</Filter>
+    </ClCompile>
+    <ClCompile Include="ModeManager.cpp">
+      <Filter>ソース ファイル\Mode</Filter>
+    </ClCompile>
+    <ClCompile Include="Chara.cpp">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Exp.cpp">
+      <Filter>ソース ファイル\GameMechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="Combo.cpp">
+      <Filter>ソース ファイル\GameMechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="Skill.cpp">
+      <Filter>ソース ファイル\GameMechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalEnemy.cpp">
+      <Filter>ソース ファイル\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -50,8 +101,41 @@
     <ClInclude Include="Renderer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="AMode.h">
+      <Filter>ヘッダー ファイル\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="Mode.h">
+      <Filter>ヘッダー ファイル\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="ModeManager.h">
+      <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Chara.h">
+      <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
     <ClInclude Include="GameObject.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Combo.h">
+      <Filter>ヘッダー ファイル\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="Exp.h">
+      <Filter>ヘッダー ファイル\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="Skill.h">
+      <Filter>ヘッダー ファイル\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalEnemy.h">
+      <Filter>ヘッダー ファイル\Objects</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
