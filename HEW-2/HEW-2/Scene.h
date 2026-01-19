@@ -1,29 +1,31 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "GameTypes.h"
-
-class GameObject;
+#include "SceneTypes.h"
+#include "GameObject.h"
 
 class Scene
 {
-public:
-    virtual ~Scene() = default;
-
-    virtual void OnEnter() = 0;
-    virtual void OnUpdate(float deltaTime) = 0;
-    virtual void OnDraw() = 0;
-    virtual void OnExit() = 0;
-
-    bool IsEnd() const;
-    SceneType GetNextScene() const;
+private:
+    bool isChange = false;
+    SceneType nextScene = SceneType::Title;
 
 protected:
-    void EndScene(SceneType next);
+    void ChangeScene(SceneType next);
+    void SetNextScene(SceneType nextScene);
 
-    std::vector<std::unique_ptr<GameObject>> objects;
+    std::vector<std::unique_ptr<GameObject>> objects;//オブジェクト格納
+    int objectNum = 0;//初期オブジェクト数
 
-private:
-    bool isEnd = false;
-    SceneType nextScene = SceneType::Title;
+public:
+    Scene(SceneType type);
+    virtual ~Scene() = default;
+
+    virtual void InitScene() = 0;
+    virtual void UpdateScene(float deltaTime) = 0;
+    virtual void DrawScene() = 0;
+    virtual void UninitScene() = 0;
+
+    bool IsChange() const;
+    SceneType GetNextScene() const;
 };
