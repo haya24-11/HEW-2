@@ -1,12 +1,8 @@
 #include "Scene.h"
-Scene::Scene(SceneType type)
-{
 
-}
-
-bool Scene::IsChange() const
+bool Scene::IsEnd() const
 {
-    return isChange;
+    return isEnd;
 }
 
 SceneType Scene::GetNextScene() const
@@ -14,8 +10,8 @@ SceneType Scene::GetNextScene() const
     return nextScene;
 }
 
-void Scene::ChangeScene(SceneType next)
+void Scene::EndScene(SceneType next)
 {
-    isChange = true;
+    isEnd = true;
     nextScene = next;
 }
