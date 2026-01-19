@@ -148,11 +148,15 @@
     <ClCompile Include="Mode.cpp" />
     <ClCompile Include="ModeManager.cpp" />
     <ClCompile Include="NormalEnemy.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
+    <ClCompile Include="sound.cpp" />
+    <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="test1.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="UIBase.cpp" />
     <ClCompile Include="UIManager.cpp" />
   </ItemGroup>
@@ -172,12 +176,26 @@
     <ClInclude Include="Mode.h" />
     <ClInclude Include="ModeManager.h" />
     <ClInclude Include="NormalEnemy.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Skill.h" />
+    <ClInclude Include="sound.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="UIBase.h" />
     <ClInclude Include="UIManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader\VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
