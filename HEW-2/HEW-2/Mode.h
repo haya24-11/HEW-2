@@ -1,7 +1,14 @@
 #pragma once
-#include "ModeManager.h"
-class Mode :
-    public ModeManager
-{
-};
+#include <vector>
+#include <string>
+#include "Skill.h"
 
+class Mode
+{
+public:
+    const std::vector<Skill>& GetSkills() const;
+
+protected:
+    std::string name;
+    std::vector<Skill> skills;
+};

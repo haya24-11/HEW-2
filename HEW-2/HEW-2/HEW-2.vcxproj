@@ -150,9 +150,11 @@
     <ClCompile Include="NormalEnemy.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="test1.cpp" />
-    <ClCompile Include="testte.cpp" />
+    <ClCompile Include="UIBase.cpp" />
+    <ClCompile Include="UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AMode.h" />
@@ -164,13 +166,18 @@
     <ClInclude Include="Exp.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameTypes.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Mode.h" />
     <ClInclude Include="ModeManager.h" />
     <ClInclude Include="NormalEnemy.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="Skill.h" />
+    <ClInclude Include="UIBase.h" />
+    <ClInclude Include="UIManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

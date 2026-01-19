@@ -1,7 +1,16 @@
 #pragma once
+#include <vector>
 #include "Chara.h"
-class Player :
-    public Chara
-{
-};
+#include "Skill.h"
 
+class Player : public Chara
+{
+public:
+    void Attack() override;
+    void ApplyAbility(const Skill& skill);
+
+private:
+    int exp;
+    int level;
+    std::vector<Skill> skills;
+};

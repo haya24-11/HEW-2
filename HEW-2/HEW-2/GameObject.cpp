@@ -1,9 +1,11 @@
 #include "GameObject.h"
 
-GameObject::GameObject()
+Vector2 GameObject::GetPosition() const
 {
+    return position;
 }
 
-GameObject::~GameObject()
+void GameObject::SetPosition(const Vector2& pos)
 {
+    position = pos;
 }

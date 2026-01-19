@@ -31,15 +31,42 @@
     <Filter Include="ヘッダー ファイル\GameMechanics">
       <UniqueIdentifier>{b9f7a246-48db-4ee4-8901-07d0d9ded73d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Objects\Character">
+      <UniqueIdentifier>{3ad4fdd4-2c6b-4cc9-9265-64c455e0ff3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Objects\Character\Player Character">
+      <UniqueIdentifier>{5bb948f0-bd1b-420e-b138-48dabf7672be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Objects\Character\Enemy Character">
+      <UniqueIdentifier>{a72191ef-fae9-46f6-886f-9ca91dd6cc01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Objects\Character">
+      <UniqueIdentifier>{5b8a503c-5ac9-4658-ab7f-44a78baa9a8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Objects\Character\Player Character">
+      <UniqueIdentifier>{abc1ee80-91f1-49e9-9223-bd624325fb13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Objects\Character\Enemy Character">
+      <UniqueIdentifier>{418113be-f5c7-450d-a550-20d5ce5ced42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Scene">
+      <UniqueIdentifier>{8f44064a-512c-49bb-853b-0c6ef6c6b2b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Scene">
+      <UniqueIdentifier>{30f107c9-d7e4-4ce1-aca5-114875c4d298}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\UI">
+      <UniqueIdentifier>{8461667e-4d5e-4cc5-9c25-06986bd50977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\UI">
+      <UniqueIdentifier>{0cf54737-2b1a-41d6-91c3-6e12fa549dec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="test1.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="testte.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp">
@@ -51,9 +78,6 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="AMode.cpp">
       <Filter>ソース ファイル\Mode</Filter>
     </ClCompile>
@@ -62,15 +86,6 @@
     </ClCompile>
     <ClCompile Include="ModeManager.cpp">
       <Filter>ソース ファイル\Mode</Filter>
-    </ClCompile>
-    <ClCompile Include="Chara.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Boss.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
     </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>ソース ファイル\Objects</Filter>
@@ -84,8 +99,29 @@
     <ClCompile Include="Skill.cpp">
       <Filter>ソース ファイル\GameMechanics</Filter>
     </ClCompile>
-    <ClCompile Include="NormalEnemy.cpp">
+    <ClCompile Include="Chara.cpp">
       <Filter>ソース ファイル\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>ソース ファイル\Objects\Character\Player Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalEnemy.cpp">
+      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UIBase.cpp">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManager.cpp">
+      <Filter>ソース ファイル\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,21 +143,6 @@
     <ClInclude Include="Mode.h">
       <Filter>ヘッダー ファイル\Mode</Filter>
     </ClInclude>
-    <ClInclude Include="ModeManager.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Boss.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Chara.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemy.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>ヘッダー ファイル\Objects</Filter>
     </ClInclude>
@@ -134,8 +155,38 @@
     <ClInclude Include="Skill.h">
       <Filter>ヘッダー ファイル\GameMechanics</Filter>
     </ClInclude>
-    <ClInclude Include="NormalEnemy.h">
+    <ClInclude Include="Chara.h">
       <Filter>ヘッダー ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ModeManager.h">
+      <Filter>ヘッダー ファイル\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ヘッダー ファイル\Objects\Character\Player Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>ヘッダー ファイル\Objects\Character\Enemy Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>ヘッダー ファイル\Objects\Character\Enemy Character</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalEnemy.h">
+      <Filter>ヘッダー ファイル\Objects\Character\Enemy Character</Filter>
+    </ClInclude>
+    <ClInclude Include="MathTypes.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="GameTypes.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="UIBase.h">
+      <Filter>ヘッダー ファイル\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManager.h">
+      <Filter>ヘッダー ファイル\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
