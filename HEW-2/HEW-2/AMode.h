@@ -4,4 +4,7 @@
 class AMode : public Mode
 {
     // Mode‚²‚Æ‚Ì“Áêƒ‹[ƒ‹
+
+
+
 };
