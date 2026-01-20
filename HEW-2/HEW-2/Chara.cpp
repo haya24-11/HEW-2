@@ -1,27 +1,21 @@
 #include "Chara.h"
 
-void Chara::Move(const Vector2& dir, float deltaTime)
+void Chara::Update(float /*deltaTime*/)
 {
-    position.x += dir.x * deltaTime;
-    position.y += dir.y * deltaTime;
+	// HP‚ª 0 ˆÈ‰º‚È‚çŽ€–Sˆµ‚¢
+	if (hp <= 0)
+	{
+		isAlive = false;
+	}
 }
 
-int Chara::GetHp() const
+void Chara::Move(const DirectX::SimpleMath::Vector2& direction)
 {
-    return hp;
+	// ’Pƒ‚ÈÀ•WˆÚ“®
+	position += direction;
 }
 
-bool Chara::IsAlive() const
+int Chara::GetHp()const
 {
-    return status != Status::Dead;
-}
-
-void Chara::TakeDamage(int damage)
-{
-    hp -= damage;
-    if (hp <= 0)
-    {
-        hp = 0;
-        status = Status::Dead;
-    }
+	return hp;
 }

@@ -12,5 +12,5 @@ enum class Status
 {
     Normal,
     Stunned,
-    Dead
+    Poison,
 };

@@ -1,11 +1,18 @@
 #include "GameObject.h"
 
-Vector2 GameObject::GetPosition() const
+const DirectX::SimpleMath::Vector2& GameObject::GetPosition()const
 {
-    return position;
+	return position;
 }
 
-void GameObject::SetPosition(const Vector2& pos)
+void GameObject::SetPosition(const DirectX::SimpleMath::Vector2& pos)
 {
-    position = pos;
+	position = pos;
 }
+
+bool GameObject::IsAlive()const
+{
+	return isAlive;
+}
+
+
