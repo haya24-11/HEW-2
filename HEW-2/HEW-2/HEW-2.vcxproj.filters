@@ -167,15 +167,6 @@
     <ClInclude Include="Mode.h">
       <Filter>ヘッダー ファイル\Mode</Filter>
     </ClInclude>
-    <ClInclude Include="Combo.h">
-      <Filter>ヘッダー ファイル\GameMechanics</Filter>
-    </ClInclude>
-    <ClInclude Include="Exp.h">
-      <Filter>ヘッダー ファイル\GameMechanics</Filter>
-    </ClInclude>
-    <ClInclude Include="Skill.h">
-      <Filter>ヘッダー ファイル\GameMechanics</Filter>
-    </ClInclude>
     <ClInclude Include="ModeManager.h">
       <Filter>ヘッダー ファイル\Mode</Filter>
     </ClInclude>
@@ -235,6 +226,15 @@
     </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>ソース ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Skill.h">
+      <Filter>ソース ファイル\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="Exp.h">
+      <Filter>ソース ファイル\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="Combo.h">
+      <Filter>ソース ファイル\GameMechanics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -26,5 +26,5 @@ void Player::ApplyAbility(Skill* skill)
 	skills.push_back(skill);
 
 	// スキの効果を Player に適用
-	//skill->Apply(this); todo
+	//skill->Apply(this);
 }
