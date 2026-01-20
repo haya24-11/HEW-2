@@ -144,19 +144,23 @@
     <ClCompile Include="Exp.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameOver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mode.cpp" />
     <ClCompile Include="ModeManager.cpp" />
     <ClCompile Include="NormalEnemy.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Play.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Result.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="test1.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Title.cpp" />
     <ClCompile Include="UIBase.cpp" />
     <ClCompile Include="UIManager.cpp" />
   </ItemGroup>
@@ -170,7 +174,10 @@
     <ClInclude Include="Exp.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameTypes.h" />
+    <ClInclude Include="GameOver.h" />
+    <ClInclude Include="Play.h" />
+    <ClInclude Include="Result.h" />
+    <ClInclude Include="SceneTypes.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MathTypes.h" />
     <ClInclude Include="Mode.h" />
@@ -184,6 +191,7 @@
     <ClInclude Include="sound.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Title.h" />
     <ClInclude Include="UIBase.h" />
     <ClInclude Include="UIManager.h" />
   </ItemGroup>

@@ -1,6 +1,6 @@
 #pragma once
 #include "GameObject.h"
-#include "GameTypes.h"
+#include "SceneTypes.h"
 
 class Chara : public GameObject
 {
