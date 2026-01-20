@@ -8,7 +8,9 @@ class AMode : public Mode
     int weakPower = 10;
     int strongPower = 50;
 
-    DirectX::SimpleMath::Vector2 attckArea{ 10.0f, 10.0f };
+    DirectX::SimpleMath::Vector2 weakAttckArea{ 10.0f, 10.0f };
+    DirectX::SimpleMath::Vector2 weakAttckArea{ 80.0f, 80.0f };
+
 
     void WeakAttck();
     void StrongAttkc();
