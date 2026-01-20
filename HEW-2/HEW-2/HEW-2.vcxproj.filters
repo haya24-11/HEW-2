@@ -218,6 +218,24 @@
     <ClInclude Include="GameOver.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="NormalEnemy.h">
+      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>ソース ファイル\Objects\Character\Player Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Chara.h">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\PixelShader.hlsl" />
