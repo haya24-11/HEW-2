@@ -24,7 +24,7 @@ public:
         ----------
         ・Mode 側から呼ばれる
         ・AMode のときだけ呼ばれる想定
-        ・force : ノックバックの初速（方向×強さ）
+        ・force : ノックバックの初速（方向×強さ）：：：：：
     */
     void KnockBack(const DirectX::SimpleMath::Vector2& force);
 
