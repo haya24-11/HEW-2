@@ -13,7 +13,7 @@ void Title::UpdateScene(float deltaTime)
 {
 	if (Input::GetKeyTrigger(VK_SPACE))
 	{
-		SetNextScene(SceneType::Play);
+		SetNextScene(SceneType::GamePlay);
 	}
 }
 

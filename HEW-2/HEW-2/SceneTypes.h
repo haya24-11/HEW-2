@@ -3,7 +3,7 @@
 enum class SceneType
 {
     Title,
-    Play,
+    GamePlay,
     Result,
     //ƒV[ƒ“‚ª‘‚¦‚é‚È‚ç‚±‚±ˆÈã‚Å’Ç‹L
     GameOver,

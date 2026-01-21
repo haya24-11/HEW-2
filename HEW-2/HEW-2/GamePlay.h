@@ -1,10 +1,10 @@
 #pragma once
 #include "Scene.h"
-class Play :
+class GamePlay :
     public Scene
 {
 public:
-    Play();
+    GamePlay();
 
     void InitScene() override;
     void UpdateScene(float deltaTime) override;

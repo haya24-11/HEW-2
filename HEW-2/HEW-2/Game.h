@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include "Title.h"
-#include "Play.h"
+#include "GamePlay.h"
 #include "Result.h"
 #include "GameOver.h"
 #include "input.h"
