@@ -3,11 +3,13 @@
 class Result :
     public Scene
 {
+public:
+    Result();
 
-    void InitScene() override = 0;
-    void UpdateScene(float deltaTime) override = 0;
-    void DrawScene() override = 0;
-    void UninitScene() override = 0;
+    void InitScene() override;
+    void UpdateScene(float deltaTime) override;
+    void DrawScene() override;
+    void UninitScene() override;
 
 };
 

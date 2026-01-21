@@ -1,5 +1,3 @@
-
-
 #include <chrono>
 #include <thread>
 #include "Application.h"
@@ -143,10 +141,10 @@ void Application::MainLoop()
 {
     MSG msg = {};
 
-
+    RendererInit(m_hWnd);
 
     // ゲーム初期化処理
-    Game::Init();
+    game.Init();
 
     // FPS計測用変数
     int fpsCounter = 0;
@@ -187,10 +185,10 @@ void Application::MainLoop()
             if (nowCount >= oldCount + frequency / 60) {
 
                 // ゲーム更新
-                Game::Update();
+                game.Update((float)fpsCounter);
 
                 // ゲーム描画
-                Game::Draw();
+                game.Draw();
 
                 fpsCounter++; // ゲーム処理を実行したら＋１する
                 oldCount = nowCount;
@@ -199,7 +197,7 @@ void Application::MainLoop()
     }
 
     // ゲーム終了処理
-    Game::Uninit();
+    game.Uninit();
 }
 
 //-----------------------------------------------------------------------------

@@ -4,7 +4,7 @@ void AMode::WeakAttck()
 {
 	int damage = weakPower;
 
-	weakAttckArea;
+	/*weakAttckArea;*/
 }
 
 void AMode::StrongAttkc()

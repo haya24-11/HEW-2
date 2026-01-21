@@ -1,6 +1,7 @@
 #pragma once
-#include    <Windows.h>
-#include    <cstdint>
+#include <Windows.h>
+#include <cstdint>
+#include "Game.h"
 
 //-----------------------------------------------------------------------------
 // Applicationクラス
@@ -27,6 +28,8 @@ public:
         return m_hWnd;
     }
 
+    Game game;
+
 private:
     static HINSTANCE   m_hInst;        // インスタンスハンドル
     static HWND        m_hWnd;         // ウィンドウハンドル
@@ -35,8 +38,10 @@ private:
 
     static bool InitApp(); //初期化
     static void UninitApp(); //終了処理
-    static void MainLoop(); //メインループ
+    void MainLoop(); //メインループ
 
     //プロシージャ
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
+
+    
 };

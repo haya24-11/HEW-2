@@ -2,7 +2,9 @@
 #include <vector>
 #include <memory>
 #include "SceneTypes.h"
-#include "GameObject.h"
+#include "input.h"
+#include "Object.h"
+#include<iostream>
 
 class Scene
 {
@@ -12,7 +14,9 @@ private:
 protected:
     void ChangeScene(SceneType next);
 
-    std::vector<std::unique_ptr<GameObject>> objects;//オブジェクトの格納配列
+
+
+    std::vector<std::unique_ptr<Object>> objects;//オブジェクトの格納配列
     int objectNum = 0;//オブジェクトの数
     bool isChange = false;
     void SetNextScene(SceneType nextScene);

@@ -156,14 +156,14 @@ HRESULT RendererInit(HWND hwnd)
 	unsigned int numElements = ARRAYSIZE(layout);
 
 	// 頂点シェーダーオブジェクトを生成、同時に頂点レイアウトも生成
-	hr = CreateVertexShader(&g_pVertexShader, &g_pInputLayout, layout, numElements, "VertexShader.hlsl");
+	hr = CreateVertexShader(&g_pVertexShader, &g_pInputLayout, layout, numElements, "shader/VertexShader.hlsl");
 	if (FAILED(hr)) {
 		MessageBoxA(NULL, "CreateVertexShader error", "error", MB_OK);
 		return hr;
 	}
 
 	// ピクセルシェーダーオブジェクトを生成
-	hr = CreatePixelShader(&g_pPixelShader, "PixelShader.hlsl");
+	hr = CreatePixelShader(&g_pPixelShader, "shader/PixelShader.hlsl");
 	if (FAILED(hr)) {
 		MessageBoxA(NULL, "CreatePixelShader error", "error", MB_OK);
 		return hr;
