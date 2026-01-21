@@ -13,23 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="ソース ファイル\Mode">
-      <UniqueIdentifier>{867b9589-d52c-45b1-b7d7-e50867400f76}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\Objects">
       <UniqueIdentifier>{7e8a9cc3-ce35-450c-9184-43cc50f8fad2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\Mode">
-      <UniqueIdentifier>{42962c03-503b-4ece-9d08-957e1ba8a6c7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\GameMechanics">
-      <UniqueIdentifier>{02db614c-8a8c-4c77-b4cc-bfd4d1e7fac9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\Objects">
-      <UniqueIdentifier>{d3130039-bc91-468c-b482-46978e8db6e0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\GameMechanics">
-      <UniqueIdentifier>{b9f7a246-48db-4ee4-8901-07d0d9ded73d}</UniqueIdentifier>
     </Filter>
     <Filter Include="ソース ファイル\Objects\Character">
       <UniqueIdentifier>{3ad4fdd4-2c6b-4cc9-9265-64c455e0ff3d}</UniqueIdentifier>
@@ -40,67 +25,61 @@
     <Filter Include="ソース ファイル\Objects\Character\Enemy Character">
       <UniqueIdentifier>{a72191ef-fae9-46f6-886f-9ca91dd6cc01}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ヘッダー ファイル\Objects\Character">
-      <UniqueIdentifier>{5b8a503c-5ac9-4658-ab7f-44a78baa9a8b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\Objects\Character\Player Character">
-      <UniqueIdentifier>{abc1ee80-91f1-49e9-9223-bd624325fb13}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\Objects\Character\Enemy Character">
-      <UniqueIdentifier>{418113be-f5c7-450d-a550-20d5ce5ced42}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\Scene">
       <UniqueIdentifier>{8f44064a-512c-49bb-853b-0c6ef6c6b2b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ヘッダー ファイル\Scene">
-      <UniqueIdentifier>{30f107c9-d7e4-4ce1-aca5-114875c4d298}</UniqueIdentifier>
     </Filter>
     <Filter Include="ソース ファイル\UI">
       <UniqueIdentifier>{8461667e-4d5e-4cc5-9c25-06986bd50977}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ヘッダー ファイル\UI">
-      <UniqueIdentifier>{0cf54737-2b1a-41d6-91c3-6e12fa549dec}</UniqueIdentifier>
+    <Filter Include="ソース ファイル\Core">
+      <UniqueIdentifier>{9639e18b-a4a9-4fcf-ad16-daa560fc15fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Gameplay">
+      <UniqueIdentifier>{73dedca3-45cb-4a75-b453-fddb014fbc6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Gameplay\GameMechanics">
+      <UniqueIdentifier>{02db614c-8a8c-4c77-b4cc-bfd4d1e7fac9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Gameplay\Mode">
+      <UniqueIdentifier>{867b9589-d52c-45b1-b7d7-e50867400f76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Graphics">
+      <UniqueIdentifier>{8660109d-9621-475e-a30f-b084f822e882}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\System">
+      <UniqueIdentifier>{87d9eaae-21de-468d-b23a-840315ff278b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Utility">
+      <UniqueIdentifier>{aa5b361b-ed3f-4aa4-881e-8b47b6591632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\External">
+      <UniqueIdentifier>{850eede2-303a-4b4b-95be-542ccd1a32b6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="test1.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="AMode.cpp">
-      <Filter>ソース ファイル\Mode</Filter>
+      <Filter>ソース ファイル\Gameplay\Mode</Filter>
     </ClCompile>
     <ClCompile Include="Mode.cpp">
-      <Filter>ソース ファイル\Mode</Filter>
+      <Filter>ソース ファイル\Gameplay\Mode</Filter>
     </ClCompile>
     <ClCompile Include="ModeManager.cpp">
-      <Filter>ソース ファイル\Mode</Filter>
+      <Filter>ソース ファイル\Gameplay\Mode</Filter>
     </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>ソース ファイル\Objects</Filter>
     </ClCompile>
     <ClCompile Include="Exp.cpp">
-      <Filter>ソース ファイル\GameMechanics</Filter>
+      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
     </ClCompile>
     <ClCompile Include="Combo.cpp">
-      <Filter>ソース ファイル\GameMechanics</Filter>
+      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
     </ClCompile>
     <ClCompile Include="Skill.cpp">
-      <Filter>ソース ファイル\GameMechanics</Filter>
-    </ClCompile>
-    <ClCompile Include="Chara.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
+      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>ソース ファイル\Objects\Character\Player Character</Filter>
@@ -123,15 +102,6 @@
     <ClCompile Include="UIManager.cpp">
       <Filter>ソース ファイル\UI</Filter>
     </ClCompile>
-    <ClCompile Include="stb_image.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="sound.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>ソース ファイル\Objects</Filter>
     </ClCompile>
@@ -147,68 +117,35 @@
     <ClCompile Include="GamePlay.cpp">
       <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="input.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\System</Filter>
+    </ClCompile>
+    <ClCompile Include="sound.cpp">
+      <Filter>ソース ファイル\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Chara.cpp">
+      <Filter>ソース ファイル\Objects\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.cpp">
+      <Filter>ソース ファイル\External</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Game.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Application.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="AMode.h">
-      <Filter>ヘッダー ファイル\Mode</Filter>
-    </ClInclude>
-    <ClInclude Include="Mode.h">
-      <Filter>ヘッダー ファイル\Mode</Filter>
-    </ClInclude>
-    <ClInclude Include="ModeManager.h">
-      <Filter>ヘッダー ファイル\Mode</Filter>
-    </ClInclude>
-    <ClInclude Include="MathTypes.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>ヘッダー ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="UIBase.h">
-      <Filter>ヘッダー ファイル\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIManager.h">
-      <Filter>ヘッダー ファイル\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="sound.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneTypes.h">
-      <Filter>ヘッダー ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Title.h">
-      <Filter>ヘッダー ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="GamePlay.h">
-      <Filter>ヘッダー ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Result.h">
-      <Filter>ヘッダー ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="GameOver.h">
-      <Filter>ヘッダー ファイル\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="NormalEnemy.h">
       <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
     </ClInclude>
@@ -221,26 +158,83 @@
     <ClInclude Include="Player.h">
       <Filter>ソース ファイル\Objects\Character\Player Character</Filter>
     </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClInclude>
     <ClInclude Include="Combo.h">
-      <Filter>ヘッダー ファイル\GameMechanics</Filter>
+      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
     </ClInclude>
     <ClInclude Include="Exp.h">
-      <Filter>ヘッダー ファイル\GameMechanics</Filter>
-    </ClInclude>
-    <ClInclude Include="Chara.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>ヘッダー ファイル\Objects</Filter>
+      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
     </ClInclude>
     <ClInclude Include="Skill.h">
-      <Filter>ヘッダー ファイル\GameMechanics</Filter>
+      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="AMode.h">
+      <Filter>ソース ファイル\Gameplay\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="Mode.h">
+      <Filter>ソース ファイル\Gameplay\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="ModeManager.h">
+      <Filter>ソース ファイル\Gameplay\Mode</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>ソース ファイル\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="input.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ソース ファイル\System</Filter>
+    </ClInclude>
+    <ClInclude Include="sound.h">
+      <Filter>ソース ファイル\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Chara.h">
+      <Filter>ソース ファイル\Objects\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="UIBase.h">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManager.h">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="GameOver.h">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay.h">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Result.h">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneTypes.h">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Title.h">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="MathTypes.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>ソース ファイル\External</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
