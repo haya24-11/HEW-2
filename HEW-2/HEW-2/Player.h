@@ -20,7 +20,7 @@ class Player : public Chara
 public:
     Player();
 
-    // Player 固有の更新（今は空）
+    // 入力解釈 ⇒ Chara処理呼び出し
     void Update(float deltaTime)override;
 
     // 攻撃の入口
@@ -29,6 +29,9 @@ public:
     // スキル取得時の共通処理
     void ApplyAbility(Skill* skill);
 
+private:
+    // WASD入力を方向ベクトルに変換
+    DirectX::SimpleMath::Vector2 GetMoveInput() const;
 private:
     int exp = 0;
     int level = 1;
