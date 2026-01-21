@@ -18,8 +18,24 @@ public:
     void Attack() override;
 
     void TakeDamage(int damage);
+
+    /*
+        KnockBack
+        ----------
+        ・Mode 側から呼ばれる
+        ・AMode のときだけ呼ばれる想定
+        ・force : ノックバックの初速（方向×強さ）
+    */
     void KnockBack(const DirectX::SimpleMath::Vector2& force);
 
 protected:
     bool isBoss = false;
+
+private:
+    // ノックバック用
+    DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f,0.0f };
+    float knockBackTimer = 0.0f;
+
+    // ノックバック継続時間（秒）
+    float knockBackDuration = 0.15f;
 };
