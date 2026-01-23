@@ -9,7 +9,7 @@ void Title::InitScene()
 	std::cout << "a" << std::endl;
 	
 	Object* obj = AddObject();
-	obj->Init("C:/Users/takoo/Documents/GitHub/HEW-2/HEW-2/HEW-2/asset/titlerogo.png");
+	obj->Init("asset/titlerogo.png");
 	obj->SetPos(0.0f, 0.0f, 0.0f);
 	obj->SetSize(640.0f, 480.0f, 0.0f);
 	obj->SetAngle(0.0f);
