@@ -34,5 +34,6 @@ public:
 
     bool IsChange() const;
     const SceneType GetNextScene() const;//Ÿ‚ÌƒV[ƒ“‚ğæ“¾
+    Object* AddObject();
     void ClearObject();
 };

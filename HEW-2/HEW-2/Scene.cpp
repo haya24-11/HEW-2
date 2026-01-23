@@ -60,6 +60,13 @@ void Scene::SetNextScene(SceneType nextScene)
 	Scene::nextScene = nextScene;
 }
 
+Object* Scene::AddObject()
+{
+	objects.push_back(std::make_unique<Object>());
+	return objects.back().get();
+
+}
+
 void Scene::ClearObject()
 {
 	objects.clear();

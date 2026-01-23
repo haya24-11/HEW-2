@@ -19,7 +19,10 @@ void Result::UpdateScene(float deltaTime)
 
 void Result::DrawScene()
 {
-
+	for (auto& obj : objects)
+	{
+		obj->Draw();
+	}
 }
 void Result::UninitScene()
 {

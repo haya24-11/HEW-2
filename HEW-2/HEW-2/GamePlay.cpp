@@ -20,7 +20,10 @@ void GamePlay::UpdateScene(float deltaTime)
 
 void GamePlay::DrawScene()
 {
-
+	for (auto& obj : objects)
+	{
+		obj->Draw();
+	}
 }
 void GamePlay::UninitScene()
 {

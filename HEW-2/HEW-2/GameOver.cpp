@@ -19,7 +19,10 @@ void GameOver::UpdateScene(float deltaTime)
 
 void GameOver::DrawScene()
 {
-
+	for (auto& obj : objects)
+	{
+		obj->Draw();
+	}
 }
 void GameOver::UninitScene()
 {
