@@ -1,4 +1,5 @@
 #include "SoundManager.h"
+#include <stdio.h>
 
 /*
     SoundManager.cpp
@@ -47,28 +48,41 @@ void SoundManager::PlayBGMFade(SOUND_LABEL next, float fadeTime)
 void SoundManager::Update(float deltaTime)
 {
     if (!m_isCrossFade) return;
+    if (m_fadeTime <= 0.0f) return;
 
     m_fadeTimer += deltaTime;
     float t = m_fadeTimer / m_fadeTime;
     if (t > 1.0f) t = 1.0f;
 
+    printf(
+        "[Sound] current=%d next=%d fadeOut=%d t=%.2f\n",
+        m_currentBGM,
+        m_nextBGM,
+        m_fadeOutBGM,
+        t
+    );
+
     // フェードアウト（旧BGM）
-    if (m_currentBGM != SOUND_LABEL_MAX)
+    if (m_fadeOutBGM != SOUND_LABEL_MAX)
     {
-        sound.SetVolume(m_currentBGM, 1.0f - t);
+        sound.SetVolume(m_fadeOutBGM, 1.0f - t);
+
+        if (t >= 1.0f)
+        {
+            sound.Stop(m_fadeOutBGM);
+            m_fadeOutBGM = SOUND_LABEL_MAX;
+        }
     }
 
     // フェードイン（新BGM）
-    sound.SetVolume(m_nextBGM, t);
+    if (m_nextBGM != SOUND_LABEL_MAX)
+    {
+        sound.SetVolume(m_nextBGM, t);
+    }
 
-    // 完了
+    // クロスフェード完了
     if (t >= 1.0f)
     {
-        if (m_currentBGM != SOUND_LABEL_MAX)
-        {
-            sound.Stop(m_currentBGM);
-        }
-
         m_currentBGM = m_nextBGM;
         m_nextBGM = SOUND_LABEL_MAX;
         m_isCrossFade = false;
