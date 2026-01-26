@@ -2,6 +2,7 @@
 
 #include <xaudio2.h>
 
+
 // サウンドファイル
 typedef enum
 {
@@ -47,6 +48,10 @@ private:
 	HRESULT FindChunk(HANDLE, DWORD, DWORD&, DWORD&);
 	HRESULT ReadChunkData(HANDLE, void*, DWORD, DWORD);
 
+	// 音量管理用の変数を追加
+	float m_volumeBGM = 1.0f; // デフォルト音量
+	float m_volumeSE = 5.0f;
+
 public:
 	// ゲームループ開始前に呼び出すサウンドの初期化処理
 	HRESULT Init(void);
@@ -62,5 +67,17 @@ public:
 
 	// 引数で指定したサウンドの再生を再開する
 	void Resume(SOUND_LABEL label);
+
+	//==============================
+	// 【追加】
+	// 指定したサウンドの音量を変更する
+	// label : 音の識別子
+	// volume: 0.0f（無音）～1.0f（最大）
+	//==============================
+	void SetVolume(SOUND_LABEL label, float volume);
+
+	// 音量調整を追加
+	void SetVolumeBGM(float volume);  // BGM専用
+	void SetVolumeSE(float volume);   // SE専用
 
 };

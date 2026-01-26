@@ -240,3 +240,51 @@ HRESULT Sound::ReadChunkData(HANDLE hFile, void* buffer, DWORD buffersize, DWORD
 		hr = HRESULT_FROM_WIN32(GetLastError());
 	return hr;
 }
+
+//=============================================================================
+// BGM・SE音量調整用
+//=============================================================================
+void Sound::SetVolume(SOUND_LABEL label, float volume)
+{
+	if (label < 0 || label >= SOUND_LABEL_MAX)
+		return;
+
+	// clamp の代替（C++14）
+	if (volume < 0.0f) volume = 0.0f;
+	if (volume > 1.0f) volume = 1.0f;
+
+	// 未生成・未再生対策
+	if (m_pSourceVoice[label] == nullptr)
+		return;
+
+	m_pSourceVoice[label]->SetVolume(volume);
+}
+
+void Sound::SetVolumeBGM(float volume)
+{
+	if (volume < 0.0f) volume = 0.0f;
+	if (volume > 1.0f) volume = 1.0f;
+
+	m_volumeBGM = volume;
+
+	for (int i = 0; i < SOUND_LABEL_MAX; i++)
+	{
+		if (m_param[i].bLoop && m_pSourceVoice[i])
+		{
+			m_pSourceVoice[i]->SetVolume(m_volumeBGM);
+		}
+	}
+}
+
+void Sound::SetVolumeSE(float volume)
+{
+	m_volumeSE = volume;
+	for (int i = 0; i < SOUND_LABEL_MAX; i++)
+	{
+		if (i == SOUND_LABEL_BGM_TITLE) continue; // BGMは除外
+		if (m_pSourceVoice[i])
+		{
+			m_pSourceVoice[i]->SetVolume(m_volumeSE);
+		}
+	}
+}
