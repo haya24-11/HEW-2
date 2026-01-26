@@ -136,6 +136,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AMode.cpp" />
+    <ClCompile Include="Animator.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Chara.cpp" />
@@ -168,6 +172,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AMode.h" />
+    <ClInclude Include="Animator.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Boss.h" />
     <ClInclude Include="Chara.h" />

@@ -7,16 +7,51 @@ Player::Player()
 	power = 10;
 
 	moveSpeed = 50.0f; // Player 固有の速さ
+
+	// ===== Animation定義 =====
+	// スプライトシート：4×4（16枚）想定
+
+	// 待機（0?30）
+	m_idleAnim.startFrame = 0;
+	m_idleAnim.frameCount = 30;
+	m_idleAnim.frameTime = 0.15f;
+	m_idleAnim.loop = true;
+
+	// 歩き（4?9）
+
+	m_walkAnim.startFrame = 4;
+	m_walkAnim.frameCount = 6;
+	m_walkAnim.frameTime = 0.1f;
+	m_walkAnim.loop = true;
+}
+
+int Player::GetAnimFrame() const
+{
+	return m_animator.GetCurrentFrame();
 }
 
 void Player::Update(float deltaTime)
 {
 	if (!m_object) return;
 	printf("[Player] dt=%.3f\n", deltaTime);
-
+	// -------------------------
+	// 移動入力
+	// -------------------------
 	auto dir = GetMoveInput();
+	bool isMoving = (dir.LengthSquared() > 0.0f);
 
-	// 移動は Chara に任せる
+	// -------------------------
+	// アニメーション更新
+	// -------------------------
+	if (isMoving)
+		m_animator.Play(m_walkAnim);
+	else
+		m_animator.Play(m_idleAnim);
+
+	// アニメ更新
+	m_animator.Update(deltaTime);
+
+	// 移動
 	Move(dir, deltaTime);
 
 	// 生存判定など
