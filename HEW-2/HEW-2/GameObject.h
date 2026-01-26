@@ -2,7 +2,7 @@
 #include <DirectXMath.h>
 #include <SimpleMath.h>
 #include "MathTypes.h"
-
+#include "Object.h"
 
 /*
     GameObject
@@ -17,7 +17,7 @@
     ※ 描画、入力、シーン遷移、AI などは一切持たない
 */
 
-class GameObject
+class GameObject : public Object
 {
 public:
     virtual ~GameObject() = default;

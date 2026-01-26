@@ -1,6 +1,6 @@
 #pragma once
 #include "Chara.h"
-
+#include "Object.h"
 /*
     Enemy
     =====
