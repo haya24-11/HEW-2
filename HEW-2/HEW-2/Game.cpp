@@ -23,6 +23,11 @@ void Game::Init()
 
     Input::Create();
     scenes[static_cast<int>(currentScene)]->CommonInit();
+
+    // SoundManager 初期化
+    SoundManager::GetInstance().Init();
+
+    ChangeBGM(currentScene);
 }
 
 //更新処理
@@ -42,6 +47,9 @@ void Game::Update(float fps)
 
         // 現在のシーン情報を更新
         currentScene = nextScene;
+
+        // ★ ここでBGM切り替え
+        ChangeBGM(currentScene);
     }
 }
 
@@ -61,5 +69,48 @@ void Game::Draw()
 //終了処理
 void Game::Uninit()
 {
+    SoundManager::GetInstance().Uninit();
     Input::Release();
+}
+
+SOUND_LABEL Game::GetBGMFromScene(SceneType scene)
+{
+    switch (scene)
+    {
+    case SceneType::Title:
+        return SOUND_LABEL_BGM_TITLE;
+
+    case SceneType::GamePlay:
+        return SOUND_LABEL_BGM_GAME;
+
+    case SceneType::Result:
+        return SOUND_LABEL_BGM_RESULT;
+
+    case SceneType::GameOver:
+        return SOUND_LABEL_BGM_GAMEOVER;
+
+    default:
+        return SOUND_LABEL_MAX;
+    }
+}
+
+void Game::ChangeBGM(SceneType scene)
+{
+    SOUND_LABEL nextBGM = GetBGMFromScene(scene);
+
+    // 同じBGMなら何もしない
+    if (nextBGM == SOUND_LABEL_MAX || currentBGM == nextBGM)
+        return;
+
+    auto& sound = SoundManager::GetInstance();
+
+    // 以前のBGMを止める
+    if (currentBGM != SOUND_LABEL_MAX)
+    {
+        sound.Stop(currentBGM);
+    }
+
+    // 新しいBGMを再生
+    sound.Play(nextBGM);
+    currentBGM = nextBGM;
 }

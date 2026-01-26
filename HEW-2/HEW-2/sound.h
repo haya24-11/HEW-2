@@ -5,8 +5,10 @@
 // サウンドファイル
 typedef enum
 {
-	SOUND_LABEL_BGM000 = 0,		// サンプルBGM
-	//SOUND_LABEL_BGM001,		// サンプルBGM
+	SOUND_LABEL_BGM_TITLE = 0,		// タイトルシーン BGM（初期）
+	SOUND_LABEL_BGM_GAME,			// ゲームプレイ BGM
+	SOUND_LABEL_BGM_RESULT,			// リザルトシーン BGM
+	SOUND_LABEL_BGM_GAMEOVER,	// ゲームオーバーシーン BGM
 	//SOUND_LABEL_SE000,		// サンプルSE
 	//SOUND_LABEL_SE001,		// サンプルSE
 
@@ -24,8 +26,10 @@ private:
 
 	PARAM m_param[SOUND_LABEL_MAX] =
 	{
-		{"asset/BGM/sample000.wav", true},	// サンプルBGM（ループさせるのでtrue設定）
-//		{"asset/BGM/○○○.wav", true},	// サンプルBGM
+		{"asset/BGM/BGM_Title.wav", true},			// タイトルシーン BGM（ループさせるのでtrue設定）
+		{"asset/BGM/BGM_GamePlay.wav", true},	// ゲームプレイ BGM
+		{"asset/BGM/BGM_Result.wav", true},			// リザルトシーン BGM
+		{"asset/BGM/BGM_Result.wav", true},			// ゲームオーバーシーン BGM
 //		{"asset/SE/○○○.wav", false},  		// サンプルSE（ループしないのでfalse設定）
 //		{"asset/SE/○○○.wav", false},		// サンプルSE
 
@@ -38,7 +42,7 @@ private:
 	IXAudio2SourceVoice* m_pSourceVoice[SOUND_LABEL_MAX];
 	WAVEFORMATEXTENSIBLE m_wfx[SOUND_LABEL_MAX]; // WAVフォーマット
 	XAUDIO2_BUFFER m_buffer[SOUND_LABEL_MAX];
-	BYTE* m_DataBuffer[SOUND_LABEL_MAX];
+	BYTE* m_DataBuffer[SOUND_LABEL_MAX] = {};
 
 	HRESULT FindChunk(HANDLE, DWORD, DWORD&, DWORD&);
 	HRESULT ReadChunkData(HANDLE, void*, DWORD, DWORD);
