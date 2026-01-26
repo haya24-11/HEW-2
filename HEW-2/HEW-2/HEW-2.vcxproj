@@ -157,6 +157,7 @@
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
+    <ClCompile Include="SkillAxe.cpp" />
     <ClCompile Include="SkillExample.cpp" />
     <ClCompile Include="SkillSword.cpp" />
     <ClCompile Include="sound.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Skill.h" />
+    <ClInclude Include="SkillAxe.h" />
     <ClInclude Include="SkillExample.h" />
     <ClInclude Include="SkillSword.h" />
     <ClInclude Include="sound.h" />
