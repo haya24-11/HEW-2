@@ -1,6 +1,7 @@
 #pragma once
 #include <SimpleMath.h>
 #include <string>
+#include"SkillType.h"
 
 class Player;
 
@@ -14,7 +15,7 @@ class Player;
 class Skill
 {
 public:
-    Skill(const std::string& name, int id);
+    Skill(const std::string& name, int id,SkillType skilltype);
     virtual ~Skill() = default;
 
     // ★スキルの派生クラスを作る際に↓のコメントを外す
@@ -24,4 +25,7 @@ public:
 protected:
     std::string skillName;
     int skillId = 0;
+    SkillType skillType;
+
+
 };
