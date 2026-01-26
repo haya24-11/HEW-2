@@ -16,3 +16,9 @@ DirectX::SimpleMath::Vector2 SkillSword::GetArea() const
 {
 	return SwordArea;
 }
+#include "SkillExample.h"
+
+SkillExample::SkillExample() :Skill("Example", -1, SkillType::Weapon)
+{
+
+}
