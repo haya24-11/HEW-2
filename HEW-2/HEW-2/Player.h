@@ -50,6 +50,14 @@ private:
     };
     State m_state = State::Idle;
 
+    enum class Facing
+    {
+        Right,
+        Left
+    };
+    Facing m_facing = Facing::Right;
+    bool m_facingRight = true; // ‰Šú‚Í‰EŒü‚«
+
     int exp = 0;
     int level = 1;
     int m_animFrame = 0;     // Œ»İ‚ÌƒtƒŒ[ƒ€

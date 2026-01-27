@@ -10,24 +10,31 @@ Player::Player()
 
 	// ===== Animation定義 =====
 	// 待機（idle.png）
-	m_idleAnim = { 0, 4, 0.25f, true };
+	m_idleAnim = { 0, 30, 0.15f, true };
 
 	// 移動（walk.png）
-	m_walkAnim = { 0, 6, 0.1f, true };
+	m_walkAnim = { 0, 8, 0.1f, true };
 }
 
 void Player::Update(float deltaTime)
 {
-	//if (!m_object) return;
 	printf("[Player] dt=%.3f\n", deltaTime);
-	// -------------------------
-	// 移動入力
-	// -------------------------
+	// ===== 入力 =====
 	auto dir = GetMoveInput();
 	printf("dir = (%.1f, %.1f)\n", dir.x, dir.y);
 	bool isMoving = (dir.LengthSquared() > 0.0f);
 
-	// 移動
+	// ===== 向き更新（入力がある時だけ）=====
+	if (dir.x > 0.0f)
+	{
+		m_facingRight = true;
+	}
+	else if (dir.x < 0.0f)
+	{
+		m_facingRight = false;
+	}
+
+	// ===== 移動 =====
 	auto before = GetPos();
 	Move(dir, deltaTime);
 	auto after = GetPos();
@@ -39,21 +46,26 @@ void Player::Update(float deltaTime)
 	if (isMoving && m_state != State::Walk)
 	{
 		m_state = State::Walk;
-
-		m_object->Init("asset/Texture/player_walk.png");
+		m_object->SetTexture("asset/Texture/player_walk.png");
 		m_object->SetSpriteSheet(3, 3);
-
 		m_animator.Play(m_walkAnim);
 	}
 	else if (!isMoving && m_state != State::Idle)
 	{
 		m_state = State::Idle;
-
-		m_object->Init("asset/Texture/player_idle.png");
+		m_object->SetTexture("asset/Texture/player_idle.png");
 		m_object->SetSpriteSheet(6, 6);
-
 		m_animator.Play(m_idleAnim);
 	}
+	// ===== ★ 向き反映 =====
+	/*
+		Idle : 原画は右向き
+		Walk : 原画は左向き
+	*/
+	bool textureIsRightFacing = (m_state == State::Idle);
+	// 原画の向き と 向きたい方向 が違えば反転
+	bool flipX = (textureIsRightFacing != m_facingRight);
+	m_object->SetFlipX(flipX);
 
 	// アニメ更新
 	m_animator.Update(deltaTime);

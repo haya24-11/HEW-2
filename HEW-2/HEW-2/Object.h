@@ -52,6 +52,8 @@ private:
 
 	float m_frameU = 1.0f; // 1フレームのUサイズ
 	float m_frameV = 1.0f; // 1フレームのVサイズ
+
+	bool m_flipX = false;  // ← 左右反転フラグ
 public:
 	float numU = 0;
 	float numV = 0;
@@ -67,6 +69,9 @@ public:
 	void SetAngle(float a);						// 角度をセット
 	void SetColor(float r, float g, float b, float a); // 色をセット
 
+	void SetFlipX(bool flip);
+
+	void SetTexture(const char* imgname);
 
 	DirectX::XMFLOAT3 GetPos(void);	//	座標をゲット
 	DirectX::XMFLOAT3 GetSize(void);	// 大きさをゲット
