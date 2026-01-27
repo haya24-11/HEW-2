@@ -23,7 +23,7 @@ public:
     // HP監視など最低限の更新
     void Update(float deltaTime)override;
 
-    void SetObject(Object* obj) { m_object = obj; }
+
     /*
         Move
         ----
@@ -40,13 +40,10 @@ public:
     
 
 protected:
-    Object* m_object = nullptr;
-
-    DirectX::SimpleMath::Vector3 position{};
     int hp = 1;
     int power = 1; // 基礎攻撃力（スキルで変化）
     int status = 0; // 状態管理用（仮）
- 
+
     // １秒当たりの移動量
-    float moveSpeed = 300.0f;
-};
+    float moveSpeed = 200.0f;
+};;

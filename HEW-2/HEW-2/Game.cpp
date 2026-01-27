@@ -23,27 +23,12 @@ void Game::Init()
 
     Input::Create();
     scenes[static_cast<int>(currentScene)]->CommonInit();
-
-    // SoundManager 初期化
-    SoundManager::GetInstance().Init();
-
-    // ★ 起動時BGMは即再生（フェードなし）
-    SOUND_LABEL startBGM = GetBGMFromScene(currentScene);
-    SoundManager::GetInstance().Play(startBGM);
-
-    // SoundManager 側の状態も合わせる
-    SoundManager::GetInstance().SetCurrentBGM(startBGM);
-
-    ChangeBGM(currentScene);
 }
 
 //更新処理
 void Game::Update(float fps)
 {
     Input::Update();
-
-    SoundManager::GetInstance().Update(1.0f / fps);
-
     scenes[static_cast<int>(currentScene)]->UpdateScene(fps);
 
     SceneType nextScene = scenes[static_cast<int>(currentScene)]->GetNextScene();
@@ -57,9 +42,6 @@ void Game::Update(float fps)
 
         // 現在のシーン情報を更新
         currentScene = nextScene;
-
-        // ★ ここでBGM切り替え
-        ChangeBGM(currentScene);
     }
 }
 
@@ -79,54 +61,5 @@ void Game::Draw()
 //終了処理
 void Game::Uninit()
 {
-    SoundManager::GetInstance().Uninit();
     Input::Release();
-}
-
-SOUND_LABEL Game::GetBGMFromScene(SceneType scene)
-{
-    switch (scene)
-    {
-    case SceneType::Title:
-        return SOUND_LABEL_BGM_TITLE;
-
-    case SceneType::GamePlay:
-        return SOUND_LABEL_BGM_GAME;
-
-    case SceneType::Result:
-        return SOUND_LABEL_BGM_RESULT;
-
-    case SceneType::GameOver:
-        return SOUND_LABEL_BGM_GAMEOVER;
-
-    default:
-        return SOUND_LABEL_MAX;
-    }
-}
-
-void Game::ChangeBGM(SceneType scene)
-{
-    SOUND_LABEL nextBGM = GetBGMFromScene(scene);
-    SoundManager::GetInstance().RequestBGM(nextBGM);
-
-    // 同じBGMなら何もしない
-    if (nextBGM == SOUND_LABEL_MAX || currentBGM == nextBGM)
-        return;
-
-    auto& sound = SoundManager::GetInstance();
-    SoundManager::GetInstance().PlayBGMFade(nextBGM, 1.0f);
-
-    // 以前のBGMを止める
-    if (currentBGM != SOUND_LABEL_MAX)
-    {
-        sound.Stop(currentBGM);
-    }
-
-    // フェードアウト → フェードイン
-    sound.FadeOutBGM(0.5f);
-    sound.FadeInBGM(nextBGM, 0.5f);
-
-    // 新しいBGMを再生
-    sound.Play(nextBGM);
-    currentBGM = nextBGM;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "Chara.h"
-#include "Object.h"
+
 /*
     Enemy
     =====
@@ -31,6 +31,7 @@ public:
 protected:
     bool isBoss = false;
 
+private:
     // ノックバック用
     DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f,0.0f };
     float knockBackTimer = 0.0f;

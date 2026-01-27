@@ -5,8 +5,5 @@ class NormalEnemy :public Enemy
 {
 public:
 	NormalEnemy();
-
-
-
 };
 
