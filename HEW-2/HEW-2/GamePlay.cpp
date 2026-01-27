@@ -9,23 +9,22 @@ void GamePlay::InitScene()
 {
 	std::cout << "InitScene" << std::endl;
 
-	// =========================
+	// ==================================================
 	// PLAYER OBJECT 初期化
-	// =========================
-	Object* player = AddObject();
-	player->Init("asset/Texture/player_Stand.png");
-	// スプライトシート設定
-	// player.png は 4×4 = 16フレームの想定
-	player->SetSpriteSheet(6, 6);
-	player->SetPos(0.0f, 0.0f, 0.0f);
-	player->SetSize(150.0f, 170.0f, 0.0f);
+	// ==================================================
+	// ----- Idle（待機） Object -----
+	Object* playerObj = AddObject();
+	playerObj->Init("asset/Texture/player_idle.png");
+	playerObj->SetSpriteSheet(6, 6);
+	playerObj->SetSize(150.0f, 170.0f, 0.0f);
+	playerObj->SetPos(0.0f, 0.0f, 0.0f);
 
-    m_player = std::make_unique<Player>();
-    m_player->SetObject(player);
+	m_player = std::make_unique<Player>();
+	m_player->SetObject(playerObj);
 
-	// =========================
+	// ==================================================
 	// ENEMY OBJECT 初期化
-	// =========================
+	// ==================================================
 	Object* enemy = AddObject();
 	enemy->Init("asset/Texture/NormalEnemy.png");
 	enemy->SetPos(200.0f, 0.0f, 0.0f);

@@ -22,11 +22,11 @@ public:
     Player();
 
     Object* GetObject() const { return m_object; }
-    // 描画用
-    int GetAnimFrame() const;
 
     // 入力解釈 ⇒ Chara処理呼び出し
     void Update(float deltaTime)override;
+
+    int GetAnimFrame() const;
 
     // 攻撃の入口
     void Attack() override;
@@ -43,6 +43,13 @@ private:
     Animation m_idleAnim;
     Animation m_walkAnim;
     
+    enum class State
+    {
+        Idle,
+        Walk
+    };
+    State m_state = State::Idle;
+
     int exp = 0;
     int level = 1;
     int m_animFrame = 0;     // 現在のフレーム

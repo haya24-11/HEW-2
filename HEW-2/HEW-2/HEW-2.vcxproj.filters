@@ -147,6 +147,9 @@
     <ClCompile Include="SoundManager.cpp">
       <Filter>ソース ファイル\System</Filter>
     </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>ソース ファイル\System</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NormalEnemy.h">
@@ -240,6 +243,9 @@
       <Filter>ソース ファイル\External</Filter>
     </ClInclude>
     <ClInclude Include="SoundManager.h">
+      <Filter>ソース ファイル\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
       <Filter>ソース ファイル\System</Filter>
     </ClInclude>
   </ItemGroup>
