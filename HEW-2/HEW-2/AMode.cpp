@@ -1,12 +1,15 @@
 #include "AMode.h"
 
-void AMode::WeakAttck()
+AMode::AMode()
 {
-	int damage = weakPower;
-
-	/*weakAttckArea;*/
 }
 
-void AMode::StrongAttkc()
+int AMode::WeakAttack(int BaseAtk)
 {
+	return BaseAtk* weakAtk;
+}
+
+int AMode::StrongAttakc(int BaseAtk,float pushTime)
+{
+	return BaseAtk * strongAtkMin * pushTime;
 }
