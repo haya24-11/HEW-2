@@ -2,44 +2,44 @@
 #include <string>
 #include <DirectXMath.h>
 #include "Renderer.h"
-#include"Texture.h"	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+#include"Texture.h"	// ï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ï¿½
 #include <SimpleMath.h>
 #include"Collision.h"
 class Object {
 
 private:
-	// ’¸“_ƒf[ƒ^
+	// ï¿½ï¿½ï¿½_ï¿½fï¿½[ï¿½^
 	Vertex m_vertexList[4] =
 	{
 		//	x		y		z		r		g		b		a		u		v
-		{ -0.5f,  0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	0.0f	},  // 0”Ô–Ú‚Ì’¸“_À•W@{ x, y, z } (r,g,b,a}
-		{  0.5f,   0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f	},  // 1”Ô–Ú‚Ì’¸“_À•W
-		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	1.0f	},  // 2”Ô–Ú‚Ì’¸“_À•W
-		{  0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f	},  // 3”Ô–Ú‚Ì’¸“_À•W
+		{ -0.5f,  0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	0.0f	},  // 0ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½Wï¿½@{ x, y, z } (r,g,b,a}
+		{  0.5f,   0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f	},  // 1ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½W
+		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	1.0f	},  // 2ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½W
+		{  0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f	},  // 3ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½W
 
 		/*
 		//	x		y		z		r		g		b		a		u		v
-		{ -0.5f,  0.5f, 0.5f,	1.0f,	0.0f,	1.0f,	1.0f,	0.0f,	0.0f	},  // 0”Ô–Ú‚Ì’¸“_À•W@{ x, y, z } (r,g,b,a}
-		{  0.5f,   0.5f, 0.5f,	0.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f	},  // 1”Ô–Ú‚Ì’¸“_À•W
-		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f,	1.0f	},  // 2”Ô–Ú‚Ì’¸“_À•W
-		{  0.5f, -0.5f, 0.5f,	1.0f,	0.0f,	1.0f,	1.0f,	1.0f,	1.0f	},  // 3”Ô–Ú‚Ì’¸“_À•W
+		{ -0.5f,  0.5f, 0.5f,	1.0f,	0.0f,	1.0f,	1.0f,	0.0f,	0.0f	},  // 0ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½Wï¿½@{ x, y, z } (r,g,b,a}
+		{  0.5f,   0.5f, 0.5f,	0.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f	},  // 1ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½W
+		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f,	1.0f	},  // 2ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½W
+		{  0.5f, -0.5f, 0.5f,	1.0f,	0.0f,	1.0f,	1.0f,	1.0f,	1.0f	},  // 3ï¿½Ô–Ú‚Ì’ï¿½ï¿½_ï¿½ï¿½ï¿½W
 		*/
 	};
 
-	// À•W
-	DirectX::XMFLOAT3 m_pos = { 0.0f,0.0f,0.0f }; // ƒIƒuƒWƒFƒNƒg‚ÌÀ•W‚ğ‘ã“ü‚·‚é•Ï”
-	// ‘å‚«‚³
+	// ï¿½ï¿½ï¿½W
+	DirectX::XMFLOAT3 m_pos = { 0.0f,0.0f,0.0f }; // ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ìï¿½ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïï¿½
+	// ï¿½å‚«ï¿½ï¿½
 	DirectX::XMFLOAT3 m_size = { 100.0f,100.0f,0.0f };
-	// Šp“x
+	// ï¿½pï¿½x
 	float m_angle = 0.0f;
-	// ¦ƒIƒuƒWƒFƒNƒg‚Ì‘å‚«‚³‚ÆŠp“x‚ğ‘ã“ü‚·‚é•Ï”
-	// F
-	DirectX::XMFLOAT4 m_color = { 1.0f,1.0f,1.0f,1.0f }; // ƒfƒtƒHƒ‹ƒgF
+	// ï¿½ï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½Ì‘å‚«ï¿½ï¿½ï¿½ÆŠpï¿½xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïï¿½
+	// ï¿½F
+	DirectX::XMFLOAT4 m_color = { 1.0f,1.0f,1.0f,1.0f }; // ï¿½fï¿½tï¿½Hï¿½ï¿½ï¿½gï¿½F
 
 
-	// ’¸“_ƒoƒbƒtƒ@
+	// ï¿½ï¿½ï¿½_ï¿½oï¿½bï¿½tï¿½@
 	ID3D11Buffer* m_pVertexBuffer;
-	// ƒeƒNƒXƒ`ƒƒ—p•Ï”
+	// ï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½pï¿½Ïï¿½
 	ID3D11ShaderResourceView* m_pTextureView;
 
 	ID3D11ShaderResourceView* m_texture = nullptr;
@@ -47,41 +47,45 @@ private:
 	DirectX::SimpleMath::Vector3 position{};
 	DirectX::SimpleMath::Vector3 size{};
 
-	// ƒeƒNƒXƒ`ƒƒ‚ªc‚ærq‚É‰½•ªŠ„‚³‚ê‚Ä‚¢‚é‚©
-	int m_splitX = 1;	// ‰¡•ªŠ„”
-	int m_splitY = 1;	// c•ªŠ„”
+	// ï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½ï¿½ï¿½cï¿½ï¿½rï¿½qï¿½É‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚©
+	int m_splitX = 1;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int m_splitY = 1;	// ï¿½cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	float m_frameU = 1.0f; // 1ƒtƒŒ[ƒ€‚ÌUƒTƒCƒY
-	float m_frameV = 1.0f; // 1ƒtƒŒ[ƒ€‚ÌVƒTƒCƒY
+	float m_frameU = 1.0f; // 1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½Uï¿½Tï¿½Cï¿½Y
+	float m_frameV = 1.0f; // 1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½Vï¿½Tï¿½Cï¿½Y
 
 // Collision (Circle)
 	Collision m_collider;
+	bool m_flipX = false;  // ï¿½ï¿½ ï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½]ï¿½tï¿½ï¿½ï¿½O
 public:
 	float numU = 0;
 	float numV = 0;
-	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// ‰Šú‰»
-	void Draw();							// ’Êí•`‰æ
-	void Draw(int frameIndex);	//  ƒAƒjƒ[ƒVƒ‡ƒ“•`‰æ
-	//  ƒXƒvƒ‰ƒCƒgƒV[ƒgî•ñİ’è
+	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	void Draw();							// ï¿½Êï¿½`ï¿½ï¿½
+	void Draw(int frameIndex);	//  ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½`ï¿½ï¿½
+	//  ï¿½Xï¿½vï¿½ï¿½ï¿½Cï¿½gï¿½Vï¿½[ï¿½gï¿½ï¿½ï¿½İ’ï¿½
 	void SetSpriteSheet(int splitX, int splitY);
 
-	void Uninit();										// I—¹
-	void SetPos(float x, float y, float z);	// À•W‚ğƒZƒbƒg
-	void SetSize(float x, float y, float z); // ‘å‚«‚³‚ğƒZƒbƒg
-	void SetAngle(float a);						// Šp“x‚ğƒZƒbƒg
-	void SetColor(float r, float g, float b, float a); // F‚ğƒZƒbƒg
+	void Uninit();										// ï¿½Iï¿½ï¿½
+	void SetPos(float x, float y, float z);	// ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Zï¿½bï¿½g
+	void SetSize(float x, float y, float z); // ï¿½å‚«ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½g
+	void SetAngle(float a);						// ï¿½pï¿½xï¿½ï¿½ï¿½Zï¿½bï¿½g
+	void SetColor(float r, float g, float b, float a); // ï¿½Fï¿½ï¿½ï¿½Zï¿½bï¿½g
 
 	// Collision
-	// ”¼Œa‚ğè“®‚Åİ’è‚µ‚½‚¢ê‡‚Ég—pi–¢İ’è‚È‚ç SetSize() ‚Ì’l‚©‚ç©“®ŒvZj
+	// ï¿½ï¿½ï¿½aï¿½ï¿½ï¿½è“®ï¿½Åİ’è‚µï¿½ï¿½ï¿½ï¿½ï¿½ê‡ï¿½Égï¿½pï¿½iï¿½ï¿½ï¿½İ’ï¿½È‚ï¿½ SetSize() ï¿½Ì’lï¿½ï¿½ï¿½ç©ï¿½ï¿½ï¿½vï¿½Zï¿½j
 	void SetCollisionRadius(float r);
-	// ƒRƒ‰ƒCƒ_i‰~j‚É’¼ÚƒAƒNƒZƒX‚µ‚½‚¢ê‡
+	// ï¿½Rï¿½ï¿½ï¿½Cï¿½_ï¿½iï¿½~ï¿½jï¿½É’ï¿½ï¿½ÚƒAï¿½Nï¿½Zï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‡
 	Collision& GetCollider();
 	const Collision& GetCollider() const;
-	// ‘¼‚Ì Object ‚Æ‚Ì“–‚½‚è”»’è
+	// ï¿½ï¿½ï¿½ï¿½ Object ï¿½Æ‚Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½
 	bool CheckCollision(const Object& other) const;
+	void SetFlipX(bool flip);
 
-	DirectX::XMFLOAT3 GetPos(void);	//	À•W‚ğƒQƒbƒg
-	DirectX::XMFLOAT3 GetSize(void);	// ‘å‚«‚³‚ğƒQƒbƒg
-	float GetAngle(void);						// Šp“x‚ğƒZƒbƒg
-	DirectX::XMFLOAT4 GetColor(void);	// F‚ğƒZƒbƒg
+	void SetTexture(const char* imgname);
+
+	DirectX::XMFLOAT3 GetPos(void);	//	ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Qï¿½bï¿½g
+	DirectX::XMFLOAT3 GetSize(void);	// ï¿½å‚«ï¿½ï¿½ï¿½ï¿½ï¿½Qï¿½bï¿½g
+	float GetAngle(void);						// ï¿½pï¿½xï¿½ï¿½ï¿½Zï¿½bï¿½g
+	DirectX::XMFLOAT4 GetColor(void);	// ï¿½Fï¿½ï¿½ï¿½Zï¿½bï¿½g
 };
