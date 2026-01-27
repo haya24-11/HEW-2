@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include"Texture.h"	// テクスチャ読み込み
 #include <SimpleMath.h>
+#include"Collision.h"
 class Object {
 
 private:
@@ -52,6 +53,9 @@ private:
 
 	float m_frameU = 1.0f; // 1フレームのUサイズ
 	float m_frameV = 1.0f; // 1フレームのVサイズ
+
+// Collision (Circle)
+	Collision m_collider;
 public:
 	float numU = 0;
 	float numV = 0;
@@ -67,6 +71,14 @@ public:
 	void SetAngle(float a);						// 角度をセット
 	void SetColor(float r, float g, float b, float a); // 色をセット
 
+	// Collision
+	// 半径を手動で設定したい場合に使用（未設定なら SetSize() の値から自動計算）
+	void SetCollisionRadius(float r);
+	// コライダ（円）に直接アクセスしたい場合
+	Collision& GetCollider();
+	const Collision& GetCollider() const;
+	// 他の Object との当たり判定
+	bool CheckCollision(const Object& other) const;
 
 	DirectX::XMFLOAT3 GetPos(void);	//	座標をゲット
 	DirectX::XMFLOAT3 GetSize(void);	// 大きさをゲット

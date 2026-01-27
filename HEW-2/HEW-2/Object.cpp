@@ -167,6 +167,8 @@ void Object::SetPos(float x, float y, float z) {
 	m_pos.y = y;
 	m_pos.z = z;
 	// ※positionデータを代入する関数
+
+	m_collider.SetPosition({ x, y });
 }
 
 void Object::SetSize(float x, float y, float z)
@@ -176,6 +178,11 @@ void Object::SetSize(float x, float y, float z)
 	m_size.y = y;
 	m_size.z = z;
 	// ※sizeデータを代入する関数
+	// 100x100なら radius = (100+100)*0.25 = 50
+	m_collider.SetRadius((x + y) * 0.25f);
+
+	// もしSetSizeだけ先に呼ぶ状況に備えて位置もまた更新
+	m_collider.SetPosition({ m_pos.x, m_pos.y });
 }
 
 void Object::SetAngle(float a)
@@ -206,3 +213,26 @@ float Object::GetAngle(void) {
 DirectX::XMFLOAT4 Object::GetColor(void) {
 	return m_color;	// 色をセット
 }
+
+// Collision 
+
+void Object::SetCollisionRadius(float r)
+{
+	m_collider.SetRadius(r);
+}
+
+Collision& Object::GetCollider()
+{
+	return m_collider;
+}
+
+const Collision& Object::GetCollider() const
+{
+	return m_collider;
+}
+
+bool Object::CheckCollision(const Object& other) const
+{
+	return m_collider.Intersects(other.m_collider);
+}
+

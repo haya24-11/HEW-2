@@ -49,4 +49,4 @@ private:
     float m_animTimer = 0;  // 経過時間
     
     std::vector<Skill*> skills; // Skillは所有しない（Mode側管理）
-};
+};  
