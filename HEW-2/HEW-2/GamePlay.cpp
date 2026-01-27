@@ -10,9 +10,14 @@ void GamePlay::InitScene()
 {
 	std::cout << "InitScene" << std::endl;
 
-	// PLAYER OBJECT
+	// =========================
+	// PLAYER OBJECT 初期化
+	// =========================
 	Object* player = AddObject();
-	player->Init("asset/Texture/player.png");
+	player->Init("asset/Texture/player_Stand.png");
+	// スプライトシート設定
+	// player.png は 4×4 = 16フレームの想定
+	player->SetSpriteSheet(6, 6);
 	player->SetPos(0.0f, 0.0f, 0.0f);
 	player->SetSize(100.0f, 100.0f, 0.0f);
     player->SetCollisionRadius(50.0f);
@@ -25,6 +30,7 @@ void GamePlay::InitScene()
 
 
 }
+
 void GamePlay::UpdateScene(float deltaTime)
 {
     Object* player = (objects.size() > 0) ? objects[0].get() : nullptr;
@@ -75,15 +81,21 @@ void GamePlay::UpdateScene(float deltaTime)
         SetNextScene(SceneType::Result);
 }
 
-
-
 void GamePlay::DrawScene()
 {
 	for (auto& obj : objects)
 	{
-		obj->Draw();
+		if (obj.get() == m_player->GetObject())
+		{
+			obj->Draw(m_player->GetAnimFrame());
+		}
+		else
+		{
+			obj->Draw();
+		}
 	}
 }
+
 void GamePlay::UninitScene()
 {
 	std::cout << "UninitScene" << std::endl;

@@ -1,6 +1,9 @@
 #pragma once
+#include <string>
+#include <DirectXMath.h>
 #include "Renderer.h"
 #include"Texture.h"	// テクスチャ読み込み
+#include <SimpleMath.h>
 #include"Collision.h"
 class Object {
 
@@ -39,18 +42,31 @@ private:
 	// テクスチャ用変数
 	ID3D11ShaderResourceView* m_pTextureView;
 
+	ID3D11ShaderResourceView* m_texture = nullptr;
+
+	DirectX::SimpleMath::Vector3 position{};
+	DirectX::SimpleMath::Vector3 size{};
+
 	// テクスチャが縦よr子に何分割されているか
+	int m_splitX = 1;	// 横分割数
+	int m_splitY = 1;	// 縦分割数
+
+	float m_frameU = 1.0f; // 1フレームのUサイズ
+	float m_frameV = 1.0f; // 1フレームのVサイズ
 	int m_splitX = 1;
 	int m_splitY = 1;
 
 // Collision (Circle)
 	Collision m_collider;
 public:
-	// 左上から何段目を切り抜いて表示するか
 	float numU = 0;
 	float numV = 0;
 	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// 初期化
-	void Draw();											// 描画
+	void Draw();							// 通常描画
+	void Draw(int frameIndex);	//  アニメーション描画
+	//  スプライトシート情報設定
+	void SetSpriteSheet(int splitX, int splitY);
+
 	void Uninit();										// 終了
 	void SetPos(float x, float y, float z);	// 座標をセット
 	void SetSize(float x, float y, float z); // 大きさをセット
