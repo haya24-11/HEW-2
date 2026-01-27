@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include "Skill.h"
+#include "Combo.h"
+#include "Exp.h"
 
 class Mode
 {
@@ -11,4 +13,6 @@ public:
 protected:
     std::string name;
     std::vector<Skill> skills;
+    Combo& combo;
+    Exp& exp;
 };
