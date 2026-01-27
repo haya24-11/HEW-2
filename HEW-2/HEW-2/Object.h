@@ -53,8 +53,6 @@ private:
 
 	float m_frameU = 1.0f; // 1フレームのUサイズ
 	float m_frameV = 1.0f; // 1フレームのVサイズ
-	int m_splitX = 1;
-	int m_splitY = 1;
 
 // Collision (Circle)
 	Collision m_collider;

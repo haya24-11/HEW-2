@@ -13,6 +13,10 @@ void GamePlay::InitScene()
 	// =========================
 	// PLAYER OBJECT 初期化
 	// =========================
+
+    m_player = std::make_unique<Player>();
+
+
 	Object* player = AddObject();
 	player->Init("asset/Texture/player_Stand.png");
 	// スプライトシート設定
@@ -21,6 +25,8 @@ void GamePlay::InitScene()
 	player->SetPos(0.0f, 0.0f, 0.0f);
 	player->SetSize(100.0f, 100.0f, 0.0f);
     player->SetCollisionRadius(50.0f);
+    m_player->SetObject(player);
+
 	// ENEMY OBJECT
 	Object* nenemy = AddObject();
 	nenemy->Init("asset/Texture/NormalEnemy.png");
@@ -33,52 +39,31 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
-    Object* player = (objects.size() > 0) ? objects[0].get() : nullptr;
-    Object* nenemy = (objects.size() > 1) ? objects[1].get() : nullptr;
-    if (!player || !nenemy) return;
 
-    // プレイヤー移動
-    float moveSpeed = 1.0f;
+	// Player が未生成なら何もしない
+	if (!m_player) return;
 
-    // 移動前の位置を保存（壁のように通さないため）
-    const float oldX = player->GetPos().x;
-    const float oldY = player->GetPos().y;
-    const float oldZ = player->GetPos().z;
+	// 描画用 Object は Player が保持している（SetObjectで紐づけ済み）
+	Object* playerObj = m_player->GetObject();
+	Object* nenemy = (objects.size() > 1) ? objects[1].get() : nullptr;
+	if (!playerObj || !nenemy) return;
 
-    float posX = oldX;
-    float posY = oldY;
-    float posZ = oldZ;
+	// いったん現在位置を保存
+	const auto oldPos = playerObj->GetPos();
 
-    float inputX = 0.0f;
-    float inputY = 0.0f;
+	// Player ロジック更新（入力→アニメ更新→移動まで）
+	if (deltaTime > 0.1f)
+		deltaTime = 0.1f;
+	m_player->Update(deltaTime);
 
+	// 移動後に衝突していたら、元の位置へ戻す（押し戻し）
+	if (playerObj->CheckCollision(*nenemy))
+	{
+		playerObj->SetPos(oldPos.x, oldPos.y, oldPos.z);
+	}
 
-    // 入力取得（矢印キー / WASD）
-    if (Input::GetKeyPress(VK_LEFT) || Input::GetKeyPress('A')) inputX -= 5.0f;
-    if (Input::GetKeyPress(VK_RIGHT) || Input::GetKeyPress('D')) inputX += 5.0f;
-    if (Input::GetKeyPress(VK_UP) || Input::GetKeyPress('W')) inputY += 5.0f;
-    if (Input::GetKeyPress(VK_DOWN) || Input::GetKeyPress('S')) inputY -= 5.0f;
-
-    if (inputX != 0 && inputY != 0)
-    {
-        inputX *= 0.7071f;
-        inputY *= 0.7071f;
-    }
-
-    posX += inputX * moveSpeed;
-    posY += inputY * moveSpeed;
-
-    player->SetPos(posX, posY, posZ);
-
-    // ✅ 移動後に衝突していたら、元の位置へ戻す（これ以上進めないようにする）
-    bool isColliding = player->CheckCollision(*nenemy);
-    if (isColliding)
-    {
-        player->SetPos(oldX, oldY, oldZ);
-    }
-
-    if (Input::GetKeyTrigger(VK_SPACE))
-        SetNextScene(SceneType::Result);
+	if (Input::GetKeyTrigger(VK_SPACE))
+		SetNextScene(SceneType::Result);
 }
 
 void GamePlay::DrawScene()
