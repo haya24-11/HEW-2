@@ -150,6 +150,12 @@
     <ClCompile Include="Collision.cpp">
       <Filter>ソース ファイル\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera2D.cpp">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NormalEnemy.h">
@@ -246,6 +252,12 @@
       <Filter>ソース ファイル\System</Filter>
     </ClInclude>
     <ClInclude Include="Collision.h">
+      <Filter>ソース ファイル\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera2D.h">
       <Filter>ソース ファイル\Objects</Filter>
     </ClInclude>
   </ItemGroup>

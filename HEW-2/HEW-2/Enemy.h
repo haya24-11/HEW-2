@@ -26,10 +26,23 @@ public:
         ・AMode のときだけ呼ばれる想定
         ・force : ノックバックの初速（方向×強さ）：：：：：
     */
+    //target設定(player)
+    void SetTarget(Object* target) { m_target = target; }
+    void SetChaseStopDistance(float d) { chaseStopDistance = d; }
+    float GetChaseStopDistance() const { return chaseStopDistance; }
+    //追跡ON OFF
+    void SetChaseEnabled(bool enabled) { chaseEnabled = enabled; }
+    bool IsChaseEnabled() const { return chaseEnabled; }
+
     void KnockBack(const DirectX::SimpleMath::Vector2& force);
 
 protected:
     bool isBoss = false;
+
+
+    Object* m_target = nullptr;        // 追跡対象
+    float chaseStopDistance = 0.0f;    // 0なら密着まで追跡(衝突時に戻す)
+    bool chaseEnabled = true;
 
     // ノックバック用
     DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f,0.0f };
