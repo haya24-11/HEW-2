@@ -1,6 +1,7 @@
 #pragma once
 #include "Renderer.h"
 #include"Texture.h"	// テクスチャ読み込み
+#include"Collision.h"
 class Object {
 
 private:
@@ -41,6 +42,9 @@ private:
 	// テクスチャが縦よr子に何分割されているか
 	int m_splitX = 1;
 	int m_splitY = 1;
+
+// Collision (Circle)
+	Collision m_collider;
 public:
 	// 左上から何段目を切り抜いて表示するか
 	float numU = 0;
@@ -53,6 +57,14 @@ public:
 	void SetAngle(float a);						// 角度をセット
 	void SetColor(float r, float g, float b, float a); // 色をセット
 
+	// Collision
+	// 半径を手動で設定したい場合に使用（未設定なら SetSize() の値から自動計算）
+	void SetCollisionRadius(float r);
+	// コライダ（円）に直接アクセスしたい場合
+	Collision& GetCollider();
+	const Collision& GetCollider() const;
+	// 他の Object との当たり判定
+	bool CheckCollision(const Object& other) const;
 
 	DirectX::XMFLOAT3 GetPos(void);	//	座標をゲット
 	DirectX::XMFLOAT3 GetSize(void);	// 大きさをゲット
