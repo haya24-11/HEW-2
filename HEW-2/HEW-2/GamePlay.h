@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <memory>
 #include "Scene.h"
 #include "Player.h"
@@ -16,11 +16,9 @@ public:
     void UninitScene() override;
 
 private:
-    // ƒƒ“ƒo•Ï”
+    // ãƒ¡ãƒ³ãƒå¤‰æ•°
     std::unique_ptr<Player> m_player;
     std::unique_ptr<Enemy>  m_enemy;
-
-    Object* m_map = nullptr;
 
     Camera2D m_camera;
 };

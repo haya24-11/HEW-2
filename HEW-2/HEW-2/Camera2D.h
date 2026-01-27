@@ -9,20 +9,17 @@ public:
     void SetPosition(const DirectX::SimpleMath::Vector2& p) { pos = p; }
     const DirectX::SimpleMath::Vector2& GetPosition() const { return pos; }
 
-    // target이 있으면 따라가기(스무딩 옵션 포함)
+    // targetがあればtargetに移動
     void Update(float dt)
     {
         if (!target) return;
-
-        // 즉시 따라가기:
+        // すぐにtargetに移動
         pos = *target;
 
-        // 부드럽게 따라가기 하고 싶으면(옵션):
-        // float k = 10.0f; // 따라가는 속도
-        // pos += (*target - pos) * (1.0f - std::exp(-k * dt));
+    // スムーズにフォローしたい場合(オプション):
+    // float k = 10.0f; // 付いて行く速度
+    // pos += (*target - pos) * (1.0f - std::exp(-k * dt));
     }
-
-    // 월드좌표 -> 화면좌표 변환용 오프셋
     DirectX::SimpleMath::Vector2 GetOffset() const
     {
         return -pos;

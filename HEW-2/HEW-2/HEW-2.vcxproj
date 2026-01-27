@@ -142,7 +142,6 @@
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Boss.cpp" />
-    <ClCompile Include="Camera2D.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Chara.cpp" />
     <ClCompile Include="Combo.cpp" />

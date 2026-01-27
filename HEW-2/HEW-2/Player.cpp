@@ -1,4 +1,4 @@
-#include "Player.h"
+ï»¿#include "Player.h"
 #include "Skill.h"
 
 Player::Player()
@@ -6,25 +6,25 @@ Player::Player()
 	hp = 100;
 	power = 10;
 
-	moveSpeed = 50.0f; // Player ŒÅ—L‚Ì‘¬‚³
+	moveSpeed = 50.0f; // Player å›ºæœ‰ã®é€Ÿã•
 
-	// ===== Animation’è‹` =====
-	// ‘Ò‹@iidle.pngj
+	// ===== Animationå®šç¾© =====
+	// å¾…æ©Ÿï¼ˆidle.pngï¼‰
 	m_idleAnim = { 0, 30, 0.15f, true };
 
-	// ˆÚ“®iwalk.pngj
+	// ç§»å‹•ï¼ˆwalk.pngï¼‰
 	m_walkAnim = { 0, 8, 0.1f, true };
 }
 
 void Player::Update(float deltaTime)
 {
 	printf("[Player] dt=%.3f\n", deltaTime);
-	// ===== “ü—Í =====
+	// ===== å…¥åŠ› =====
 	auto dir = GetMoveInput();
 	printf("dir = (%.1f, %.1f)\n", dir.x, dir.y);
-	bool isMoving = (dir.LengthSquared() > 0.0f);
+	bool isMoving = (dir.LengthSquared() > 0.01f);
 
-	// ===== Œü‚«XVi“ü—Í‚ª‚ ‚éŽž‚¾‚¯j=====
+	// ===== å‘ãæ›´æ–°ï¼ˆå…¥åŠ›ãŒã‚ã‚‹æ™‚ã ã‘ï¼‰=====
 	if (dir.x > 0.0f)
 	{
 		m_facingRight = true;
@@ -34,15 +34,14 @@ void Player::Update(float deltaTime)
 		m_facingRight = false;
 	}
 
-	// ===== ˆÚ“® =====
+	// ===== ç§»å‹• =====
 	auto before = GetPos();
 	Move(dir, deltaTime);
 	auto after = GetPos();
-	// ƒfƒoƒbƒO—p
+	// ãƒ‡ãƒãƒƒã‚°ç”¨
 	printf("pos before(%.1f, %.1f) after(%.1f, %.1f)\n",
 		before.x, before.y, after.x, after.y);
 
-	// ===== ó‘Ô‘JˆÚ =====
 	if (isMoving && m_state != State::Walk)
 	{
 		m_state = State::Walk;
@@ -57,20 +56,20 @@ void Player::Update(float deltaTime)
 		m_object->SetSpriteSheet(6, 6);
 		m_animator.Play(m_idleAnim);
 	}
-	// ===== š Œü‚«”½‰f =====
+	// ===== â˜… å‘ãåæ˜  =====
 	/*
-		Idle : Œ´‰æ‚Í‰EŒü‚«
-		Walk : Œ´‰æ‚Í¶Œü‚«
+		Idle : åŽŸç”»ã¯å³å‘ã
+		Walk : åŽŸç”»ã¯å·¦å‘ã
 	*/
 	bool textureIsRightFacing = (m_state == State::Idle);
-	// Œ´‰æ‚ÌŒü‚« ‚Æ Œü‚«‚½‚¢•ûŒü ‚ªˆá‚¦‚Î”½“]
+	// åŽŸç”»ã®å‘ã ã¨ å‘ããŸã„æ–¹å‘ ãŒé•ãˆã°åè»¢
 	bool flipX = (textureIsRightFacing != m_facingRight);
 	m_object->SetFlipX(flipX);
 
-	// ƒAƒjƒXV
+	// ã‚¢ãƒ‹ãƒ¡æ›´æ–°
 	m_animator.Update(deltaTime);
 
-	// ¶‘¶”»’è‚È‚Ç
+	// ç”Ÿå­˜åˆ¤å®šãªã©
 	Chara::Update(deltaTime);
 }
 
@@ -85,7 +84,7 @@ DirectX::SimpleMath::Vector2 Player::GetMoveInput() const
 
 	/*
 	   GetAsyncKeyState
-	   EãˆÊƒrƒbƒg‚ª—§‚Á‚Ä‚¢‚ê‚Î‰Ÿ‰º’†
+	   ãƒ»ä¸Šä½ãƒ“ãƒƒãƒˆãŒç«‹ã£ã¦ã„ã‚Œã°æŠ¼ä¸‹ä¸­
    */
 	if (GetAsyncKeyState('W') & 0x8000)dir.y += 1.0f;
 	if (GetAsyncKeyState('S') & 0x8000)dir.y -= 1.0f;
@@ -98,16 +97,16 @@ DirectX::SimpleMath::Vector2 Player::GetMoveInput() const
 
 void Player::Attack()
 {
-	// ŽÀÛ‚ÌUŒ‚“à—e‚Í Mode / Skill ‘¤‚ªŒˆ‚ß‚é
+	// å®Ÿéš›ã®æ”»æ’ƒå†…å®¹ã¯ Mode / Skill å´ãŒæ±ºã‚ã‚‹
 }
 
 void Player::ApplyAbility(Skill* skill)
 {
 	if (!skill) return;
 
-	// ŠŽƒXƒLƒ‹‚Æ‚µ‚Ä“o˜^
+	// æ‰€æŒã‚¹ã‚­ãƒ«ã¨ã—ã¦ç™»éŒ²
 	skills.push_back(skill);
 
-	// ƒXƒL‚ÌŒø‰Ê‚ð Player ‚É“K—p
+	// ã‚¹ã‚­ã®åŠ¹æžœã‚’ Player ã«é©ç”¨
 	//skill->Apply(this);
 }
