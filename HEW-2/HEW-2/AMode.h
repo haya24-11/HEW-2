@@ -12,4 +12,5 @@ public:
     AMode();
     int WeakAttack(int BaseAtk);
     int StrongAttakc(int BaseAtk,float pushTime);
+    int ComboDamage();
 };

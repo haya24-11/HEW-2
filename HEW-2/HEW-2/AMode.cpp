@@ -13,3 +13,8 @@ int AMode::StrongAttakc(int BaseAtk,float pushTime)
 {
 	return BaseAtk * strongAtkMin * pushTime;
 }
+
+int AMode::ComboDamage()
+{
+	return combo.GetMultiplier();
+}
