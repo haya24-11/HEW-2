@@ -149,7 +149,8 @@
     </ClCompile>
     <ClCompile Include="Collision.cpp">
       <Filter>ソース ファイル\Objects</Filter>
-    <ClCompile Include="Animator.cpp">
+	</ClCompile>
+	<ClCompile Include="Animator.cpp">
       <Filter>ソース ファイル\System</Filter>
     </ClCompile>
   </ItemGroup>
@@ -249,7 +250,8 @@
     </ClInclude>
     <ClInclude Include="Collision.h">
       <Filter>ソース ファイル\Objects</Filter>
-    <ClInclude Include="Animator.h">
+	</ClInclude>
+	<ClInclude Include="Animator.h">
       <Filter>ソース ファイル\System</Filter>
     </ClInclude>
   </ItemGroup>
