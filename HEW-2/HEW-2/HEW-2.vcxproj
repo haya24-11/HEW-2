@@ -136,6 +136,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AMode.cpp" />
+    <ClCompile Include="Animator.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Chara.cpp" />
@@ -162,6 +166,7 @@
     <ClCompile Include="SkillSword.cpp" />
     <ClCompile Include="SkillWhip.cpp" />
     <ClCompile Include="sound.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="test1.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -171,6 +176,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AMode.h" />
+    <ClInclude Include="Animator.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Boss.h" />
     <ClInclude Include="Chara.h" />
@@ -199,6 +208,7 @@
     <ClInclude Include="SkillSword.h" />
     <ClInclude Include="SkillWhip.h" />
     <ClInclude Include="sound.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Title.h" />

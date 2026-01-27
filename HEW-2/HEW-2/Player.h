@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Chara.h"
+#include "Animator.h"
 
 class Skill;
 
@@ -20,6 +21,10 @@ class Player : public Chara
 public:
     Player();
 
+    Object* GetObject() const { return m_object; }
+    // 描画用
+    int GetAnimFrame() const;
+
     // 入力解釈 ⇒ Chara処理呼び出し
     void Update(float deltaTime)override;
 
@@ -33,7 +38,15 @@ private:
     // WASD入力を方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
 private:
+    // ===== Animation =====
+    Animator m_animator;
+    Animation m_idleAnim;
+    Animation m_walkAnim;
+    
     int exp = 0;
     int level = 1;
+    int m_animFrame = 0;     // 現在のフレーム
+    float m_animTimer = 0;  // 経過時間
+    
     std::vector<Skill*> skills; // Skillは所有しない（Mode側管理）
 };

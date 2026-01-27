@@ -11,6 +11,10 @@ void Chara::Update(float /*deltaTime*/)
 
 void Chara::Move(const DirectX::SimpleMath::Vector2& direction,float deltaTime)
 {
+	// Object ‚ª–³‚¯‚ê‚Î“®‚©‚¹‚È‚¢
+	if (!m_object)
+		return;
+
 	// “ü—Í‚ª‚È‚¢ê‡‚Í‰½‚à‚µ‚È‚¢
 	if (direction.LengthSquared() == 0.0f)
 		return;
@@ -22,11 +26,15 @@ void Chara::Move(const DirectX::SimpleMath::Vector2& direction,float deltaTime)
 	DirectX::SimpleMath::Vector2 dir = direction;
 	dir.Normalize();
 
-	/*
-		ˆÚ“®—Ê = •ûŒü ~ ‘¬“x ~ Œo‰ßŽžŠÔ
-		¨ ƒtƒŒ[ƒ€ƒŒ[ƒg”ñˆË‘¶
-	*/
-	position += dir * moveSpeed * deltaTime;
+	// Œ»ÝÀ•W‚ðŽæ“¾
+	position = m_object->GetPos();
+
+	// ˆÚ“®—Ê = •ûŒü ~ ‘¬“x ~ Œo‰ßŽžŠÔ
+	position.x += dir.x * moveSpeed * deltaTime;
+	position.y += dir.y * moveSpeed * deltaTime;
+
+	// Object ‚É”½‰f
+	m_object->SetPos(position.x, position.y, position.z);
 }
 
 int Chara::GetHp()const

@@ -64,7 +64,6 @@ Object* Scene::AddObject()
 {
 	objects.push_back(std::make_unique<Object>());
 	return objects.back().get();
-
 }
 
 void Scene::ClearObject()
