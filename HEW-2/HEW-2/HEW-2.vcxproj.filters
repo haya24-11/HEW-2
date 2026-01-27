@@ -152,9 +152,6 @@
     <ClCompile Include="SoundManager.cpp">
       <Filter>ソース ファイル\System</Filter>
     </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NormalEnemy.h">
@@ -254,9 +251,6 @@
       <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
     <ClInclude Include="SoundManager.h">
       <Filter>ソース ファイル\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Collision.h">
-      <Filter>ソース ファイル\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
