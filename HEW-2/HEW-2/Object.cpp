@@ -122,9 +122,25 @@ void Object::Draw(int frameIndex)
 		matrixScale * matrixAngle * matrixPos;
 
 	// ★ UV変換行列（スプライトシート）
-	DirectX::XMMATRIX matrixTex =
-		DirectX::XMMatrixScaling(m_frameU, m_frameV, 1.0f) *
-		DirectX::XMMatrixTranslation(u, v, 0.0f);
+	float flipScaleX = m_flipX ? -m_frameU : m_frameU;
+
+	// 左右反転時は u を 1フレーム分ずらす
+	float offsetU = m_flipX ? (u + m_frameU) : u;
+
+	DirectX::XMMATRIX matrixTex;
+	if (m_flipX)
+	{
+		// 左右反転：Uを反転 + 位置補正
+		matrixTex =
+			DirectX::XMMatrixScaling(-m_frameU, m_frameV, 1.0f) *
+			DirectX::XMMatrixTranslation(u + m_frameU, v, 0.0f);
+	}
+	else
+	{
+		matrixTex =
+			DirectX::XMMatrixScaling(m_frameU, m_frameV, 1.0f) *
+			DirectX::XMMatrixTranslation(u, v, 0.0f);
+	}
 
 	ConstBuffer cb;
 	cb.matrixProj = DirectX::XMMatrixTranspose(matrixProj);
@@ -199,6 +215,17 @@ void Object::SetColor(float r, float g, float b, float a)
 	m_color.y = g;
 	m_color.z = b;
 	m_color.w = a;
+}
+
+void Object::SetFlipX(bool flip)
+{
+	m_flipX = flip;
+}
+
+void Object::SetTexture(const char* imgname)
+{
+	SAFE_RELEASE(m_pTextureView);
+	LoadTexture(g_pDevice, imgname, &m_pTextureView);
 }
 
 DirectX::XMFLOAT3 Object::GetPos(void) {
