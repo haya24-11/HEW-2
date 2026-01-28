@@ -2,7 +2,7 @@
 
 void ModeManager::SwitchMode(const Mode& mode)
 {
-    currentMode =mode;
+    currentMode = mode;
 }
 
 const Mode& ModeManager::GetCurrentMode() const

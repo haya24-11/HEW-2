@@ -13,6 +13,4 @@ public:
 protected:
     std::string name;
     std::vector<Skill> skills;
-    Combo & combo;
-    Exp& exp;
 };
