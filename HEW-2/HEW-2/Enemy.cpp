@@ -9,10 +9,6 @@ void Enemy::Update(float deltaTime)
 {
     // Chara 共通更新（HPチェックなど）
 	Chara::Update(deltaTime);
-    
-    // Object が無ければ何もしない
-    if (!m_object)
-        return;
     /*
        ノックバック中の処理
        --------------------
@@ -21,22 +17,14 @@ void Enemy::Update(float deltaTime)
    */
     if (knockBackTimer > 0.0f)
     {
-        // 現在座標取得
-        position = m_object->GetPos();
-
-        // ノックバック移動（2D）
-        position.x += knockBackVelocity.x * deltaTime;
-        position.y += knockBackVelocity.y * deltaTime;
-
-        // Object に反映
-        m_object->SetPos(position.x, position.y, position.z);
+        position *= knockBackVelocity * deltaTime;
 
         knockBackTimer -= deltaTime;
 
-        // 時間切れ
+        // 時間切れでノックバック修了
         if (knockBackTimer <= 0.0f)
         {
-            knockBackVelocity = { 0.0f, 0.0f };
+            knockBackVelocity = { 0.0f,0.0f };
             knockBackTimer = 0.0f;
         }
         return;

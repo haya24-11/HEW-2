@@ -1,8 +1,5 @@
 #include "Title.h"
-#include "Game.h"
-
 Object* obj = new Object;
-
 Title::Title():Scene(SceneType::Title)
 {
 }
@@ -17,8 +14,6 @@ void Title::InitScene()
 	obj->SetSize(640.0f, 480.0f, 0.0f);
 	obj->SetAngle(0.0f);
 
-	// サウンドセット
-	//Game::GetInstance()->GetSound().Play(SOUND_LABEL_BGM000);
 }
 
 void Title::UpdateScene(float deltaTime)

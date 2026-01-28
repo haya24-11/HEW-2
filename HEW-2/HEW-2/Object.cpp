@@ -278,6 +278,7 @@ void Object::SetPos(float x, float y, float z)
 	m_pos.x = x;
 	m_pos.y = y;
 	m_pos.z = z;
+	
 
 	// コライダー位置も更新
 	m_collider.SetPosition({ x, y });
@@ -289,6 +290,7 @@ void Object::SetSize(float x, float y, float z)
 	m_size.x = x;
 	m_size.y = y;
 	m_size.z = z;
+	
 
 	// 半径設定（例：100x100なら radius=50）
 	m_collider.SetRadius((x + y) * 0.25f);

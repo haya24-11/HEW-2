@@ -1,277 +1,322 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <Filter Include="ソース ファイル">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="ヘッダー ファイル">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="リソース ファイル">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="ソース ファイル\Objects">
-      <UniqueIdentifier>{7e8a9cc3-ce35-450c-9184-43cc50f8fad2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Objects\Character">
-      <UniqueIdentifier>{3ad4fdd4-2c6b-4cc9-9265-64c455e0ff3d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Objects\Character\Player Character">
-      <UniqueIdentifier>{5bb948f0-bd1b-420e-b138-48dabf7672be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Objects\Character\Enemy Character">
-      <UniqueIdentifier>{a72191ef-fae9-46f6-886f-9ca91dd6cc01}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Scene">
-      <UniqueIdentifier>{8f44064a-512c-49bb-853b-0c6ef6c6b2b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\UI">
-      <UniqueIdentifier>{8461667e-4d5e-4cc5-9c25-06986bd50977}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Core">
-      <UniqueIdentifier>{9639e18b-a4a9-4fcf-ad16-daa560fc15fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Gameplay">
-      <UniqueIdentifier>{73dedca3-45cb-4a75-b453-fddb014fbc6c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Gameplay\GameMechanics">
-      <UniqueIdentifier>{02db614c-8a8c-4c77-b4cc-bfd4d1e7fac9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Gameplay\Mode">
-      <UniqueIdentifier>{867b9589-d52c-45b1-b7d7-e50867400f76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Graphics">
-      <UniqueIdentifier>{8660109d-9621-475e-a30f-b084f822e882}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\System">
-      <UniqueIdentifier>{87d9eaae-21de-468d-b23a-840315ff278b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Utility">
-      <UniqueIdentifier>{aa5b361b-ed3f-4aa4-881e-8b47b6591632}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\External">
-      <UniqueIdentifier>{850eede2-303a-4b4b-95be-542ccd1a32b6}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="test1.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="AMode.cpp">
-      <Filter>ソース ファイル\Gameplay\Mode</Filter>
-    </ClCompile>
-    <ClCompile Include="Mode.cpp">
-      <Filter>ソース ファイル\Gameplay\Mode</Filter>
-    </ClCompile>
-    <ClCompile Include="ModeManager.cpp">
-      <Filter>ソース ファイル\Gameplay\Mode</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Exp.cpp">
-      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
-    </ClCompile>
-    <ClCompile Include="Combo.cpp">
-      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
-    </ClCompile>
-    <ClCompile Include="Skill.cpp">
-      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル\Objects\Character\Player Character</Filter>
-    </ClCompile>
-    <ClCompile Include="Boss.cpp">
-      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy.cpp">
-      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
-    </ClCompile>
-    <ClCompile Include="NormalEnemy.cpp">
-      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="UIBase.cpp">
-      <Filter>ソース ファイル\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="UIManager.cpp">
-      <Filter>ソース ファイル\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="GameOver.cpp">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Result.cpp">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Title.cpp">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="GamePlay.cpp">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Application.cpp">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>ソース ファイル\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>ソース ファイル\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="input.cpp">
-      <Filter>ソース ファイル\System</Filter>
-    </ClCompile>
-    <ClCompile Include="sound.cpp">
-      <Filter>ソース ファイル\System</Filter>
-    </ClCompile>
-    <ClCompile Include="Chara.cpp">
-      <Filter>ソース ファイル\Objects\Character</Filter>
-    </ClCompile>
-    <ClCompile Include="stb_image.cpp">
-      <Filter>ソース ファイル\External</Filter>
-    </ClCompile>
-    <ClCompile Include="SoundManager.cpp">
-      <Filter>ソース ファイル\System</Filter>
-    </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-	</ClCompile>
-	<ClCompile Include="Animator.cpp">
-      <Filter>ソース ファイル\System</Filter>
-    </ClCompile>
-    <ClCompile Include="Animator.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemySpawner.cpp">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="NormalEnemy.h">
-      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemy.h">
-      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
-    </ClInclude>
-    <ClInclude Include="Boss.h">
-      <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>ソース ファイル\Objects\Character\Player Character</Filter>
-    </ClInclude>
-    <ClInclude Include="Application.h">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Combo.h">
-      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
-    </ClInclude>
-    <ClInclude Include="Exp.h">
-      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
-    </ClInclude>
-    <ClInclude Include="Skill.h">
-      <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
-    </ClInclude>
-    <ClInclude Include="AMode.h">
-      <Filter>ソース ファイル\Gameplay\Mode</Filter>
-    </ClInclude>
-    <ClInclude Include="Mode.h">
-      <Filter>ソース ファイル\Gameplay\Mode</Filter>
-    </ClInclude>
-    <ClInclude Include="ModeManager.h">
-      <Filter>ソース ファイル\Gameplay\Mode</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>ソース ファイル\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>ソース ファイル\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="input.h">
-      <Filter>ソース ファイル\System</Filter>
-    </ClInclude>
-    <ClInclude Include="sound.h">
-      <Filter>ソース ファイル\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Chara.h">
-      <Filter>ソース ファイル\Objects\Character</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="UIBase.h">
-      <Filter>ソース ファイル\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIManager.h">
-      <Filter>ソース ファイル\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="GameOver.h">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="GamePlay.h">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Result.h">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneTypes.h">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Title.h">
-      <Filter>ソース ファイル\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="MathTypes.h">
-      <Filter>ソース ファイル\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>ソース ファイル\External</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundManager.h">
-      <Filter>ソース ファイル\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Collision.h">
-      <Filter>ソース ファイル\Objects</Filter>
-	</ClInclude>
-	<ClInclude Include="Animator.h">
-      <Filter>ソース ファイル\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Animator.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera2D.h">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemySpawner.h">
-      <Filter>ソース ファイル\Objects</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="shader\PixelShader.hlsl" />
-    <FxCompile Include="shader\VertexShader.hlsl" />
-  </ItemGroup>
+	<ItemGroup>
+		<Filter Include="ソース ファイル">
+			<UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+			<Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+		</Filter>
+		<Filter Include="ヘッダー ファイル">
+			<UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+			<Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+		</Filter>
+		<Filter Include="リソース ファイル">
+			<UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+			<Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+		</Filter>
+		<Filter Include="ソース ファイル\Objects">
+			<UniqueIdentifier>{7e8a9cc3-ce35-450c-9184-43cc50f8fad2}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Objects\Character">
+			<UniqueIdentifier>{3ad4fdd4-2c6b-4cc9-9265-64c455e0ff3d}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Objects\Character\Player Character">
+			<UniqueIdentifier>{5bb948f0-bd1b-420e-b138-48dabf7672be}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Objects\Character\Enemy Character">
+			<UniqueIdentifier>{a72191ef-fae9-46f6-886f-9ca91dd6cc01}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Scene">
+			<UniqueIdentifier>{8f44064a-512c-49bb-853b-0c6ef6c6b2b6}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\UI">
+			<UniqueIdentifier>{8461667e-4d5e-4cc5-9c25-06986bd50977}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Core">
+			<UniqueIdentifier>{9639e18b-a4a9-4fcf-ad16-daa560fc15fa}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Gameplay">
+			<UniqueIdentifier>{73dedca3-45cb-4a75-b453-fddb014fbc6c}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Gameplay\GameMechanics">
+			<UniqueIdentifier>{02db614c-8a8c-4c77-b4cc-bfd4d1e7fac9}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Gameplay\Mode">
+			<UniqueIdentifier>{867b9589-d52c-45b1-b7d7-e50867400f76}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Graphics">
+			<UniqueIdentifier>{8660109d-9621-475e-a30f-b084f822e882}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\System">
+			<UniqueIdentifier>{87d9eaae-21de-468d-b23a-840315ff278b}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Utility">
+			<UniqueIdentifier>{aa5b361b-ed3f-4aa4-881e-8b47b6591632}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\External">
+			<UniqueIdentifier>{850eede2-303a-4b4b-95be-542ccd1a32b6}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Gameplay\GameMechanics\Skills">
+			<UniqueIdentifier>{b1d4bf20-0875-4a25-b58c-38909a968a4d}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype">
+			<UniqueIdentifier>{93a8953c-c1ba-42c7-bf34-da6fdea594ee}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ClCompile Include="test1.cpp">
+			<Filter>ソース ファイル</Filter>
+		</ClCompile>
+		<ClCompile Include="AMode.cpp">
+			<Filter>ソース ファイル\Gameplay\Mode</Filter>
+		</ClCompile>
+		<ClCompile Include="Mode.cpp">
+			<Filter>ソース ファイル\Gameplay\Mode</Filter>
+		</ClCompile>
+		<ClCompile Include="ModeManager.cpp">
+			<Filter>ソース ファイル\Gameplay\Mode</Filter>
+		</ClCompile>
+		<ClCompile Include="GameObject.cpp">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClCompile>
+		<ClCompile Include="Exp.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+		</ClCompile>
+		<ClCompile Include="Combo.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+		</ClCompile>
+		<ClCompile Include="Skill.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+		</ClCompile>
+		<ClCompile Include="Player.cpp">
+			<Filter>ソース ファイル\Objects\Character\Player Character</Filter>
+		</ClCompile>
+		<ClCompile Include="Boss.cpp">
+			<Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+		</ClCompile>
+		<ClCompile Include="Enemy.cpp">
+			<Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+		</ClCompile>
+		<ClCompile Include="NormalEnemy.cpp">
+			<Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+		</ClCompile>
+		<ClCompile Include="Scene.cpp">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClCompile>
+		<ClCompile Include="UIBase.cpp">
+			<Filter>ソース ファイル\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="UIManager.cpp">
+			<Filter>ソース ファイル\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="Object.cpp">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClCompile>
+		<ClCompile Include="GameOver.cpp">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClCompile>
+		<ClCompile Include="Result.cpp">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClCompile>
+		<ClCompile Include="Title.cpp">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClCompile>
+		<ClCompile Include="GamePlay.cpp">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClCompile>
+		<ClCompile Include="Application.cpp">
+			<Filter>ソース ファイル\Core</Filter>
+		</ClCompile>
+		<ClCompile Include="main.cpp">
+			<Filter>ソース ファイル\Core</Filter>
+		</ClCompile>
+		<ClCompile Include="Game.cpp">
+			<Filter>ソース ファイル\Core</Filter>
+		</ClCompile>
+		<ClCompile Include="Renderer.cpp">
+			<Filter>ソース ファイル\Graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="Texture.cpp">
+			<Filter>ソース ファイル\Graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="input.cpp">
+			<Filter>ソース ファイル\System</Filter>
+		</ClCompile>
+		<ClCompile Include="sound.cpp">
+			<Filter>ソース ファイル\System</Filter>
+		</ClCompile>
+		<ClCompile Include="Chara.cpp">
+			<Filter>ソース ファイル\Objects\Character</Filter>
+		</ClCompile>
+		<ClCompile Include="stb_image.cpp">
+			<Filter>ソース ファイル\External</Filter>
+		</ClCompile>
+		<ClCompile Include="ActiveSkill.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClCompile>
+		<ClCompile Include="BuffSkill.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClCompile>
+		<ClCompile Include="PassiveSkill.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClCompile>
+		<ClCompile Include="WeaponSkills.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClCompile>
+		<ClCompile Include="SkillWhip.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClCompile>
+		<ClCompile Include="SkillSword.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClCompile>
+		<ClCompile Include="SkillAxe.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClCompile>
+		<ClCompile Include="Skillpowerbuff.cpp">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClCompile>
+		<ClCompile Include="Collision.cpp">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClCompile>
+		<ClCompile Include="Animator.cpp">
+			<Filter>ソース ファイル\System</Filter>
+		</ClCompile>
+		<ClCompile Include="EnemySpawner.cpp">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClCompile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ClInclude Include="NormalEnemy.h">
+			<Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+		</ClInclude>
+		<ClInclude Include="Enemy.h">
+			<Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+		</ClInclude>
+		<ClInclude Include="Boss.h">
+			<Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
+		</ClInclude>
+		<ClInclude Include="Player.h">
+			<Filter>ソース ファイル\Objects\Character\Player Character</Filter>
+		</ClInclude>
+		<ClInclude Include="Application.h">
+			<Filter>ソース ファイル\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Game.h">
+			<Filter>ソース ファイル\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="main.h">
+			<Filter>ソース ファイル\Core</Filter>
+		</ClInclude>
+		<ClInclude Include="Combo.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+		</ClInclude>
+		<ClInclude Include="Exp.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+		</ClInclude>
+		<ClInclude Include="Skill.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+		</ClInclude>
+		<ClInclude Include="AMode.h">
+			<Filter>ソース ファイル\Gameplay\Mode</Filter>
+		</ClInclude>
+		<ClInclude Include="Mode.h">
+			<Filter>ソース ファイル\Gameplay\Mode</Filter>
+		</ClInclude>
+		<ClInclude Include="ModeManager.h">
+			<Filter>ソース ファイル\Gameplay\Mode</Filter>
+		</ClInclude>
+		<ClInclude Include="Renderer.h">
+			<Filter>ソース ファイル\Graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="Texture.h">
+			<Filter>ソース ファイル\Graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="input.h">
+			<Filter>ソース ファイル\System</Filter>
+		</ClInclude>
+		<ClInclude Include="sound.h">
+			<Filter>ソース ファイル\System</Filter>
+		</ClInclude>
+		<ClInclude Include="GameObject.h">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClInclude>
+		<ClInclude Include="Object.h">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClInclude>
+		<ClInclude Include="UIBase.h">
+			<Filter>ソース ファイル\UI</Filter>
+		</ClInclude>
+		<ClInclude Include="UIManager.h">
+			<Filter>ソース ファイル\UI</Filter>
+		</ClInclude>
+		<ClInclude Include="GameOver.h">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClInclude>
+		<ClInclude Include="GamePlay.h">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClInclude>
+		<ClInclude Include="Result.h">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClInclude>
+		<ClInclude Include="Scene.h">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClInclude>
+		<ClInclude Include="SceneTypes.h">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClInclude>
+		<ClInclude Include="Title.h">
+			<Filter>ソース ファイル\Scene</Filter>
+		</ClInclude>
+		<ClInclude Include="MathTypes.h">
+			<Filter>ソース ファイル\Utility</Filter>
+		</ClInclude>
+		<ClInclude Include="stb_image.h">
+			<Filter>ソース ファイル\External</Filter>
+		</ClInclude>
+		<ClInclude Include="Chara.h">
+			<Filter>ソース ファイル\Objects\Character</Filter>
+		</ClInclude>
+		<ClInclude Include="PassiveSkill.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClInclude>
+		<ClInclude Include="ActiveSkill.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClInclude>
+		<ClInclude Include="BuffSkill.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClInclude>
+		<ClInclude Include="WeaponSkills.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+		</ClInclude>
+		<ClInclude Include="SkillAxe.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClInclude>
+		<ClInclude Include="Skillpowerbuff.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClInclude>
+		<ClInclude Include="SkillSword.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClInclude>
+		<ClInclude Include="SkillWhip.h">
+			<Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+		</ClInclude>
+		<ClInclude Include="Collision.h">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClInclude>
+		<ClInclude Include="Animator.h">
+			<Filter>ソース ファイル\System</Filter>
+		</ClInclude>
+		<ClInclude Include="Camera2D.h">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClInclude>
+		<ClInclude Include="EnemySpawner.h">
+			<Filter>ソース ファイル\Objects</Filter>
+		</ClInclude>
+	</ItemGroup>
+
+	<ItemGroup>
+		<FxCompile Include="shader\PixelShader.hlsl" />
+		<FxCompile Include="shader\VertexShader.hlsl" />
+	</ItemGroup>
 </Project>

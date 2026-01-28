@@ -1,4 +1,4 @@
-﻿#include "NormalEnemy.h"
+#include "NormalEnemy.h"
 
 NormalEnemy::NormalEnemy()
 {

@@ -120,7 +120,6 @@ void GamePlay::DrawScene()
         obj->SetPos(old.x, old.y, old.z);
     }
 }
-
 void GamePlay::UninitScene()
 {
     std::cout << "UninitScene" << std::endl;

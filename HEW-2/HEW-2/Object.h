@@ -2,7 +2,6 @@
 #include <string>
 #include <DirectXMath.h>
 #include <SimpleMath.h>
-
 #include "Renderer.h"
 #include "Texture.h"     // テクスチャ読み込み
 #include "Collision.h"

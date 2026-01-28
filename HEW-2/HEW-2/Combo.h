@@ -16,5 +16,5 @@ public:
 
 private:
     int combCount = 0;
-    float combBonus = 0.1f;
+    float combBonus = 0.3f;
 };

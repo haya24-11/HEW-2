@@ -11,10 +11,6 @@ void Chara::Update(float /*deltaTime*/)
 
 void Chara::Move(const DirectX::SimpleMath::Vector2& direction,float deltaTime)
 {
-	// Object が無ければ動かせない
-	if (!m_object)
-		return;
-
 	// 入力がない場合は何もしない
 	if (direction.LengthSquared() == 0.0f)
 		return;
@@ -26,15 +22,11 @@ void Chara::Move(const DirectX::SimpleMath::Vector2& direction,float deltaTime)
 	DirectX::SimpleMath::Vector2 dir = direction;
 	dir.Normalize();
 
-	// 現在座標を取得
-	position = m_object->GetPos();
-
-	// 移動量 = 方向 × 速度 × 経過時間
-	position.x += dir.x * moveSpeed * deltaTime;
-	position.y += dir.y * moveSpeed * deltaTime;
-
-	// Object に反映
-	m_object->SetPos(position.x, position.y, position.z);
+	/*
+		移動量 = 方向 × 速度 × 経過時間
+		→ フレームレート非依存
+	*/
+	position += dir * moveSpeed * deltaTime;
 }
 
 int Chara::GetHp()const

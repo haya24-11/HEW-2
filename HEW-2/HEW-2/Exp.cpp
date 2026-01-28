@@ -1,6 +1,6 @@
 #include "Exp.h"
 
-int Exp::CalculateGain(int baseExp)
+int Exp::CalculateGain(int mutiplier)
 {
-	return baseExp * expBase;
+	return expBase * mutiplier;
 }

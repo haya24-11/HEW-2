@@ -139,14 +139,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActiveSkill.cpp" />
     <ClCompile Include="AMode.cpp" />
-    <ClCompile Include="Animator.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Boss.cpp" />
-    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="BuffSkill.cpp" />
     <ClCompile Include="Chara.cpp" />
     <ClCompile Include="Combo.cpp" />
     <ClCompile Include="Enemy.cpp" />
@@ -162,31 +159,33 @@
     <ClCompile Include="NormalEnemy.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="GamePlay.cpp" />
+    <ClCompile Include="PassiveSkill.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
+    <ClCompile Include="SkillAxe.cpp" />
+    <ClCompile Include="Skillpowerbuff.cpp" />
+    <ClCompile Include="SkillSword.cpp" />
+    <ClCompile Include="SkillWhip.cpp" />
     <ClCompile Include="sound.cpp" />
-    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="test1.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Title.cpp" />
     <ClCompile Include="UIBase.cpp" />
     <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="WeaponSkills.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActiveSkill.h" />
     <ClInclude Include="AMode.h" />
-    <ClInclude Include="Animator.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Boss.h" />
+    <ClInclude Include="BuffSkill.h" />
     <ClInclude Include="Camera2D.h" />
     <ClInclude Include="Chara.h" />
-    <ClInclude Include="Collision.h" />
     <ClInclude Include="Combo.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="EnemySpawner.h" />
@@ -196,6 +195,7 @@
     <ClInclude Include="GameOver.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="GamePlay.h" />
+    <ClInclude Include="PassiveSkill.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="SceneTypes.h" />
     <ClInclude Include="main.h" />
@@ -208,13 +208,17 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Skill.h" />
+    <ClInclude Include="SkillAxe.h" />
+    <ClInclude Include="Skillpowerbuff.h" />
+    <ClInclude Include="SkillSword.h" />
+    <ClInclude Include="SkillWhip.h" />
     <ClInclude Include="sound.h" />
-    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Title.h" />
     <ClInclude Include="UIBase.h" />
     <ClInclude Include="UIManager.h" />
+    <ClInclude Include="WeaponSkills.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\PixelShader.hlsl">
