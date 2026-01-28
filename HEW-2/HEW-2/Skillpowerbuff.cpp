@@ -7,7 +7,8 @@ Skillpowerbuff::Skillpowerbuff(int value):Skill("Buff",4,SkillType::Buff),m_buff
 
 
 
-void Apply(Player* player) override
+void Apply(Player* player)
 {
+	if (!player)return;
 	
 }

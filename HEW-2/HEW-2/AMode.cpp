@@ -1,8 +1,6 @@
 #include "AMode.h"
 
-AMode::AMode()
-{
-}
+
 
 int AMode::WeakAttack(int BaseAtk)
 {
