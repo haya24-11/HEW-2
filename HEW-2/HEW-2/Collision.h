@@ -42,4 +42,5 @@ public:
 private:
     DirectX::XMFLOAT2 m_pos{ 0.0f, 0.0f };
     float m_radius = 0.0f;
+
 };

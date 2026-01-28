@@ -1,36 +1,114 @@
-#include "Object.h"
+ï»¿#include "Object.h"
+#include <unordered_map>
+#include <string>
 
-HRESULT Object::Init(const char* imgname,int sx,int sy)
+// =========================
+// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚­ãƒ£ãƒƒã‚·ãƒ¥
+//  - åŒã˜ãƒ•ã‚¡ã‚¤ãƒ«ã¯1å›ã ã‘èª­ã¿è¾¼ã¿ã€ä»¥é™ã¯å†åˆ©ç”¨ã™ã‚‹
+//  - å‚ç…§ã‚«ã‚¦ãƒ³ãƒˆ(AddRef/Release)ã§å®‰å…¨ã«å…±æœ‰ã™ã‚‹
+// =========================
+static std::unordered_map<std::string, ID3D11ShaderResourceView*> g_textureCache;
+
+// =========================
+// å…±æœ‰é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ï¼ˆQuadç”¨ï¼‰
+//  - å…¨Objectã§åŒã˜4é ‚ç‚¹ã‚’ä½¿ã†ã®ã§1å›ã ã‘ä½œæˆã—å…±æœ‰ã™ã‚‹
+//  - å„Objectå´ã§ã¯ AddRef/Release ã§å‚ç…§ã‚«ã‚¦ãƒ³ãƒˆç®¡ç†ã™ã‚‹
+// =========================
+ID3D11Buffer* Object::s_pSharedVB = nullptr;
+bool Object::s_sharedVBReady = false;
+
+//cameraã®å¤§ãã•
+
+static float g_viewW = (float)SCREEN_WIDTH;
+static float g_viewH = (float)SCREEN_HEIGHT;
+
+void Object::SetViewSize(float w, float h)
 {
-	// UVÀ•W‚ğİ’è
+	g_viewW = (w < 1.0f) ? 1.0f : w;
+	g_viewH = (h < 1.0f) ? 1.0f : h;
+}
+
+// ------------------------------------------------------------
+// å†…éƒ¨ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ï¼šãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚­ãƒ£ãƒƒã‚·ãƒ¥çµŒç”±ã§å–å¾—
+//  - æˆ»ã‚Šå€¤ã¯ã€ŒObjectãŒ1å‚ç…§(AddRefæ¸ˆã¿)æŒã£ãŸçŠ¶æ…‹ã€
+// ------------------------------------------------------------
+static HRESULT GetTextureCached(const char* imgname, ID3D11ShaderResourceView** outSRV)
+{
+	if (!outSRV) return E_INVALIDARG;
+	*outSRV = nullptr;
+
+	auto it = g_textureCache.find(imgname);
+	if (it != g_textureCache.end())
+	{
+		// æ—¢å­˜ã‚’å†åˆ©ç”¨ï¼ˆObjectãŒä½¿ã†åˆ†ã®å‚ç…§ã‚’å¢—ã‚„ã™ï¼‰
+		*outSRV = it->second;
+		if (*outSRV) (*outSRV)->AddRef();
+		return S_OK;
+	}
+
+	// åˆå›ãƒ­ãƒ¼ãƒ‰
+	ID3D11ShaderResourceView* srv = nullptr;
+	HRESULT hr = LoadTexture(g_pDevice, imgname, &srv);
+	if (FAILED(hr)) return hr;
+
+	// ã‚­ãƒ£ãƒƒã‚·ãƒ¥å´ã‚‚1å‚ç…§ã‚’ä¿æŒï¼ˆå®‰å…¨ãªå…±æœ‰ã®ãŸã‚ï¼‰
+	if (srv) srv->AddRef();
+	g_textureCache.emplace(imgname, srv);
+
+	// Objectå´ã«ã‚‚1å‚ç…§ã‚’æ¸¡ã™ï¼ˆå‘¼ã³å‡ºã—å´ãŒReleaseã™ã‚‹ï¼‰
+	*outSRV = srv; // srv ã¯ä»Š 2å‚ç…§ï¼ˆcache 1 + object 1ï¼‰
+	return S_OK;
+}
+
+HRESULT Object::Init(const char* imgname, int sx, int sy)
+{
+	// =========================
+	// UVåº§æ¨™ï¼ˆã‚¹ãƒ—ãƒ©ã‚¤ãƒˆåˆ†å‰²æ•°ï¼‰ã‚’è¨­å®š
+	// =========================
 	m_splitX = sx;
 	m_splitY = sy;
+
 	m_vertexList[1].u = 1.0f / m_splitX;
 	m_vertexList[2].v = 1.0f / m_splitY;
 	m_vertexList[3].u = 1.0f / m_splitX;
-	m_vertexList[3].v = 1.0 / m_splitY;
-	// ’¸“_ƒoƒbƒtƒ@‚ğì¬‚·‚é
-	// ¦’¸“_ƒoƒbƒtƒ@¨VRAM‚É’¸“_ƒf[ƒ^‚ğ’u‚­‚½‚ß‚Ì‹@”\
-	D3D11_BUFFER_DESC bufferDesc;
-	bufferDesc.ByteWidth = sizeof(m_vertexList);// Šm•Û‚·‚éƒoƒbƒtƒ@ƒTƒCƒY‚ğw’è
+	m_vertexList[3].v = 1.0f / m_splitY;
+
+	// =========================
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ä½œæˆï¼ˆå…±æœ‰ï¼‰
+	//  - åˆå›ã ã‘ CreateBuffer
+	//  - å„Objectã¯å‚ç…§(AddRef)ã—ã¦ä½¿ã†
+	// =========================
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.ByteWidth = sizeof(m_vertexList);
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;// ’¸“_ƒoƒbƒtƒ@ì¬‚ğw’è
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
-	bufferDesc.MiscFlags = 0;
-	bufferDesc.StructureByteStride = 0;
 
-	D3D11_SUBRESOURCE_DATA subResourceData;
-	subResourceData.pSysMem = m_vertexList;// VRAM‚É‘—‚éƒf[ƒ^‚ğw’è
-	subResourceData.SysMemPitch = 0;
-	subResourceData.SysMemSlicePitch = 0;
+	D3D11_SUBRESOURCE_DATA subResourceData = {};
+	subResourceData.pSysMem = m_vertexList;
 
-	HRESULT hr = g_pDevice->CreateBuffer(&bufferDesc, &subResourceData, &m_pVertexBuffer);
-	if (FAILED(hr)) return hr;
+	HRESULT hr = S_OK;
+	if (!s_sharedVBReady)
+	{
+		hr = g_pDevice->CreateBuffer(&bufferDesc, &subResourceData, &s_pSharedVB);
+		if (FAILED(hr)) return hr;
 
-	// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
-	hr = LoadTexture(g_pDevice, imgname, &m_pTextureView);
-	if (FAILED(hr)) {
-		MessageBoxA(NULL, "ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ¸”s", "ƒGƒ‰[", MB_ICONERROR | MB_OK);
+		s_sharedVBReady = true;
+	}
+
+	// å…±æœ‰VBã‚’ä½¿ã†ï¼ˆObjectå´ã‚‚1å‚ç…§æŒã¤ï¼‰
+	m_pVertexBuffer = s_pSharedVB;
+	if (m_pVertexBuffer) m_pVertexBuffer->AddRef();
+
+	// =========================
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿ï¼ˆã‚­ãƒ£ãƒƒã‚·ãƒ¥ï¼‰
+	//  - Objectå´ã¯1å‚ç…§(AddRefæ¸ˆã¿)ã‚’å—ã‘å–ã‚‹
+	// =========================
+	SAFE_RELEASE(m_pTextureView); // å¿µã®ãŸã‚æ—¢å­˜ã‚’è§£æ”¾
+	hr = GetTextureCached(imgname, &m_pTextureView);
+	if (FAILED(hr))
+	{
+		MessageBoxA(NULL, "ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿å¤±æ•—", "ã‚¨ãƒ©ãƒ¼", MB_ICONERROR | MB_OK);
 		return hr;
 	}
 
@@ -39,73 +117,91 @@ HRESULT Object::Init(const char* imgname,int sx,int sy)
 
 void Object::Draw()
 {
-	// ’¸“_ƒoƒbƒtƒ@‚ğİ’è
+	// =========================
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡è¨­å®š
+	// =========================
 	UINT strides = sizeof(Vertex);
 	UINT offsets = 0;
 	g_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &strides, &offsets);
 
-	// ƒeƒNƒXƒ`ƒƒ‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É“n‚·
+	// =========================
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ã«è¨­å®š
+	// =========================
 	g_pDeviceContext->PSSetShaderResources(0, 1, &m_pTextureView);
 
-	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“•ÏŠ·s—ñ‚ğì¬
-	DirectX::XMMATRIX matrixProj = DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
+	// =========================
+	// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—ï¼ˆ2Dç”¨ï¼šæ­£å°„å½±ï¼‰
+	// =========================
+	//DirectX::XMMATRIX matrixProj =
+		//DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
+		// 
+	//ã‚«ãƒ¡ãƒ©ã®å¤§ãã•èª¿æ•´ã®ãŸã‚
+	DirectX::XMMATRIX matrixProj =
+		DirectX::XMMatrixOrthographicLH(g_viewW, g_viewH, 0.0f, 3.0f);
 
-	// ƒ[ƒ‹ƒh•ÏŠ·s—ñ‚ğì¬
-	DirectX::XMMATRIX matrixScale = DirectX::XMMatrixScaling(m_size.x, m_size.y, m_size.z);	// ‘å‚«‚³
-	DirectX::XMMATRIX matrixAngle = DirectX::XMMatrixRotationZ(m_angle * 3.14f / 180);	// Œü‚«
-	DirectX::XMMATRIX matrixposition = DirectX::XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);	// ˆÊ’u
-	DirectX::XMMATRIX matrixWorld = matrixScale * matrixAngle * matrixposition;	// ƒ[ƒ‹ƒh•ÏŠ·s—ñ‚ğì¬
+	// =========================
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ï¼ˆæ‹¡å¤§ + å›è»¢ + å¹³è¡Œç§»å‹•ï¼‰
+	// =========================
+	DirectX::XMMATRIX matrixScale =
+		DirectX::XMMatrixScaling(m_size.x, m_size.y, m_size.z);
 
-	// UVƒAƒjƒ[ƒVƒ‡ƒ“‚Ìs—ñì¬
+	DirectX::XMMATRIX matrixAngle =
+		DirectX::XMMatrixRotationZ(m_angle * 3.14f / 180.0f);
+
+	DirectX::XMMATRIX matrixPos =
+		DirectX::XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);
+
+	DirectX::XMMATRIX matrixWorld =
+		matrixScale * matrixAngle * matrixPos;
+
+	// =========================
+	// UVå¤‰æ›è¡Œåˆ—ï¼ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ï¼šnumU/numVï¼‰
+	// =========================
 	float u = (float)numU / m_splitX;
 	float v = (float)numV / m_splitY;
 	DirectX::XMMATRIX matrixTex = DirectX::XMMatrixTranslation(u, v, 0.0f);
 
-	// ’è”ƒoƒbƒtƒ@‚ğXV
+	// =========================
+	// å®šæ•°ãƒãƒƒãƒ•ã‚¡æ›´æ–°
+	// =========================
 	ConstBuffer cb;
-	cb.matrixProj = DirectX::XMMatrixTranspose(matrixProj);	// ƒvƒƒWƒFƒNƒVƒ‡ƒ“•ÏŠ·s—ñ
-	cb.matrixWorld = DirectX::XMMatrixTranspose(matrixWorld);	// ƒ[ƒ‹ƒh•ÏŠ·s—ñ
-
-	cb.matrixTex = DirectX::XMMatrixTranspose(matrixTex);	// UVƒAƒjƒ[ƒVƒ‡ƒ“s—ñ
-
-	// ’¸“_ƒJƒ‰[‚Ìƒf[ƒ^‚ğì¬
+	cb.matrixProj = DirectX::XMMatrixTranspose(matrixProj);
+	cb.matrixWorld = DirectX::XMMatrixTranspose(matrixWorld);
+	cb.matrixTex = DirectX::XMMatrixTranspose(matrixTex);
 	cb.color = m_color;
 
-	// s—ñ‚ğƒVƒF[ƒ_[‚É“n‚·
 	g_pDeviceContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
-	// ¦À•Wƒf[ƒ^‚ğuGPU‚ªˆµ‚¢‚â‚·‚¢ƒf[ƒ^Œ^v‚É•ÏŠ·‚µ‚Ä’è”ƒoƒbƒtƒ@‚É‘—‚é@ius—ñiMatrixj‚Æ‚¢‚¤ƒf[ƒ^Œ^vj
 
-	g_pDeviceContext->Draw(4, 0); // •`‰æ–½—ß	(’¸“_‚Ì”,0)
+	// =========================
+	// æç”»
+	// =========================
+	g_pDeviceContext->Draw(4, 0);
 }
 
 /*
 	Draw(frameIndex)
 	----------------
 	frameIndex : 0,1,2,3...
-	¶ã ¨ ‰E ¨ ‰º ‚Ì‡
+	å·¦ä¸Š â†’ å³ â†’ ä¸‹ ã®é †ã§ä¸¦ã¶ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’æƒ³å®š
 */
 void Object::Draw(int frameIndex)
 {
-	/*
-		frameIndex ‚©‚ç
-		E‰¡ˆÊ’u
-		EcˆÊ’u
-		‚ğ‹‚ß‚é
-	*/
+	// frameIndex ã‹ã‚‰ (x,y) ã‚’ç®—å‡º
 	int frameX = frameIndex % m_splitX;
 	int frameY = frameIndex / m_splitX;
 
 	float u = frameX * m_frameU;
 	float v = frameY * m_frameV;
 
-	// ’¸“_ƒoƒbƒtƒ@İ’è
+	// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡è¨­å®š
 	UINT strides = sizeof(Vertex);
 	UINT offsets = 0;
 	g_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &strides, &offsets);
 
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£è¨­å®š
 	g_pDeviceContext->PSSetShaderResources(0, 1, &m_pTextureView);
 
-	// s—ñŒvZiŠù‘¶‚Æ“¯‚¶j
+	// è¡Œåˆ—è¨ˆç®—ï¼ˆ2Dæ­£å°„å½±ï¼‰
 	DirectX::XMMATRIX matrixProj =
 		DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
 
@@ -121,16 +217,13 @@ void Object::Draw(int frameIndex)
 	DirectX::XMMATRIX matrixWorld =
 		matrixScale * matrixAngle * matrixPos;
 
-	// š UV•ÏŠ·s—ñiƒXƒvƒ‰ƒCƒgƒV[ƒgj
-	float flipScaleX = m_flipX ? -m_frameU : m_frameU;
-
-	// ¶‰E”½“]‚Í u ‚ğ 1ƒtƒŒ[ƒ€•ª‚¸‚ç‚·
-	float offsetU = m_flipX ? (u + m_frameU) : u;
-
+	// =========================
+	// UVå¤‰æ›è¡Œåˆ—ï¼ˆã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚·ãƒ¼ãƒˆ + åè»¢ï¼‰
+	// =========================
 	DirectX::XMMATRIX matrixTex;
 	if (m_flipX)
 	{
-		// ¶‰E”½“]FU‚ğ”½“] + ˆÊ’u•â³
+		// å·¦å³åè»¢ï¼šUã‚’åè»¢ + ä½ç½®è£œæ­£
 		matrixTex =
 			DirectX::XMMatrixScaling(-m_frameU, m_frameV, 1.0f) *
 			DirectX::XMMatrixTranslation(u + m_frameU, v, 0.0f);
@@ -148,69 +241,71 @@ void Object::Draw(int frameIndex)
 	cb.matrixTex = DirectX::XMMatrixTranspose(matrixTex);
 	cb.color = m_color;
 
-	g_pDeviceContext->UpdateSubresource(
-		g_pConstantBuffer, 0, nullptr, &cb, 0, 0
-	);
+	g_pDeviceContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
 	g_pDeviceContext->Draw(4, 0);
 }
 
 /*
-	ƒXƒvƒ‰ƒCƒgƒV[ƒgİ’è
+	ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚·ãƒ¼ãƒˆè¨­å®š
 	--------------------
-	splitX : ‰¡ƒtƒŒ[ƒ€”
-	splitY : cƒtƒŒ[ƒ€”
+	splitX : æ¨ªãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	splitY : ç¸¦ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
 */
 void Object::SetSpriteSheet(int splitX, int splitY)
 {
 	m_splitX = splitX;
 	m_splitY = splitY;
 
-	// 1ƒtƒŒ[ƒ€•ª‚ÌUVƒTƒCƒY
+	// 1ãƒ•ãƒ¬ãƒ¼ãƒ ã®UVã‚µã‚¤ã‚º
 	m_frameU = 1.0f / m_splitX;
 	m_frameV = 1.0f / m_splitY;
 }
 
-void Object::Uninit() {
-	// ŠJ•úˆ—
+void Object::Uninit()
+{
+	// =========================
+	// è§£æ”¾å‡¦ç†
+	//  - AddRef ã—ãŸåˆ†ã ã‘ Release ã™ã‚‹
+	// =========================
 	SAFE_RELEASE(m_pVertexBuffer);
 	SAFE_RELEASE(m_pTextureView);
 }
 
-void Object::SetPos(float x, float y, float z) {
-	// À•W‚ğƒZƒbƒg‚·‚é
+void Object::SetPos(float x, float y, float z)
+{
+	// åº§æ¨™ã‚’è¨­å®š
 	m_pos.x = x;
 	m_pos.y = y;
 	m_pos.z = z;
-	// ¦positionƒf[ƒ^‚ğ‘ã“ü‚·‚éŠÖ”
 
+	// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ä½ç½®ã‚‚æ›´æ–°
 	m_collider.SetPosition({ x, y });
 }
 
 void Object::SetSize(float x, float y, float z)
 {
-	// ‘å‚«‚³‚ğƒZƒbƒg‚·‚é
+	// å¤§ãã•ã‚’è¨­å®š
 	m_size.x = x;
 	m_size.y = y;
 	m_size.z = z;
-	// ¦sizeƒf[ƒ^‚ğ‘ã“ü‚·‚éŠÖ”
-	// 100x100‚È‚ç radius = (100+100)*0.25 = 50
+
+	// åŠå¾„è¨­å®šï¼ˆä¾‹ï¼š100x100ãªã‚‰ radius=50ï¼‰
 	m_collider.SetRadius((x + y) * 0.25f);
 
-	// ‚à‚µSetSize‚¾‚¯æ‚ÉŒÄ‚Ôó‹µ‚É”õ‚¦‚ÄˆÊ’u‚à‚Ü‚½XV
+	// ä½ç½®ã‚‚å¿µã®ãŸã‚æ›´æ–°
 	m_collider.SetPosition({ m_pos.x, m_pos.y });
 }
 
 void Object::SetAngle(float a)
 {
-	// Šp“x‚ğƒZƒbƒg‚·‚é
+	// è§’åº¦ã‚’è¨­å®š
 	m_angle = a;
-	// ¦angleƒf[ƒ^‚ğ‘ã“ü‚·‚éŠÖ”
 }
 
 void Object::SetColor(float r, float g, float b, float a)
 {
-	// F‚ğƒZƒbƒg‚·‚é
+	// ã‚«ãƒ©ãƒ¼ã‚’è¨­å®š
 	m_color.x = r;
 	m_color.y = g;
 	m_color.z = b;
@@ -219,30 +314,48 @@ void Object::SetColor(float r, float g, float b, float a)
 
 void Object::SetFlipX(bool flip)
 {
+	// å·¦å³åè»¢ãƒ•ãƒ©ã‚°
 	m_flipX = flip;
 }
 
 void Object::SetTexture(const char* imgname)
 {
+	// =========================
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£å·®ã—æ›¿ãˆï¼ˆã‚­ãƒ£ãƒƒã‚·ãƒ¥çµŒç”±ï¼‰
+	//  - ç›´æ¥ LoadTexture ã™ã‚‹ã¨ã‚«ã‚¯ã¤ãã‚„å…±æœ‰ç ´å£Šã®åŸå› ã«ãªã‚‹
+	// =========================
 	SAFE_RELEASE(m_pTextureView);
-	LoadTexture(g_pDevice, imgname, &m_pTextureView);
+
+	HRESULT hr = GetTextureCached(imgname, &m_pTextureView);
+	if (FAILED(hr))
+	{
+		MessageBoxA(NULL, "ãƒ†ã‚¯ã‚¹ãƒãƒ£èª­ã¿è¾¼ã¿å¤±æ•—", "ã‚¨ãƒ©ãƒ¼", MB_ICONERROR | MB_OK);
+	}
 }
 
-DirectX::XMFLOAT3 Object::GetPos(void) {
-	return m_pos;	// À•W‚ğƒQƒbƒg
-}
-DirectX::XMFLOAT3 Object::GetSize(void) {
-	return m_size;	// ‘å‚«‚³‚ğƒQƒbƒg
-}
-float Object::GetAngle(void) {
-	return m_angle;	//	Šp“x‚ğƒZƒbƒg
-}
-DirectX::XMFLOAT4 Object::GetColor(void) {
-	return m_color;	// F‚ğƒZƒbƒg
+DirectX::XMFLOAT3 Object::GetPos(void)
+{
+	return m_pos;
 }
 
-// Collision 
+DirectX::XMFLOAT3 Object::GetSize(void)
+{
+	return m_size;
+}
 
+float Object::GetAngle(void)
+{
+	return m_angle;
+}
+
+DirectX::XMFLOAT4 Object::GetColor(void)
+{
+	return m_color;
+}
+
+// =========================
+// Collision
+// =========================
 void Object::SetCollisionRadius(float r)
 {
 	m_collider.SetRadius(r);
@@ -263,3 +376,18 @@ bool Object::CheckCollision(const Object& other) const
 	return m_collider.Intersects(other.m_collider);
 }
 
+void Object::ReleaseTextureCache()
+{
+	for (auto& kv : g_textureCache)
+	{
+		if (kv.second) kv.second->Release();
+	}
+	g_textureCache.clear();
+
+	if (s_pSharedVB)
+	{
+		s_pSharedVB->Release();
+		s_pSharedVB = nullptr;
+		s_sharedVBReady = false;
+	}
+}
