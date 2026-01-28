@@ -8,9 +8,6 @@ private:
 
 public:
 
-	void Apply(Player* player)override;
-
-
 	Skillpowerbuff(int value);
 
 };
