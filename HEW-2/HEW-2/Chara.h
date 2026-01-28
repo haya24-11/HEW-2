@@ -20,8 +20,6 @@ class Chara : public GameObject
 public:
     virtual ~Chara() = default;
 
-    Object* GetObject() const { return m_object; }
-
     // HPŠÄ‹‚È‚ÇÅ’áŒÀ‚ÌXV
     void Update(float deltaTime)override;
 

@@ -2,7 +2,6 @@
 #include <vector>
 #include "Chara.h"
 #include "Animator.h"
-#include "input.h"
 
 class Skill;
 
@@ -43,15 +42,11 @@ private:
     Animator m_animator;
     Animation m_idleAnim;
     Animation m_walkAnim;
-    Animation m_attackLightAnim;
-    Animation m_attackHeavyAnim;
-
+    
     enum class State
     {
         Idle,
-        Walk,
-        AttackLight,      // 弱攻撃
-        AttackHeavy,    // 強攻撃
+        Walk
     };
     State m_state = State::Idle;
 
@@ -67,5 +62,6 @@ private:
     int level = 1;
     int m_animFrame = 0;     // 現在のフレーム
     float m_animTimer = 0;  // 経過時間
+    
     std::vector<Skill*> skills; // Skillは所有しない（Mode側管理）
-};
+};  
