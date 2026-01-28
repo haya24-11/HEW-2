@@ -51,3 +51,13 @@ void Player::ApplyAbility(Skill* skill)
 	// スキの効果を Player に適用
 	//skill->Apply(this);
 }
+
+int Player::GetAttck() const
+{
+	return power;
+}
+
+void Player::SetPower(int value)
+{
+	power = value;
+}
