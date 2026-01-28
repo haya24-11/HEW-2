@@ -150,7 +150,7 @@
     <ClCompile Include="Collision.cpp">
       <Filter>ソース ファイル\Objects</Filter>
 	</ClCompile>
-    </ClCompile>
+ 
     <ClCompile Include="Animator.cpp">
       <Filter>ソース ファイル\System</Filter>
     </ClCompile>
