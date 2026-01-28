@@ -29,6 +29,11 @@ public:
     // スキル取得時の共通処理
     void ApplyAbility(Skill* skill);
 
+    //攻撃力のゲッター
+    int GetAttck() const;
+
+    void SetPower(int value);
+
 private:
     // WASD入力を方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
