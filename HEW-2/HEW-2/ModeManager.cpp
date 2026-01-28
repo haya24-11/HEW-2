@@ -10,7 +10,7 @@ const Mode& ModeManager::GetCurrentMode() const
     return currentMode;
 }
 
-std::vector<Skill*> ModeManager::GetAvailableSkills() const
+std::vector<Skill> ModeManager::GetAvailableSkills() const
 {
     return currentMode.GetSkills();
 }

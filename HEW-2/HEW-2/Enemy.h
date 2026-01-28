@@ -1,13 +1,3 @@
-#pragma once
-#include "Chara.h"
-
-/*
-    Enemy
-    =====
-    �E�G�L�������ʏ���
-    �E��_���[�W
-    �E�m�b�N�o�b�N
-*/
 ﻿#include "Chara.h"
 #include "Object.h"
 
@@ -79,10 +69,6 @@ public:
 protected:
     bool isBoss = false;     // ボス判定（必要なら派生で利用）
 
-private:
-    // �m�b�N�o�b�N�p
-    DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f,0.0f };
-    float knockBackTimer = 0.0f;
     // 追跡ターゲット（プレイヤーなど）
     Object* m_target = nullptr;
 

@@ -4,13 +4,15 @@
 class AMode : public Mode
 {
     // Mode‚²‚Æ‚Ì“Áêƒ‹[ƒ‹
-private:
-   int weakAtk = 2;
-   int strongAtkMin = 3;
+      //UŒ‚—Í‚ÆUŒ‚”ÍˆÍ
+    int weakPower = 10;
+    int strongPower = 50;
 
-public:
-    AMode();
-    int WeakAttack(int BaseAtk);
-    int StrongAttakc(int BaseAtk,float pushTime);
-    int ComboDamage();
+    DirectX::SimpleMath::Vector2 weakAttckArea{ 10.0f, 10.0f };
+    DirectX::SimpleMath::Vector2 strongAttckArea{ 80.0f, 80.0f };
+
+
+    void WeakAttck();
+    void StrongAttkc();
+
 };

@@ -10,7 +10,7 @@ public:
 
     const Mode& GetCurrentMode() const;
 
-    std::vector<Skill*> GetAvailableSkills() const;
+    std::vector<Skill> GetAvailableSkills() const;
 
     void AddComboBonus();
     void ResetCombo();
