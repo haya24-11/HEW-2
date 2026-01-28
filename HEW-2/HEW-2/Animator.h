@@ -34,6 +34,9 @@ public:
 
     // 再生中かどうか
     bool IsPlaying() const { return m_currentAnim != nullptr; }
+
+    // Getter
+    bool IsFinished() const { return m_isFinished; }
 private:
     const Animation* m_currentAnim = nullptr; // 再生中アニメ
     float m_timer = 0.0f;                     // フレーム経過時間

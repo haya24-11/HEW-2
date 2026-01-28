@@ -2,6 +2,7 @@
 #include <vector>
 #include "Chara.h"
 #include "Animator.h"
+#include "input.h"
 
 class Skill;
 
@@ -42,10 +43,12 @@ private:
     Animator m_animator;
     Animation m_idleAnim;
     Animation m_walkAnim;
+    Animation m_attackAnim;
     enum class State
     {
         Idle,
-        Walk
+        Walk,
+        Attack,
     };
     State m_state = State::Idle;
 
