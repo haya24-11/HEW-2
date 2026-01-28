@@ -196,3 +196,13 @@ void Player::ApplyAbility(Skill* skill)
 	// スキの効果を Player に適用
 	//skill->Apply(this);
 }
+
+int Player::GetPower() const
+{
+	return power;
+}
+
+void Player::Setpower(int value)
+{
+	power = value;
+}
