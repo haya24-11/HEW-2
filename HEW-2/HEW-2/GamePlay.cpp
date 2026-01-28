@@ -139,7 +139,7 @@ static void PushOutCircle(Object* aObj, Object* bObj)
     float distSq = dx * dx + dy * dy;
     float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
-    // ✅ 각자 설정한 반지름 사용
+    // ✅ それぞれ設定した半径を使用
     float ra = aObj->GetCollisionRadius();
     float rb = bObj->GetCollisionRadius();
 
