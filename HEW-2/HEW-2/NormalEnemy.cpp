@@ -6,6 +6,6 @@ NormalEnemy::NormalEnemy()
 	power = 5;
 	isBoss = false;
 
-	moveSpeed = 15.0f;
+	moveSpeed = 7.0f;
 	chaseStopDistance = 300.0f;
 }

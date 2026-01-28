@@ -12,6 +12,9 @@ GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 
 void GamePlay::InitScene()
 {
+    //カメラの大きさ調整
+    m_camera.SetViewSize(640.0f, 320.0f); 
+
     std::cout << "InitScene" << std::endl;
 
     // MAP
@@ -25,10 +28,9 @@ void GamePlay::InitScene()
     Object* player = AddObject();
     player->Init("asset/Texture/player_idle.png");
     player->SetSpriteSheet(6, 6);
-    player->SetSize(150.0f, 170.0f, 0.0f);
+    player->SetSize(75.0f, 85.0f, 0.0f);
     player->SetPos(0.0f, 0.0f, 0.0f);
-    // 当たり判定範囲
-    player->SetCollisionRadius(50.0f);
+    player->SetCollisionRadius(30.0f);
 
     // ロジックと Object を紐づけ
     m_player->SetObject(player);
@@ -62,10 +64,9 @@ void GamePlay::UpdateScene(float deltaTime)
         auto p = playerObj->GetPos();
         m_camera.SetPosition({ p.x, p.y });
     }
-
-    // ✅ 스폰 + 적들 업데이트
+    // ✅スポン + 敵 たち アップデート
     m_spawner.Update(deltaTime);
-    // ✅ 플레이어가 여러 적에 끼었을 때도 빠져나오도록(반복 분리)
+    // ✅プレイヤーが複数の敵に挟まれた時も抜け出すように(繰り返し分離)
     for (int iter = 0; iter < 3; ++iter)
     {
         bool pushed = false;
@@ -94,6 +95,9 @@ void GamePlay::UpdateScene(float deltaTime)
 
 void GamePlay::DrawScene()
 {
+    // ✅ カメラの表示範囲を適用（Object::Draw のプロジェクションがこれを使う）
+    Object::SetViewSize(m_camera.GetViewW(), m_camera.GetViewH());
+
     auto off = m_camera.GetOffset();
 
     for (auto& obj : objects)
@@ -121,33 +125,38 @@ void GamePlay::UninitScene()
 {
     std::cout << "UninitScene" << std::endl;
 }
-
-static void PushOutCircle(Object* playerObj, Object* enemyObj)
+static void PushOutCircle(Object* aObj, Object* bObj)
 {
-    if (!playerObj || !enemyObj) return;
-    if (!playerObj->CheckCollision(*enemyObj)) return;
+    if (!aObj || !bObj) return;
+    if (!aObj->CheckCollision(*bObj)) return;
 
-    auto p3 = playerObj->GetPos();
-    auto e3 = enemyObj->GetPos();
+    auto a3 = aObj->GetPos();
+    auto b3 = bObj->GetPos();
 
-    float dx = p3.x - e3.x;
-    float dy = p3.y - e3.y;
+    float dx = b3.x - a3.x;
+    float dy = b3.y - a3.y;
 
     float distSq = dx * dx + dy * dy;
     float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
-    // ✅ 반지름 getter 없으니 우선 하드코딩(플레이어 50, 적 50)
-    // 가능하면 Object에 GetCollisionRadius() 만들어서 그 값 쓰는 게 정석
-    float rp = 50.0f;
-    float re = 50.0f;
+    // ✅ それぞれ設定した半径を使用
+    float ra = aObj->GetCollisionRadius();
+    float rb = bObj->GetCollisionRadius();
 
-    float overlap = (rp + re) - dist;
+    float overlap = (ra + rb) - dist;
     if (overlap <= 0.0f) return;
 
     float nx = dx / dist;
     float ny = dy / dist;
 
-    // 플레이어만 밀어내기(적은 그대로)
-    float push = overlap + 0.5f; // 살짝 여유를 줘서 끼임 방지
-    playerObj->SetPos(p3.x + nx * push, p3.y + ny * push, p3.z);
+    // お互いに半分ずつ押し合い
+    float push = overlap * 0.5f;
+
+    // 瞬間移動感防止(フレーム当たり最大密林制限)
+    const float maxPush = 4.0f;   // ご希望の場合は2~10の間に調節
+    if (push > maxPush) push = maxPush;
+
+    aObj->SetPos(a3.x - nx * push, a3.y - ny * push, a3.z);
+    bObj->SetPos(b3.x + nx * push, b3.y + ny * push, b3.z);
 }
+

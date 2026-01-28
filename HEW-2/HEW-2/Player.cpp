@@ -1,12 +1,13 @@
 ﻿#include "Player.h"
 #include "Skill.h"
-
+#include <Xinput.h>
+#pragma comment(lib, "Xinput.lib")
 Player::Player()
 {
 	hp = 100;
 	power = 10;
 
-	moveSpeed = 50.0f; // Player 固有の速さ
+	moveSpeed = 15.0f; // Player 固有の速さ
 
 	// ===== Animation定義 =====
 	// 待機（idle.png）
@@ -114,23 +115,54 @@ int Player::GetAnimFrame() const
 {
 	return m_animator.GetCurrentFrame();
 }
-
 DirectX::SimpleMath::Vector2 Player::GetMoveInput() const
 {
 	DirectX::SimpleMath::Vector2 dir(0.0f, 0.0f);
 
-	/*
-	   GetAsyncKeyState
-	   ・上位ビットが立っていれば押下中
-   */
-	if (GetAsyncKeyState('W') & 0x8000)dir.y += 1.0f;
-	if (GetAsyncKeyState('S') & 0x8000)dir.y -= 1.0f;
-	if (GetAsyncKeyState('A') & 0x8000)dir.x -= 1.0f;
-	if (GetAsyncKeyState('D') & 0x8000)dir.x += 1.0f;
+	// =========================
+	// (A) ゲームパッド（XInput）- 左スティック
+	// =========================
+	XINPUT_STATE state{};
+	DWORD res = XInputGetState(0, &state); // 0番のコントローラ
+
+	if (res == ERROR_SUCCESS)
+	{
+		// スティックの生値（-32768 ～ 32767）
+		float lx = (float)state.Gamepad.sThumbLX;
+		float ly = (float)state.Gamepad.sThumbLY;
+
+		// デッドゾーン（少し触れても動く“ドリフト”防止）
+		const float dead = (float)XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+
+		// デッドゾーン適用
+		if (fabsf(lx) < dead) lx = 0.0f;
+		if (fabsf(ly) < dead) ly = 0.0f;
+
+		// 正規化（-1 ～ 1）
+		const float maxv = 32767.0f;
+		dir.x = lx / maxv;
+		dir.y = ly / maxv;
+	}
+
+	// =========================
+	// (B) キーボード（WASD）も併用したい場合
+	//     ※パッド優先 + キーボード補助
+	// =========================
+	if (GetAsyncKeyState('W') & 0x8000) dir.y += 1.0f;
+	if (GetAsyncKeyState('S') & 0x8000) dir.y -= 1.0f;
+	if (GetAsyncKeyState('A') & 0x8000) dir.x -= 1.0f;
+	if (GetAsyncKeyState('D') & 0x8000) dir.x += 1.0f;
+
+	// =========================
+	// (C) 長さを正規化（斜め移動でも速度が同じになるように）
+	// =========================
+	if (dir.LengthSquared() > 1.0f)
+		dir.Normalize();
 
 	return dir;
-
 }
+
+
 
 void Player::Attack()
 {
