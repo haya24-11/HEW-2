@@ -84,27 +84,30 @@ void Object::Uninit() {
 	SAFE_RELEASE(m_pTextureView);
 }
 
-void Object::SetPos(float x, float y, float z) {
+Object* Object::SetPos(float x, float y, float z) {
 	// 座標をセットする
 	m_pos.x = x;
 	m_pos.y = y;
 	m_pos.z = z;
+	return this;
 	// ※positionデータを代入する関数
 }
 
-void Object::SetSize(float x, float y, float z)
+Object* Object::SetSize(float x, float y, float z)
 {
 	// 大きさをセットする
 	m_size.x = x;
 	m_size.y = y;
 	m_size.z = z;
+	return this;
 	// ※sizeデータを代入する関数
 }
 
-void Object::SetAngle(float a)
+Object* Object::SetAngle(float a)
 {
 	// 角度をセットする
 	m_angle = a;
+	return this;
 	// ※angleデータを代入する関数
 }
 

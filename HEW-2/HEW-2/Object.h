@@ -48,9 +48,9 @@ public:
 	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// 初期化
 	void Draw();											// 描画
 	void Uninit();										// 終了
-	void SetPos(float x, float y, float z);	// 座標をセット
-	void SetSize(float x, float y, float z); // 大きさをセット
-	void SetAngle(float a);						// 角度をセット
+	Object* SetPos(float x, float y, float z);	// 座標をセット
+	Object* SetSize(float x, float y, float z); // 大きさをセット
+	Object* SetAngle(float a);						// 角度をセット
 	void SetColor(float r, float g, float b, float a); // 色をセット
 
 

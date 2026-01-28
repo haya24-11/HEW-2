@@ -128,8 +128,8 @@ HRESULT RendererInit(HWND hwnd)
 	CRect rect;
 	GetClientRect(hwnd, &rect);
 	D3D11_VIEWPORT viewport;
-	viewport.Width = (FLOAT)rect.Width();   // ビューポートの幅
-	viewport.Height = (FLOAT)rect.Height(); // ビューポートの高さ
+	viewport.Width = (FLOAT)SCREEN_WIDTH;   // ビューポートの幅
+	viewport.Height = (FLOAT)SCREEN_HEIGHT; // ビューポートの高さ
 	viewport.MinDepth = 0.0f;               // 深度範囲の最小値
 	viewport.MaxDepth = 1.0f;               // 深度範囲の最大値
 	viewport.TopLeftX = 0;                  // ビューポートの左上隅のX座標

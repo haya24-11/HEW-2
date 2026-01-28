@@ -6,7 +6,36 @@ Result::Result():Scene(SceneType::Result)
 
 void Result::InitScene()
 {
-	std::cout << "u" << std::endl;
+	std::cout << "(Debug) ResultScene!" << std::endl;
+
+	// リザルトウィンドウ(画像は仮です...)
+	ResultWindow = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(1200.0f, 600.0f, 0.0f)
+		->SetAngle(0.0f);
+	ResultWindow->Init("asset/resultwindow.png");
+
+	/*// プレイヤーキャラクター
+	PlayerCharacter = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	PlayerCharacter->Init("asset/playercharacter.png");
+
+	// スコアテキスト
+	ScoreText = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	ScoreText->Init("asset/scoretext.png");
+
+	// 次のウィンドウ（Next画面）
+	NextWindow = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	NextWindow->Init("asset/nextwindow.png");
+	*/
 }
 
 void Result::UpdateScene(float deltaTime)
