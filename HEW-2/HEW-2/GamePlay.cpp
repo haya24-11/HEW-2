@@ -32,8 +32,10 @@ void GamePlay::InitScene()
     player->SetPos(0.0f, 0.0f, 0.0f);
     player->SetCollisionRadius(30.0f);
 
+    // ロジックと Object を紐づけ
     m_player->SetObject(player);
 
+    // カメラ初期化（プレイヤー基準）
     {
         auto p = player->GetPos();
         m_camera.SetPosition({ p.x, p.y });
@@ -147,11 +149,11 @@ static void PushOutCircle(Object* aObj, Object* bObj)
     float nx = dx / dist;
     float ny = dy / dist;
 
-    // ✅ 서로 반씩 밀기
+    // お互いに半分ずつ押し合い
     float push = overlap * 0.5f;
 
-    // ✅ 순간이동 느낌 방지(프레임당 최대 밀림 제한)
-    const float maxPush = 4.0f;   // 원하면 2~10 사이로 조절
+    // 瞬間移動感防止(フレーム当たり最大密林制限)
+    const float maxPush = 4.0f;   // ご希望の場合は2~10の間に調節
     if (push > maxPush) push = maxPush;
 
     aObj->SetPos(a3.x - nx * push, a3.y - ny * push, a3.z);

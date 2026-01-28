@@ -15,10 +15,46 @@ Player::Player()
 
 	// 移動（walk.png）
 	m_walkAnim = { 0, 8, 0.5f, true };
+
+	// 攻撃（Attack.png)
+	m_attackAnim = { 0,15,0.17f,false };
 }
 
 void Player::Update(float deltaTime)
 {
+	bool attackInput = Input::GetKeyTrigger(VK_RETURN); // 押した瞬間
+
+	// ===== Attack中の処理 =====
+	if (m_state == State::Attack)
+	{
+		if (m_animator.IsFinished())
+		{
+			m_state = State::Idle;
+			m_object->SetTexture("asset/Texture/player_idle.png");
+			m_object->SetSpriteSheet(6, 6);
+			m_animator.Play(m_idleAnim);
+		}
+
+		// 向き反映
+		bool textureIsRightFacing = true; // idle/attackは右向き原画
+		bool flipX = (textureIsRightFacing != m_facingRight);
+		m_object->SetFlipX(flipX);
+
+		m_animator.Update(deltaTime);
+		Chara::Update(deltaTime);
+		return; // ★超重要
+	}
+
+	// ===== Attack開始判定 =====
+	if (attackInput)
+	{
+		m_state = State::Attack;
+		m_object->SetTexture("asset/Texture/player_attack.png");
+		m_object->SetSpriteSheet(6, 3);
+		m_animator.Play(m_attackAnim);
+		return; // 即Attackに入る
+	}
+
 	printf("[Player] dt=%.3f\n", deltaTime);
 	// ===== 入力 =====
 	auto dir = GetMoveInput();
@@ -57,6 +93,7 @@ void Player::Update(float deltaTime)
 		m_object->SetSpriteSheet(6, 6);
 		m_animator.Play(m_idleAnim);
 	}
+	
 	// ===== ★ 向き反映 =====
 	/*
 		Idle : 原画は右向き
