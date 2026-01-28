@@ -1,5 +1,7 @@
-﻿#include "Chara.h"
+﻿#pragma once
+#include "Chara.h"
 #include "Object.h"
+#include "Animator.h"
 
 // Enemy
 // ============================================================
@@ -16,7 +18,7 @@ public:
     void Update(float deltaTime) override;
 
     // 攻撃処理（派生で具体実装）
-    void Attack() override;
+    virtual void Attack() = 0;
 
     // ダメージを受ける
     void TakeDamage(int damage);
@@ -84,4 +86,22 @@ protected:
     DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f, 0.0f }; // ノックバック速度
     float knockBackTimer = 0.0f;        // ノックバック経過時間
     float knockBackDuration = 0.15f;    // ノックバック継続時間
+
+    // ===== アニメ関連（子クラスが設定する） =====
+    Animation m_walkAnim;
+
+    // 原画の向き（子クラスが決める）
+    bool m_textureRightFacing = false;
+
+    // アニメ初期化（★ 子クラスで override）
+    virtual void SetupAnimation() = 0;
+
+    // テクスチャ設定（★ 子クラスで override）
+    virtual void ApplyWalkVisual() = 0;
+
+    Animator m_animator;
+
+    bool m_isWalking = false;   // ★ 今フレーム歩いてるか
+    bool m_facingRight = true;
+
 };

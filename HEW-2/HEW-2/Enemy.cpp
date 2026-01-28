@@ -2,7 +2,6 @@
 
 Enemy::Enemy()
 {
-    moveSpeed = 40.0f;
 }
 
 void Enemy::Update(float deltaTime)
@@ -39,35 +38,94 @@ void Enemy::Update(float deltaTime)
             knockBackVelocity = { 0.0f, 0.0f };
             knockBackTimer = 0.0f;
         }
+
+        // ノックバック中は歩行扱いにしない
+        m_animator.Update(deltaTime);
         return;
     }
 
-    //==============================
+//==============================
 // Chase (AI) 追加
 //==============================
-    if (!chaseEnabled) return;
-    if (!m_target)     return;
+    if (!chaseEnabled || !m_target)
+        return;
 
     const auto ePos = m_object->GetPos();
     const auto tPos = m_target->GetPos();
 
     DirectX::SimpleMath::Vector2 dir(tPos.x - ePos.x, tPos.y - ePos.y);
+
+    bool isMoving = true;
+
     // 近すぎると止まる
     if (chaseStopDistance > 0.0f)
     {
         const float distSq = dir.LengthSquared();
         const float stopSq = chaseStopDistance * chaseStopDistance;
-        if (distSq <= stopSq) return;
+        if (distSq <= stopSq)
+        {
+            isMoving = false;
+        }
     }
-    // 移動前の位置保存
-    const auto old = m_object->GetPos();
 
-    Move(dir, deltaTime);
-    // 重なると元の位置に戻る（壁のように通れないように）
-    if (m_object->CheckCollision(*m_target))
+   // ==============================
+   // 向き更新
+   // ==============================
+    if (dir.x > 0.0f)      m_facingRight = true;
+    else if (dir.x < 0.0f) m_facingRight = false;
+
+    // ==============================
+    // 移動
+    // ==============================
+    if (isMoving)
     {
-        m_object->SetPos(old.x, old.y, old.z);
+        // 移動前の位置保存
+        const auto old = m_object->GetPos();
+
+        Move(dir, deltaTime);
+        // 重なると元の位置に戻る（壁のように通れないように）
+        if (m_object->CheckCollision(*m_target))
+        {
+            m_object->SetPos(old.x, old.y, old.z);
+            isMoving = false;
+        }
     }
+
+    // ==============================
+    // ★ 移動アニメ制御（ここが本体）
+    // ==============================
+    if (isMoving)
+    {
+        if (!m_isWalking)
+        {
+            m_isWalking = true;
+            ApplyWalkVisual();      // ★ 子クラス依存
+            m_animator.Play(m_walkAnim);
+        }
+    }
+    else
+    {
+        // ★ 止まったら歩行終了
+        m_isWalking = false;
+        // フレーム0固定（Animatorを止める）
+        // → Update を呼ばなければOK
+    }
+
+    // ==============================
+    // 向き反映
+    // （enemy walk 原画は左向き想定）
+    // ==============================
+    bool flipX = (m_textureRightFacing != m_facingRight);
+    m_object->SetFlipX(flipX);
+
+    // ==============================
+    // アニメ更新（歩いてる時だけ）
+    // ==============================
+    if (m_isWalking)
+    {
+        m_animator.Update(deltaTime);
+    }
+
 }
 
 void Enemy::Attack()

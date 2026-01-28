@@ -16,8 +16,13 @@ public:
         cfg.sizeY = 30.0f;
         cfg.collisionRadius = 15.0f;
         cfg.stopDist = 100.0f;//敵が近づいたら止まる
+
+        cfg.texture = "asset/Texture/NormalEnemy.png"; // 使用テクスチャ
         return cfg;
     }
-
+protected:
+    void SetupAnimation() override;
+    void ApplyWalkVisual() override;
+    void Attack() override;
 };
 
