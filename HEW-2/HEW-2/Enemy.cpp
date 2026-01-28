@@ -1,4 +1,4 @@
-#include "Enemy.h"
+ï»¿#include "Enemy.h"
 
 Enemy::Enemy()
 {
@@ -6,46 +6,46 @@ Enemy::Enemy()
 
 void Enemy::Update(float deltaTime)
 {
-    // Chara ‹¤’ÊXViHPƒ`ƒFƒbƒN‚È‚Çj
+    // Chara å…±é€šæ›´æ–°ï¼ˆHPãƒã‚§ãƒƒã‚¯ãªã©ï¼‰
 	Chara::Update(deltaTime);
     
-    // Object ‚ª–³‚¯‚ê‚Î‰½‚à‚µ‚È‚¢
+    // Object ãŒç„¡ã‘ã‚Œã°ä½•ã‚‚ã—ãªã„
     if (!m_object)
         return;
     /*
-       ƒmƒbƒNƒoƒbƒN’†‚Ìˆ—
+       ãƒãƒƒã‚¯ãƒãƒƒã‚¯ä¸­ã®å‡¦ç†
        --------------------
-       Ec‚èŠÔ‚ª‚ ‚éŠÔ‚¾‚¯‰Ÿ‚µo‚·
-       EŠÔŒo‰ß‚Å©‘R‚É~‚Ü‚é
+       ãƒ»æ®‹ã‚Šæ™‚é–“ãŒã‚ã‚‹é–“ã ã‘æŠ¼ã—å‡ºã™
+       ãƒ»æ™‚é–“çµŒéã§è‡ªç„¶ã«æ­¢ã¾ã‚‹
    */
     if (knockBackTimer > 0.0f)
     {
-        // Œ»İÀ•Wæ“¾
+        // ç¾åœ¨åº§æ¨™å–å¾—
         position = m_object->GetPos();
 
-        // ƒmƒbƒNƒoƒbƒNˆÚ“®i2Dj
+        // ãƒãƒƒã‚¯ãƒãƒƒã‚¯ç§»å‹•ï¼ˆ2Dï¼‰
         position.x += knockBackVelocity.x * deltaTime;
         position.y += knockBackVelocity.y * deltaTime;
 
-        // Object ‚É”½‰f
+        // Object ã«åæ˜ 
         m_object->SetPos(position.x, position.y, position.z);
 
         knockBackTimer -= deltaTime;
 
-        // ŠÔØ‚ê
+        // æ™‚é–“åˆ‡ã‚Œ
         if (knockBackTimer <= 0.0f)
         {
             knockBackVelocity = { 0.0f, 0.0f };
             knockBackTimer = 0.0f;
         }
 
-        // ƒmƒbƒNƒoƒbƒN’†‚Í•àsˆµ‚¢‚É‚µ‚È‚¢
+        // ãƒãƒƒã‚¯ãƒãƒƒã‚¯ä¸­ã¯æ­©è¡Œæ‰±ã„ã«ã—ãªã„
         m_animator.Update(deltaTime);
         return;
     }
 
 //==============================
-// Chase (AI) ’Ç‰Á
+// Chase (AI) è¿½åŠ 
 //==============================
     if (!chaseEnabled || !m_target)
         return;
@@ -57,7 +57,7 @@ void Enemy::Update(float deltaTime)
 
     bool isMoving = true;
 
-    // ‹ß‚·‚¬‚é‚Æ~‚Ü‚é
+    // è¿‘ã™ãã‚‹ã¨æ­¢ã¾ã‚‹
     if (chaseStopDistance > 0.0f)
     {
         const float distSq = dir.LengthSquared();
@@ -69,21 +69,21 @@ void Enemy::Update(float deltaTime)
     }
 
    // ==============================
-   // Œü‚«XV
+   // å‘ãæ›´æ–°
    // ==============================
     if (dir.x > 0.0f)      m_facingRight = true;
     else if (dir.x < 0.0f) m_facingRight = false;
 
     // ==============================
-    // ˆÚ“®
+    // ç§»å‹•
     // ==============================
     if (isMoving)
     {
-        // ˆÚ“®‘O‚ÌˆÊ’u•Û‘¶
+        // ç§»å‹•å‰ã®ä½ç½®ä¿å­˜
         const auto old = m_object->GetPos();
 
         Move(dir, deltaTime);
-        // d‚È‚é‚ÆŒ³‚ÌˆÊ’u‚É–ß‚éi•Ç‚Ì‚æ‚¤‚É’Ê‚ê‚È‚¢‚æ‚¤‚Éj
+        // é‡ãªã‚‹ã¨å…ƒã®ä½ç½®ã«æˆ»ã‚‹ï¼ˆå£ã®ã‚ˆã†ã«é€šã‚Œãªã„ã‚ˆã†ã«ï¼‰
         if (m_object->CheckCollision(*m_target))
         {
             m_object->SetPos(old.x, old.y, old.z);
@@ -92,34 +92,34 @@ void Enemy::Update(float deltaTime)
     }
 
     // ==============================
-    // š ˆÚ“®ƒAƒjƒ§Œäi‚±‚±‚ª–{‘Ìj
+    // â˜… ç§»å‹•ã‚¢ãƒ‹ãƒ¡åˆ¶å¾¡ï¼ˆã“ã“ãŒæœ¬ä½“ï¼‰
     // ==============================
     if (isMoving)
     {
         if (!m_isWalking)
         {
             m_isWalking = true;
-            ApplyWalkVisual();      // š qƒNƒ‰ƒXˆË‘¶
+            ApplyWalkVisual();      // â˜… å­ã‚¯ãƒ©ã‚¹ä¾å­˜
             m_animator.Play(m_walkAnim);
         }
     }
     else
     {
-        // š ~‚Ü‚Á‚½‚ç•àsI—¹
+        // â˜… æ­¢ã¾ã£ãŸã‚‰æ­©è¡Œçµ‚äº†
         m_isWalking = false;
-        // ƒtƒŒ[ƒ€0ŒÅ’èiAnimator‚ğ~‚ß‚éj
-        // ¨ Update ‚ğŒÄ‚Î‚È‚¯‚ê‚ÎOK
+        // ãƒ•ãƒ¬ãƒ¼ãƒ 0å›ºå®šï¼ˆAnimatorã‚’æ­¢ã‚ã‚‹ï¼‰
+        // â†’ Update ã‚’å‘¼ã°ãªã‘ã‚Œã°OK
     }
 
     // ==============================
-    // Œü‚«”½‰f
-    // ienemy walk Œ´‰æ‚Í¶Œü‚«‘z’èj
+    // å‘ãåæ˜ 
+    // ï¼ˆenemy walk åŸç”»ã¯å·¦å‘ãæƒ³å®šï¼‰
     // ==============================
     bool flipX = (m_textureRightFacing != m_facingRight);
     m_object->SetFlipX(flipX);
 
     // ==============================
-    // ƒAƒjƒXVi•à‚¢‚Ä‚é‚¾‚¯j
+    // ã‚¢ãƒ‹ãƒ¡æ›´æ–°ï¼ˆæ­©ã„ã¦ã‚‹æ™‚ã ã‘ï¼‰
     // ==============================
     if (m_isWalking)
     {
@@ -130,7 +130,7 @@ void Enemy::Update(float deltaTime)
 
 void Enemy::Attack()
 {
-    // AI / s“®Œˆ’è‚Í•Ê’S“–
+    // AI / è¡Œå‹•æ±ºå®šã¯åˆ¥æ‹…å½“
 }
 
 void Enemy::TakeDamage(int damage)
@@ -141,14 +141,14 @@ void Enemy::TakeDamage(int damage)
 void Enemy::KnockBack(const DirectX::SimpleMath::Vector2& force)
 {
     /*
-        Mode ‘¤‚Å
-        EAMode ‚Ì‚Æ‚«‚¾‚¯ŒÄ‚Î‚ê‚é
-        E‘¼ƒ‚[ƒh‚Å‚ÍŒÄ‚Î‚ê‚È‚¢ or force ‚ª 0
-        ‚Æ‚¢‚¤‘O’ñ
+        Mode å´ã§
+        ãƒ»AMode ã®ã¨ãã ã‘å‘¼ã°ã‚Œã‚‹
+        ãƒ»ä»–ãƒ¢ãƒ¼ãƒ‰ã§ã¯å‘¼ã°ã‚Œãªã„ or force ãŒ 0
+        ã¨ã„ã†å‰æ
     */
     if (force.LengthSquared() == 0.0f)
         return;
-    // Boss ‚¾‚¯ƒmƒbƒNƒoƒbƒN–³Œø
+    // Boss ã ã‘ãƒãƒƒã‚¯ãƒãƒƒã‚¯ç„¡åŠ¹
     if (isBoss) return;
 
     knockBackVelocity = force;

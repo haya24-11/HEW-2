@@ -91,11 +91,12 @@ public:
         }
     };
 
-    // ✅ EnemySpawner에서 사용
     Animator& GetAnimator() { return m_animator; }
     const Animator& GetAnimator() const { return m_animator; }
 
 
+    // ✅ スプライトシート描画用の frameIndex
+    int GetAnimFrame() const { return m_animator.GetCurrentFrame(); }
     // 各敵タイプが自分のスポーン設定を返す（派生クラスで override 推奨）
     virtual SpawnConfig GetSpawnConfig() const { return SpawnConfig(); }
 
