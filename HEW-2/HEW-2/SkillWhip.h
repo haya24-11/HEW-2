@@ -1,7 +1,7 @@
 #pragma once
-#include"Skill.h"
+#include"WeaponSkills.h"
 
-class SkillWhip :public Skill
+class SkillWhip :public WeaponSkills
 {
 
 private:
@@ -16,5 +16,4 @@ public:
 
 	float GetPower() const;
 	DirectX::SimpleMath::Vector2 GetArea() const;
-
 };

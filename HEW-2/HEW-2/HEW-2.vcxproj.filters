@@ -58,6 +58,9 @@
     <Filter Include="ソース ファイル\Gameplay\GameMechanics\Skills">
       <UniqueIdentifier>{b1d4bf20-0875-4a25-b58c-38909a968a4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype">
+      <UniqueIdentifier>{93a8953c-c1ba-42c7-bf34-da6fdea594ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test1.cpp">
@@ -147,7 +150,28 @@
     <ClCompile Include="stb_image.cpp">
       <Filter>ソース ファイル\External</Filter>
     </ClCompile>
-    <ClCompile Include="SkillExample.cpp">
+    <ClCompile Include="ActiveSkill.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClCompile>
+    <ClCompile Include="BuffSkill.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClCompile>
+    <ClCompile Include="PassiveSkill.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClCompile>
+    <ClCompile Include="WeaponSkills.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClCompile>
+    <ClCompile Include="SkillWhip.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+    </ClCompile>
+    <ClCompile Include="SkillSword.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+    </ClCompile>
+    <ClCompile Include="SkillAxe.cpp">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+    </ClCompile>
+    <ClCompile Include="Skillpowerbuff.cpp">
       <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
     </ClCompile>
   </ItemGroup>
@@ -203,9 +227,6 @@
     <ClInclude Include="sound.h">
       <Filter>ソース ファイル\System</Filter>
     </ClInclude>
-    <ClInclude Include="Chara.h">
-      <Filter>ソース ファイル\Objects\Character</Filter>
-    </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>ソース ファイル\Objects</Filter>
     </ClInclude>
@@ -242,10 +263,31 @@
     <ClInclude Include="stb_image.h">
       <Filter>ソース ファイル\External</Filter>
     </ClInclude>
-    <ClInclude Include="SkillExample.h">
+    <ClInclude Include="Chara.h">
+      <Filter>ソース ファイル\Objects\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="PassiveSkill.h">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClInclude>
+    <ClInclude Include="ActiveSkill.h">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClInclude>
+    <ClInclude Include="BuffSkill.h">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponSkills.h">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills\Skilltype</Filter>
+    </ClInclude>
+    <ClInclude Include="SkillAxe.h">
       <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
     </ClInclude>
-    <ClInclude Include="SkillType.h">
+    <ClInclude Include="Skillpowerbuff.h">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+    </ClInclude>
+    <ClInclude Include="SkillSword.h">
+      <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
+    </ClInclude>
+    <ClInclude Include="SkillWhip.h">
       <Filter>ソース ファイル\Gameplay\GameMechanics\Skills</Filter>
     </ClInclude>
   </ItemGroup>

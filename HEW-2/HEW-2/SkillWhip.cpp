@@ -1,6 +1,6 @@
 #include "SkillWhip.h"
 
-SkillWhip::SkillWhip() :Skill("Whip", 3, SkillType::Weapon), whipPower(100.0f), whipArea(30.0f, 30.0f)
+SkillWhip::SkillWhip() : WeaponSkills("Whip", 3), whipPower(100.0f), whipArea(30.0f, 30.0f)
 {
 }
 

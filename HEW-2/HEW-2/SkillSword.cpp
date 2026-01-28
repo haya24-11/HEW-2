@@ -1,6 +1,6 @@
 #include "SkillSword.h"
 
-SkillSword::SkillSword() :Skill("Sword", 1, SkillType::Weapon), swordPower(1.5f), SwordArea(60.0f, 60.0f)
+SkillSword::SkillSword() :WeaponSkills("Sword", 1), swordPower(1.5f), SwordArea(60.0f, 60.0f)
 {
 	
 	

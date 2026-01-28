@@ -1,7 +1,7 @@
 #pragma once
-#include"Skill.h"
+#include"WeaponSkills.h"
 
-class SkillSword:public Skill
+class SkillSword:public WeaponSkills
 {
 private:
 

@@ -1,6 +1,6 @@
 #include "SkillAxe.h"
 
-SkillAxe::SkillAxe():Skill("Aex", 2, SkillType::Weapon), axePower(100.0f),aexArea(30.0f,30.0f)
+SkillAxe::SkillAxe():WeaponSkills("Aex", 2), axePower(100.0f),aexArea(30.0f,30.0f)
 {
 }
 

@@ -1,6 +1,6 @@
 #include "Mode.h"
 
-const std::vector<Skill>& Mode::GetSkills() const
+const std::vector<Skill*>& Mode::GetSkills() const
 {
     return skills;
 }
