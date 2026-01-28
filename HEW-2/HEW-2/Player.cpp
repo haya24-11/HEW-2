@@ -474,3 +474,13 @@ void Player::ApplyVisualSize(const SizeScale& s)
     m_object->SetSize(m_baseW * s.sx, m_baseH * s.sy, 0.0f);
     m_object->SetCollisionRadius(m_fixedRadius);
 }
+
+int Player::GetPower() const
+{
+	return power;
+}
+
+void Player::Setpower(int value)
+{
+	power = value;
+}

@@ -23,5 +23,9 @@ public:
 
         return cfg;
     }
-
+protected:
+    void SetupAnimation() override;
+    void ApplyWalkVisual() override;
+    void Attack() override;
 };
+

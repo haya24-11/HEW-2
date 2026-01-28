@@ -43,6 +43,9 @@ public:
     // スキル取得時の共通処理
     void ApplyAbility(Skill* skill);
 
+    int GetPower() const;
+
+    void Setpower(int value);
 private:
     // WASD入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
