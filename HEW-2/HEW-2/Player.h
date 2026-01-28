@@ -240,11 +240,11 @@ private:
     // =========================
 // HeavyAttack チャージ（溜め）
 // =========================
-    float m_heavyChargeDuration = 0.5f; // 차징 시간(초)
-    float m_heavyChargeTimer = 0.0f;     // 남은 차징 시간
+    float m_heavyChargeDuration = 1.0f;     
+    float m_heavyChargeTimer = 0.0f;    
 
 
 
-    int  m_heavyDashStartFrame = 14; // ✅ 너가 말한 프레임
-    bool m_heavyDashStarted = false; // 돌진 1회만 시작되게
+    int  m_heavyDashStartFrame = 14; 
+    bool m_heavyDashStarted = false; 
 };
