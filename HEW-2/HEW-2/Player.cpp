@@ -1,198 +1,476 @@
-﻿#include "Player.h"
+﻿/*
+#include "Player.h"
 #include "Skill.h"
+
+#include <Windows.h>   // GetAsyncKeyState, VK_*
 #include <Xinput.h>
+#include <cmath>       // fabsf
 #pragma comment(lib, "Xinput.lib")
+
+using DirectX::SimpleMath::Vector2;
+
 Player::Player()
 {
-	hp = 100;
-	power = 10;
+    hp = 100;
+    power = 10;
 
-	moveSpeed = 15.0f; // Player 固有の速さ
+    moveSpeed = 15.0f; // Player 固有の速さ
 
-	// ===== Animation定義 =====
-	// 待機（idle.png）
-	m_idleAnim = { 0, 30, 0.15f, true };
-
-	// 移動（walk.png）
-	m_walkAnim = { 0, 8, 0.5f, true };
-
-	// 弱攻撃（Attack.png)
-	m_attackLightAnim = { 0,15,0.17f,false };
-
-	// 強攻撃
-	m_attackHeavyAnim = { 0,27,0.2f,false };
+    // ===== Animation定義 =====
+    m_idleAnim = { 0, 30, 0.15f, true };  // idle
+    m_walkAnim = { 0,  8, 0.50f, true };  // walk
+    m_attackLightAnim = { 0, 15, 0.17f, false };  // light
+    m_attackHeavyAnim = { 0, 27, 0.20f, false };  // heavy
 }
 
 void Player::Update(float deltaTime)
 {
-	bool attackLightInput = Input::GetKeyTrigger(VK_RETURN); // 押した瞬間
-	bool attackHeavyInput =
-		(GetAsyncKeyState(VK_SHIFT) & 0x8000) &&
-		Input::GetKeyTrigger(VK_RETURN);
+    // 先に移動入力（向き更新・強攻撃ダッシュ方向にも使う）
+    Vector2 moveDir = GetMoveInput();
+    const bool isMoving = (moveDir.LengthSquared() > 0.01f);
 
-	// ===== Attack中の処理 =====
-	if (m_state == State::AttackLight || m_state == State::AttackHeavy)
-	{
-		if (m_animator.IsFinished())
-		{
-			m_state = State::Idle;
-			m_object->SetTexture("asset/Texture/player_idle.png");
-			m_object->SetSpriteSheet(6, 6);
-			m_animator.Play(m_idleAnim);
-		}
+    if (isMoving)
+        UpdateFacingFromMove(moveDir);
 
-		// 向き反映
-		bool textureIsRightFacing = true; // idle/attackは右向き原画
-		bool flipX = (textureIsRightFacing != m_facingRight);
-		m_object->SetFlipX(flipX);
+    // 入力（攻撃）
+    const bool attackLightInput = Input::GetKeyTrigger(VK_RETURN);
+    const bool attackHeavyInput =
+        (GetAsyncKeyState(VK_SHIFT) & 0x8000) &&
+        Input::GetKeyTrigger(VK_RETURN);
 
-		m_animator.Update(deltaTime);
-		Chara::Update(deltaTime);
-		return; // ★超重要
-	}
+    // =========================
+    // Attack中の処理
+    // =========================
+    if (m_state == State::AttackLight || m_state == State::AttackHeavy)
+    {
+        // 強攻撃中は、最初だけ突進
+        if (m_state == State::AttackHeavy)
+        {
+            UpdateHeavyDash(deltaTime);
+        }
 
-	// ===== Attack開始判定 =====
-	// ===== 強攻撃（優先）=====
-	if (attackHeavyInput)
-	{
-		m_state = State::AttackHeavy;
-		m_object->SetTexture("asset/Texture/player_attack_heavy.png");
-		m_object->SetSpriteSheet(6, 5);
-		m_animator.Play(m_attackHeavyAnim);
-		return;
-	}
+        // アニメが終わったら Idle に戻す
+        if (m_animator.IsFinished())
+        {
+            m_state = State::Idle;
+            m_heavyDashTimer = 0.0f;
 
-	// ===== 弱攻撃 =====
-	if (attackLightInput)
-	{
-		m_state = State::AttackLight;
-		m_object->SetTexture("asset/Texture/player_attack_light.png");
-		m_object->SetSpriteSheet(6, 3);
-		m_animator.Play(m_attackLightAnim);
-		return; // 即Attackに入る
-	}
+            m_object->SetTexture("asset/Texture/player_idle.png");
+            m_object->SetSpriteSheet(6, 6);
+            ApplyVisualSize(m_scaleIdle);
+            m_animator.Play(m_idleAnim);
+        }
 
-	printf("[Player] dt=%.3f\n", deltaTime);
-	// ===== 入力 =====
-	auto dir = GetMoveInput();
-	printf("dir = (%.1f, %.1f)\n", dir.x, dir.y);
-	bool isMoving = (dir.LengthSquared() > 0.01f);
+        // 向き反映（idle/attackは右向き原画）
+        {
+            const bool textureIsRightFacing = true;
+            const bool flipX = (textureIsRightFacing != m_facingRight);
+            m_object->SetFlipX(flipX);
+        }
 
-	// ===== 向き更新（入力がある時だけ）=====
-	if (dir.x > 0.0f)
-	{
-		m_facingRight = true;
-	}
-	else if (dir.x < 0.0f)
-	{
-		m_facingRight = false;
-	}
+        m_animator.Update(deltaTime);
+        Chara::Update(deltaTime);
+        return;
+    }
 
-	// ===== 移動 =====
-	auto before = GetPos();
-	Move(dir, deltaTime);
-	auto after = GetPos();
-	// デバッグ用
-	printf("pos before(%.1f, %.1f) after(%.1f, %.1f)\n",
-		before.x, before.y, after.x, after.y);
+    // =========================
+    // Attack開始判定（強攻撃優先）
+    // =========================
+    if (attackHeavyInput)
+    {
+        m_state = State::AttackHeavy;
 
-	if (isMoving && m_state != State::Walk)
-	{
-		m_state = State::Walk;
-		m_object->SetTexture("asset/Texture/player_walk.png");
-		m_object->SetSpriteSheet(3, 3);
-		m_animator.Play(m_walkAnim);
-	}
-	else if (!isMoving && m_state != State::Idle)
-	{
-		m_state = State::Idle;
-		m_object->SetTexture("asset/Texture/player_idle.png");
-		m_object->SetSpriteSheet(6, 6);
-		m_animator.Play(m_idleAnim);
-	}
-	
-	// ===== ★ 向き反映 =====
-	/*
-		Idle : 原画は右向き
-		Walk : 原画は左向き
-	*/
-	bool textureIsRightFacing = (m_state == State::Idle);
-	// 原画の向き と 向きたい方向 が違えば反転
-	bool flipX = (textureIsRightFacing != m_facingRight);
-	m_object->SetFlipX(flipX);
+        m_object->SetTexture("asset/Texture/player_attack_heavy.png");
+        m_object->SetSpriteSheet(6, 5);
+        ApplyVisualSize(m_scaleHeavy);
+        m_animator.Play(m_attackHeavyAnim);
 
-	// アニメ更新
-	m_animator.Update(deltaTime);
+        // ✅ 強攻撃ダッシュ開始
+        StartHeavyDash(moveDir);
 
-	// 生存判定など
-	Chara::Update(deltaTime);
+        return;
+    }
+
+    if (attackLightInput)
+    {
+        m_state = State::AttackLight;
+
+        m_object->SetTexture("asset/Texture/player_attack_light.png");
+        m_object->SetSpriteSheet(6, 3);
+        ApplyVisualSize(m_scaleLight);
+        m_animator.Play(m_attackLightAnim);
+
+        return;
+    }
+
+    // =========================
+    // 通常移動
+    // =========================
+    Move(moveDir, deltaTime);
+
+    // 状態遷移（Walk / Idle）
+    if (isMoving && m_state != State::Walk)
+    {
+        m_state = State::Walk;
+        m_object->SetTexture("asset/Texture/player_walk.png");
+        m_object->SetSpriteSheet(3, 3);
+        ApplyVisualSize(m_scaleWalk);
+        m_animator.Play(m_walkAnim);
+    }
+    else if (!isMoving && m_state != State::Idle)
+    {
+        m_state = State::Idle;
+        m_object->SetTexture("asset/Texture/player_idle.png");
+        m_object->SetSpriteSheet(6, 6);
+        ApplyVisualSize(m_scaleIdle);
+        m_animator.Play(m_idleAnim);
+    }
+
+    // 向き反映
+    // Idle/Attack系: 右向き原画
+    // Walk: 左向き原画（プロジェクトの仕様に合わせて）
+    {
+        const bool textureIsRightFacing = (m_state == State::Idle);
+        const bool flipX = (textureIsRightFacing != m_facingRight);
+        m_object->SetFlipX(flipX);
+    }
+
+    m_animator.Update(deltaTime);
+    Chara::Update(deltaTime);
 }
 
 int Player::GetAnimFrame() const
 {
-	return m_animator.GetCurrentFrame();
+    return m_animator.GetCurrentFrame();
 }
-DirectX::SimpleMath::Vector2 Player::GetMoveInput() const
+
+Vector2 Player::GetMoveInput() const
 {
-	DirectX::SimpleMath::Vector2 dir(0.0f, 0.0f);
+    Vector2 dir(0.0f, 0.0f);
 
-	// =========================
-	// (A) ゲームパッド（XInput）- 左スティック
-	// =========================
-	XINPUT_STATE state{};
-	DWORD res = XInputGetState(0, &state); // 0番のコントローラ
+    // =========================
+    // (A) ゲームパッド（XInput）
+    // =========================
+    XINPUT_STATE state{};
+    DWORD res = XInputGetState(0, &state);
 
-	if (res == ERROR_SUCCESS)
-	{
-		// スティックの生値（-32768 ～ 32767）
-		float lx = (float)state.Gamepad.sThumbLX;
-		float ly = (float)state.Gamepad.sThumbLY;
+    if (res == ERROR_SUCCESS)
+    {
+        float lx = (float)state.Gamepad.sThumbLX;
+        float ly = (float)state.Gamepad.sThumbLY;
 
-		// デッドゾーン（少し触れても動く“ドリフト”防止）
-		const float dead = (float)XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+        const float dead = (float)XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
 
-		// デッドゾーン適用
-		if (fabsf(lx) < dead) lx = 0.0f;
-		if (fabsf(ly) < dead) ly = 0.0f;
+        if (fabsf(lx) < dead) lx = 0.0f;
+        if (fabsf(ly) < dead) ly = 0.0f;
 
-		// 正規化（-1 ～ 1）
-		const float maxv = 32767.0f;
-		dir.x = lx / maxv;
-		dir.y = ly / maxv;
-	}
+        const float maxv = 32767.0f;
+        dir.x = lx / maxv;
+        dir.y = ly / maxv;
+    }
 
-	// =========================
-	// (B) キーボード（WASD）も併用したい場合
-	//     ※パッド優先 + キーボード補助
-	// =========================
-	if (GetAsyncKeyState('W') & 0x8000) dir.y += 1.0f;
-	if (GetAsyncKeyState('S') & 0x8000) dir.y -= 1.0f;
-	if (GetAsyncKeyState('A') & 0x8000) dir.x -= 1.0f;
-	if (GetAsyncKeyState('D') & 0x8000) dir.x += 1.0f;
+    // =========================
+    // (B) キーボード（WASD）
+    // =========================
+    if (GetAsyncKeyState('W') & 0x8000) dir.y += 1.0f;
+    if (GetAsyncKeyState('S') & 0x8000) dir.y -= 1.0f;
+    if (GetAsyncKeyState('A') & 0x8000) dir.x -= 1.0f;
+    if (GetAsyncKeyState('D') & 0x8000) dir.x += 1.0f;
 
-	// =========================
-	// (C) 長さを正規化（斜め移動でも速度が同じになるように）
-	// =========================
-	if (dir.LengthSquared() > 1.0f)
-		dir.Normalize();
+    // =========================
+    // (C) 正規化（斜め速度一定）
+    // =========================
+    if (dir.LengthSquared() > 1.0f)
+        dir.Normalize();
 
-	return dir;
+    return dir;
 }
 
+void Player::UpdateFacingFromMove(const Vector2& moveDir)
+{
+    if (moveDir.x > 0.0f)      m_facingRight = true;
+    else if (moveDir.x < 0.0f) m_facingRight = false;
+}
 
+void Player::StartHeavyDash(const Vector2& moveDir)
+{
+    // ダッシュ方向：入力があれば入力方向、無ければ向いてる方向
+    Vector2 dir = moveDir;
+
+    if (dir.LengthSquared() <= 0.01f)
+    {
+        dir = m_facingRight ? Vector2(1.0f, 0.0f) : Vector2(-1.0f, 0.0f);
+    }
+    else
+    {
+        dir.Normalize();
+    }
+
+    m_heavyDashDir = dir;
+    m_heavyDashTimer = m_heavyDashDuration;
+}
+
+bool Player::UpdateHeavyDash(float deltaTime)
+{
+    if (m_heavyDashTimer <= 0.0f)
+        return false;
+
+    m_heavyDashTimer -= deltaTime;
+    if (m_heavyDashTimer < 0.0f)
+        m_heavyDashTimer = 0.0f;
+
+    // 前方へ移動
+    auto p = m_object->GetPos();
+    p.x += m_heavyDashDir.x * m_heavyDashSpeed * deltaTime;
+    p.y += m_heavyDashDir.y * m_heavyDashSpeed * deltaTime;
+    m_object->SetPos(p.x, p.y, p.z);
+
+    return true;
+}
 
 void Player::Attack()
 {
-	// 実際の攻撃内容は Mode / Skill 側が決める
+    // 実際の攻撃内容は Mode / Skill 側が決める
 }
 
 void Player::ApplyAbility(Skill* skill)
 {
-	if (!skill) return;
+    if (!skill) return;
+    skills.push_back(skill);
+}
 
-	// 所持スキルとして登録
-	skills.push_back(skill);
+void Player::ApplyVisualSize(const SizeScale& s)
+{
+    if (!m_object) return;
 
-	// スキの効果を Player に適用
-	//skill->Apply(this);
+    m_object->SetSize(m_baseW * s.sx, m_baseH * s.sy, 0.0f);
+    m_object->SetCollisionRadius(m_fixedRadius);
+}
+*/
+
+// Player.cpp
+#include "Player.h"
+#include "Skill.h"
+
+#include <Windows.h>   // GetAsyncKeyState
+#include <Xinput.h>
+#include <cmath>       // fabsf
+#pragma comment(lib, "Xinput.lib")
+
+namespace SM = DirectX::SimpleMath;
+
+Player::Player()
+{
+    hp = 100;
+    power = 10;
+
+    moveSpeed = 15.0f;
+
+    // Animation
+    m_idleAnim = { 0, 30, 0.15f, true };
+    m_walkAnim = { 0,  8, 0.50f, true };
+    m_attackLightAnim = { 0, 15, 0.17f, false };
+    m_attackHeavyAnim = { 0, 27, 0.20f, false };
+}
+
+void Player::Update(float deltaTime)
+{
+    SM::Vector2 moveDir = GetMoveInput();
+    const bool isMoving = (moveDir.LengthSquared() > 0.01f);
+
+    if (isMoving)
+        UpdateFacingFromMove(moveDir);
+
+    // Attack input
+    const bool attackLightInput = Input::GetKeyTrigger(VK_RETURN);
+    const bool attackHeavyInput =
+        (GetAsyncKeyState(VK_SHIFT) & 0x8000) &&
+        Input::GetKeyTrigger(VK_RETURN);
+
+    // =========================
+    // Attack中
+    // =========================
+    if (m_state == State::AttackLight || m_state == State::AttackHeavy)
+    {
+        if (m_state == State::AttackHeavy)
+        {
+            UpdateHeavyDash(deltaTime);
+        }
+
+        if (m_animator.IsFinished())
+        {
+            m_state = State::Idle;
+            m_heavyDashTimer = 0.0f;
+
+            m_object->SetTexture("asset/Texture/player_idle.png");
+            m_object->SetSpriteSheet(6, 6);
+            ApplyVisualSize(m_scaleIdle);
+            m_animator.Play(m_idleAnim);
+        }
+
+        const bool textureIsRightFacing = true;
+        const bool flipX = (textureIsRightFacing != m_facingRight);
+        m_object->SetFlipX(flipX);
+
+        m_animator.Update(deltaTime);
+        Chara::Update(deltaTime);
+        return;
+    }
+
+    // =========================
+    // Attack開始（Heavy優先）
+    // =========================
+    if (attackHeavyInput)
+    {
+        m_state = State::AttackHeavy;
+
+        m_object->SetTexture("asset/Texture/player_attack_heavy.png");
+        m_object->SetSpriteSheet(6, 5);
+
+        ApplyVisualSize(m_scaleHeavy);
+
+        m_animator.Play(m_attackHeavyAnim);
+
+        StartHeavyDash(moveDir);
+        return;
+    }
+
+    if (attackLightInput)
+    {
+        m_state = State::AttackLight;
+
+        m_object->SetTexture("asset/Texture/player_attack_light.png");
+        m_object->SetSpriteSheet(6, 3);
+        ApplyVisualSize(m_scaleLight);
+        m_animator.Play(m_attackLightAnim);
+        return;
+    }
+
+    // =========================
+    // 通常移動
+    // =========================
+    Move(moveDir, deltaTime);
+
+    if (isMoving && m_state != State::Walk)
+    {
+        m_state = State::Walk;
+        m_object->SetTexture("asset/Texture/player_walk.png");
+        m_object->SetSpriteSheet(3, 3);
+        ApplyVisualSize(m_scaleWalk);
+        m_animator.Play(m_walkAnim);
+    }
+    else if (!isMoving && m_state != State::Idle)
+    {
+        m_state = State::Idle;
+        m_object->SetTexture("asset/Texture/player_idle.png");
+        m_object->SetSpriteSheet(6, 6);
+        ApplyVisualSize(m_scaleIdle);
+        m_animator.Play(m_idleAnim);
+    }
+
+    const bool textureIsRightFacing = (m_state == State::Idle);
+    const bool flipX = (textureIsRightFacing != m_facingRight);
+    m_object->SetFlipX(flipX);
+
+    m_animator.Update(deltaTime);
+    Chara::Update(deltaTime);
+}
+
+int Player::GetAnimFrame() const
+{
+    return m_animator.GetCurrentFrame();
+}
+
+SM::Vector2 Player::GetMoveInput() const
+{
+    SM::Vector2 dir(0.0f, 0.0f);
+
+    // Gamepad
+    XINPUT_STATE state{};
+    DWORD res = XInputGetState(0, &state);
+
+    if (res == ERROR_SUCCESS)
+    {
+        float lx = (float)state.Gamepad.sThumbLX;
+        float ly = (float)state.Gamepad.sThumbLY;
+
+        const float dead = (float)XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+
+        if (fabsf(lx) < dead) lx = 0.0f;
+        if (fabsf(ly) < dead) ly = 0.0f;
+
+        const float maxv = 32767.0f;
+        dir.x = lx / maxv;
+        dir.y = ly / maxv;
+    }
+
+    // Keyboard
+    if (GetAsyncKeyState('W') & 0x8000) dir.y += 1.0f;
+    if (GetAsyncKeyState('S') & 0x8000) dir.y -= 1.0f;
+    if (GetAsyncKeyState('A') & 0x8000) dir.x -= 1.0f;
+    if (GetAsyncKeyState('D') & 0x8000) dir.x += 1.0f;
+
+    if (dir.LengthSquared() > 1.0f)
+        dir.Normalize();
+
+    return dir;
+}
+
+void Player::UpdateFacingFromMove(const SM::Vector2& moveDir)
+{
+    if (moveDir.x > 0.0f)      m_facingRight = true;
+    else if (moveDir.x < 0.0f) m_facingRight = false;
+}
+
+void Player::StartHeavyDash(const SM::Vector2& moveDir)
+{
+    SM::Vector2 dir = moveDir;
+
+    if (dir.LengthSquared() <= 0.01f)
+        dir = m_facingRight ? SM::Vector2(1.0f, 0.0f) : SM::Vector2(-1.0f, 0.0f);
+    else
+        dir.Normalize();
+
+    m_heavyDashDir = dir;
+    m_heavyDashTimer = m_heavyDashDuration;
+}
+bool Player::UpdateHeavyDash(float deltaTime)
+{
+    if (!m_object) return false;
+    if (m_heavyDashTimer <= 0.0f) return false;
+
+    float dt = deltaTime;
+    if (dt > 1.0f) dt *= 0.0001f;     
+
+    if (dt > 0.05f) dt = 0.05f;
+
+    m_heavyDashTimer -= dt;
+    if (m_heavyDashTimer < 0.0f) m_heavyDashTimer = 0.0f;
+
+    auto p = m_object->GetPos();
+    p.x += m_heavyDashDir.x * m_heavyDashSpeed * dt;
+    p.y += m_heavyDashDir.y * m_heavyDashSpeed * dt;
+    m_object->SetPos(p.x, p.y, p.z);
+
+    return true;
+}
+
+
+void Player::Attack()
+{
+    // Mode / Skill 側で実装
+}
+
+void Player::ApplyAbility(Skill* skill) 
+{
+    if (!skill) return;
+    skills.push_back(skill);
+}
+
+void Player::ApplyVisualSize(const SizeScale& s)
+{
+    if (!m_object) return;
+
+    m_object->SetSize(m_baseW * s.sx, m_baseH * s.sy, 0.0f);
+    m_object->SetCollisionRadius(m_fixedRadius);
 }

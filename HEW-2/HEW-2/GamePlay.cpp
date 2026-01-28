@@ -3,6 +3,8 @@
 #include "NormalEnemy.h"
 #include "Camera2D.h"
 #include <cmath>
+#include "Texture.h"
+
 static void PushOutCircle(Object* playerObj, Object* enemyObj);
 
 
@@ -12,6 +14,22 @@ GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 
 void GamePlay::InitScene()
 {
+    // ===== プレイヤー関連テクスチャを事前ロード =====
+    PreloadTexture(g_pDevice, "asset/Texture/player_idle.png");
+    PreloadTexture(g_pDevice, "asset/Texture/player_walk.png");
+    PreloadTexture(g_pDevice, "asset/Texture/player_attack_light.png");
+    PreloadTexture(g_pDevice, "asset/Texture/player_attack_heavy.png");
+
+
+    Object dummy;
+    dummy.Init("asset/Texture/player_attack_heavy.png", 1, 1);
+    dummy.SetSize(1.0f, 1.0f, 0.0f);
+    dummy.SetPos(100000.0f, 100000.0f, 0.0f); // 画面の外
+
+    // 1フレームだけDrawしてGPUに完全に登録
+    dummy.Draw();
+    dummy.Uninit();
+
     //カメラの大きさ調整
     m_camera.SetViewSize(640.0f, 320.0f); 
 
@@ -123,6 +141,7 @@ void GamePlay::DrawScene()
 
 void GamePlay::UninitScene()
 {
+    Object::ReleaseTextureCache();
     std::cout << "UninitScene" << std::endl;
 }
 static void PushOutCircle(Object* aObj, Object* bObj)

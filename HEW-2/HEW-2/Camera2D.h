@@ -1,5 +1,4 @@
-﻿// Camera2D.h
-#pragma once
+﻿#pragma once
 #include <SimpleMath.h>
 
 class Camera2D

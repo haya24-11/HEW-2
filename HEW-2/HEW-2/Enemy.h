@@ -1,5 +1,6 @@
 ﻿#include "Chara.h"
 #include "Object.h"
+#include "Animator.h"
 
 // Enemy
 // ============================================================
@@ -61,7 +62,38 @@ public:
         // （任意）スポーン後の追跡停止距離
         // 0 の場合は最後まで追跡
         float stopDist = 0.0f;
+
+        int sheetX = 1;
+        int sheetY = 1;
+        bool useSheet = false;
+
+        bool useAnim = false;
+        Animation anim{ 0, 1, 0.1f, true };
+
+
+        void SetTexture(const char* path)
+        {
+            texture = path;
+        }
+
+        void SetSpriteSheet(int x, int y)
+        {
+            sheetX = x;
+            sheetY = y;
+            useSheet = true;
+        }
+
+        void SetAnim(int start, int count, float frameTime, bool loop)
+        {
+            anim = { start, count, frameTime, loop };
+            useAnim = true;
+        }
     };
+
+    // ✅ EnemySpawner에서 사용
+    Animator& GetAnimator() { return m_animator; }
+    const Animator& GetAnimator() const { return m_animator; }
+
 
     // 各敵タイプが自分のスポーン設定を返す（派生クラスで override 推奨）
     virtual SpawnConfig GetSpawnConfig() const { return SpawnConfig(); }
@@ -84,4 +116,7 @@ protected:
     DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f, 0.0f }; // ノックバック速度
     float knockBackTimer = 0.0f;        // ノックバック経過時間
     float knockBackDuration = 0.15f;    // ノックバック継続時間
+    // ✅ 애니메이터(Enemy용)
+    Animator m_animator;
+
 };

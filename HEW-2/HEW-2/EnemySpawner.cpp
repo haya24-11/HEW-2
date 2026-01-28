@@ -86,10 +86,19 @@ void EnemySpawner::Update(float deltaTime)
         if (!obj) return;
 
         // 生成する Object の見た目/サイズ/当たり判定
-        obj->Init(cfg.texture);
+        obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
+
+        // (보험) 혹시 Init에서 SetSpriteSheet를 안 해주는 프로젝트면 아래 한 줄도 같이 켜두면 확실함
+        if (cfg.useSheet)
+        {
+            obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
+        }
+        if (cfg.useAnim)
+        {
+            enemy->GetAnimator().Play(cfg.anim);
+        }
         obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
         obj->SetCollisionRadius(cfg.collisionRadius);
-
         // =========================
         // スポーン位置：プレイヤー中心の「円環(minDist～maxDist)」でランダム
         // =========================

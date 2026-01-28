@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Enemy.h"
-
 class NormalEnemy :public Enemy
 {
 public:
@@ -16,8 +15,13 @@ public:
         cfg.sizeY = 30.0f;
         cfg.collisionRadius = 15.0f;
         cfg.stopDist = 100.0f;//敵が近づいたら止まる
+
+        cfg.SetTexture("asset/Texture/player_attack_heavy.png");
+        cfg.SetSpriteSheet(6, 5);
+        cfg.SetAnim(0, 8, 0.12f, true); // 0~7, count=8
+
+
         return cfg;
     }
 
 };
-
