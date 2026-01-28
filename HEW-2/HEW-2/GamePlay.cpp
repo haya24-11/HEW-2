@@ -28,7 +28,7 @@ void GamePlay::InitScene()
     Object* player = AddObject();
     player->Init("asset/Texture/player_idle.png");
     player->SetSpriteSheet(6, 6);
-    player->SetSize(75.0f, 85.0f, 0.0f);
+    player->SetSize(130.0f, 150.0f, 0.0f);
     player->SetPos(0.0f, 0.0f, 0.0f);
     player->SetCollisionRadius(30.0f);
 

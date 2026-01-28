@@ -43,12 +43,15 @@ private:
     Animator m_animator;
     Animation m_idleAnim;
     Animation m_walkAnim;
-    Animation m_attackAnim;
+    Animation m_attackLightAnim;
+    Animation m_attackHeavyAnim;
+
     enum class State
     {
         Idle,
         Walk,
-        Attack,
+        AttackLight,      // é„çUåÇ
+        AttackHeavy,    // ã≠çUåÇ
     };
     State m_state = State::Idle;
 

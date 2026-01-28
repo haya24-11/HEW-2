@@ -16,16 +16,22 @@ Player::Player()
 	// 移動（walk.png）
 	m_walkAnim = { 0, 8, 0.5f, true };
 
-	// 攻撃（Attack.png)
-	m_attackAnim = { 0,15,0.17f,false };
+	// 弱攻撃（Attack.png)
+	m_attackLightAnim = { 0,15,0.17f,false };
+
+	// 強攻撃
+	m_attackHeavyAnim = { 0,27,0.2f,false };
 }
 
 void Player::Update(float deltaTime)
 {
-	bool attackInput = Input::GetKeyTrigger(VK_RETURN); // 押した瞬間
+	bool attackLightInput = Input::GetKeyTrigger(VK_RETURN); // 押した瞬間
+	bool attackHeavyInput =
+		(GetAsyncKeyState(VK_SHIFT) & 0x8000) &&
+		Input::GetKeyTrigger(VK_RETURN);
 
 	// ===== Attack中の処理 =====
-	if (m_state == State::Attack)
+	if (m_state == State::AttackLight || m_state == State::AttackHeavy)
 	{
 		if (m_animator.IsFinished())
 		{
@@ -46,12 +52,23 @@ void Player::Update(float deltaTime)
 	}
 
 	// ===== Attack開始判定 =====
-	if (attackInput)
+	// ===== 強攻撃（優先）=====
+	if (attackHeavyInput)
 	{
-		m_state = State::Attack;
-		m_object->SetTexture("asset/Texture/player_attack.png");
+		m_state = State::AttackHeavy;
+		m_object->SetTexture("asset/Texture/player_attack_heavy.png");
+		m_object->SetSpriteSheet(6, 5);
+		m_animator.Play(m_attackHeavyAnim);
+		return;
+	}
+
+	// ===== 弱攻撃 =====
+	if (attackLightInput)
+	{
+		m_state = State::AttackLight;
+		m_object->SetTexture("asset/Texture/player_attack_light.png");
 		m_object->SetSpriteSheet(6, 3);
-		m_animator.Play(m_attackAnim);
+		m_animator.Play(m_attackLightAnim);
 		return; // 即Attackに入る
 	}
 
