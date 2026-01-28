@@ -1,184 +1,151 @@
 #pragma once
 #include <string>
 #include <DirectXMath.h>
-#include "Renderer.h"
-#include"Texture.h"	// �e�N�X�`���ǂݍ���
 #include <SimpleMath.h>
-#include"Collision.h"
-class Object {
 
+#include "Renderer.h"
+#include "Texture.h"     // テクスチャ読み込み
+#include "Collision.h"
+
+// ============================================================
+// Object
+// ------------------------------------------------------------
+// ・2Dスプライト(Quad)描画用の基本クラス
+// ・位置 / サイズ / 角度 / 色
+// ・スプライトシート(分割)描画
+// ・当たり判定（円）
+// ・頂点バッファ/テクスチャを保持
+//
+// ※最適化対応：
+//  - 共有頂点バッファ（Quad用）
+//  - テクスチャキャッシュは Object.cpp 側で管理
+// ============================================================
+class Object
+{
 private:
-	// ���_�f�[�^
-	Vertex m_vertexList[4] =
-	{
-		//	x		y		z		r		g		b		a		u		v
-		{ -0.5f,  0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	0.0f	},  // 0�Ԗڂ̒��_���W�@{ x, y, z } (r,g,b,a}
-		{  0.5f,   0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f	},  // 1�Ԗڂ̒��_���W
-		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	1.0f	},  // 2�Ԗڂ̒��_���W
-		{  0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f	},  // 3�Ԗڂ̒��_���W
+    // =========================================================
+    // 頂点データ（Quad: 4頂点）
+    //  - 初期値は中心(0,0)基準の四角形
+    // =========================================================
+    Vertex m_vertexList[4] =
+    {
+        //    x      y     z     r     g     b     a     u     v
+        { -0.5f,  0.5f, 0.5f,  1.0f, 1.0f, 1.0f, 1.0f,  0.0f, 0.0f }, // 0: 左上
+        {  0.5f,  0.5f, 0.5f,  1.0f, 1.0f, 1.0f, 1.0f,  1.0f, 0.0f }, // 1: 右上
+        { -0.5f, -0.5f, 0.5f,  1.0f, 1.0f, 1.0f, 1.0f,  0.0f, 1.0f }, // 2: 左下
+        {  0.5f, -0.5f, 0.5f,  1.0f, 1.0f, 1.0f, 1.0f,  1.0f, 1.0f }, // 3: 右下
+    };
 
-		/*
-		//	x		y		z		r		g		b		a		u		v
-		{ -0.5f,  0.5f, 0.5f,	1.0f,	0.0f,	1.0f,	1.0f,	0.0f,	0.0f	},  // 0�Ԗڂ̒��_���W�@{ x, y, z } (r,g,b,a}
-		{  0.5f,   0.5f, 0.5f,	0.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f	},  // 1�Ԗڂ̒��_���W
-		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f,	1.0f	},  // 2�Ԗڂ̒��_���W
-		{  0.5f, -0.5f, 0.5f,	1.0f,	0.0f,	1.0f,	1.0f,	1.0f,	1.0f	},  // 3�Ԗڂ̒��_���W
-		*/
-	};
+    // =========================================================
+    // Transform / Color
+    // =========================================================
+    DirectX::XMFLOAT3 m_pos = { 0.0f, 0.0f, 0.0f };          // 位置
+    DirectX::XMFLOAT3 m_size = { 100.0f, 100.0f, 0.0f };      // サイズ
+    float             m_angle = 0.0f;                         // 角度（Z回転）
+    DirectX::XMFLOAT4 m_color = { 1.0f, 1.0f, 1.0f, 1.0f };    // 頂点カラー
 
-	// ���W
-	DirectX::XMFLOAT3 m_pos = { 0.0f,0.0f,0.0f }; // �I�u�W�F�N�g�̍��W��������ϐ�
-	// �傫��
-	DirectX::XMFLOAT3 m_size = { 100.0f,100.0f,0.0f };
-	// �p�x
-	float m_angle = 0.0f;
-	// ���I�u�W�F�N�g�̑傫���Ɗp�x��������ϐ�
-	// �F
-	DirectX::XMFLOAT4 m_color = { 1.0f,1.0f,1.0f,1.0f }; // �f�t�H���g�F
+    // =========================================================
+    // GPU Resource
+    // =========================================================
+    ID3D11Buffer* m_pVertexBuffer = nullptr;    // 頂点バッファ（共有VBの参照を持つ）
+    ID3D11ShaderResourceView* m_pTextureView = nullptr;    // テクスチャ（SRV）
 
+    // ⚠ 未使用の可能性あり（現状 m_pTextureView を使っているなら不要）
+    ID3D11ShaderResourceView* m_texture = nullptr;
 
-	// ���_�o�b�t�@
-	ID3D11Buffer* m_pVertexBuffer;
-	// �e�N�X�`���p�ϐ�
-	ID3D11ShaderResourceView* m_pTextureView;
+    // ⚠ 未使用の可能性あり（m_pos / m_size と二重管理になる）
+    DirectX::SimpleMath::Vector3 position{};
+    DirectX::SimpleMath::Vector3 size{};
 
-	ID3D11ShaderResourceView* m_texture = nullptr;
+    // =========================================================
+    // SpriteSheet（分割数）
+    // =========================================================
+    int m_splitX = 1;   // 横分割数
+    int m_splitY = 1;   // 縦分割数
+    float m_frameU = 1.0f; // 1フレーム分のUサイズ
+    float m_frameV = 1.0f; // 1フレーム分のVサイズ
 
-	DirectX::SimpleMath::Vector3 position{};
-	DirectX::SimpleMath::Vector3 size{};
+    // =========================================================
+    // Collision（Circle）
+    // =========================================================
+    Collision m_collider;
 
-	// �e�N�X�`�����c��r�q�ɉ���������Ă��邩
-	int m_splitX = 1;	// ��������
-	int m_splitY = 1;	// �c������
+    // =========================================================
+    // 表示反転
+    // =========================================================
+    bool m_flipX = false; // 左右反転フラグ
 
-	float m_frameU = 1.0f; // 1�t���[����U�T�C�Y
-	float m_frameV = 1.0f; // 1�t���[����V�T�C�Y
+    // =========================================================
+    // 共有頂点バッファ（Quad用）
+    //  - Object.cpp 側で初回だけ CreateBuffer
+    // =========================================================
+    static ID3D11Buffer* s_pSharedVB;
+    static bool s_sharedVBReady;
 
-// Collision (Circle)
-	Collision m_collider;
-	bool m_flipX = false;  // �� ���E���]�t���O
 public:
-	float numU = 0;
-	float numV = 0;
-	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// ������
-	void Draw();							// �ʏ�`��
-	void Draw(int frameIndex);	//  �A�j���[�V�����`��
-	//  �X�v���C�g�V�[�g���ݒ�
-	void SetSpriteSheet(int splitX, int splitY);
+    // =========================================================
+    // UVアニメーション用（旧方式：numU/numV を直接使う場合）
+    // =========================================================
+    float numU = 0.0f;
+    float numV = 0.0f;
 
-	void Uninit();										// �I��
-	void SetPos(float x, float y, float z);	// ���W���Z�b�g
-	void SetSize(float x, float y, float z); // �傫�����Z�b�g
-	void SetAngle(float a);						// �p�x���Z�b�g
-	void SetColor(float r, float g, float b, float a); // �F���Z�b�g
+public:
+    // =========================================================
+    // 基本
+    // =========================================================
+    // imgname : テクスチャファイル
+    // sx, sy  : スプライトシート分割（省略時 1,1）
+    HRESULT Init(const char* imgname, int sx = 1, int sy = 1);
 
-	// Collision
-	// ���a���蓮�Őݒ肵�����ꍇ�Ɏg�p�i���ݒ�Ȃ� SetSize() �̒l���玩���v�Z�j
-	void SetCollisionRadius(float r);
-	// �R���C�_�i�~�j�ɒ��ڃA�N�Z�X�������ꍇ
-	Collision& GetCollider();
-	const Collision& GetCollider() const;
-	// ���� Object �Ƃ̓����蔻��
-	bool CheckCollision(const Object& other) const;
-	void SetFlipX(bool flip);
+    // 描画（通常）
+    void Draw();
 
-	void SetTexture(const char* imgname);
+    // 描画（スプライトシート：frameIndex 指定）
+    void Draw(int frameIndex);
 
-	DirectX::XMFLOAT3 GetPos(void);	//	���W���Q�b�g
-	DirectX::XMFLOAT3 GetSize(void);	// �傫�����Q�b�g
-	float GetAngle(void);						// �p�x���Z�b�g
-	DirectX::XMFLOAT4 GetColor(void);	// �F���Z�b�g
+    // スプライトシート設定（分割数を設定）
+    void SetSpriteSheet(int splitX, int splitY);
+
+    // 終了（保持リソース解放）
+    void Uninit();
+
+    // =========================================================
+    // Transform Setter
+    // =========================================================
+    void SetPos(float x, float y, float z);
+    void SetSize(float x, float y, float z);
+    void SetAngle(float a);
+    void SetColor(float r, float g, float b, float a);
+
+    // =========================================================
+    // Collision
+    //  - SetSize で半径を計算する方式とは別に、手動で半径設定したい場合に使用
+    // =========================================================
+    void SetCollisionRadius(float r);
+    Collision& GetCollider();
+    const Collision& GetCollider() const;
+
+    // 他のObjectとの当たり判定
+    bool CheckCollision(const Object& other) const;
+
+    // =========================================================
+    // 表示反転 / テクスチャ差し替え
+    // =========================================================
+    void SetFlipX(bool flip);
+    void SetTexture(const char* imgname);
+
+    // =========================================================
+    // Getter
+    // =========================================================
+    DirectX::XMFLOAT3 GetPos(void);
+    DirectX::XMFLOAT3 GetSize(void);
+    float GetAngle(void);
+    DirectX::XMFLOAT4 GetColor(void);
+
+    // =========================================================
+    // 共有キャッシュ解放（アプリ終了時に1回だけ呼ぶ）
+    //  - テクスチャキャッシュ（SRV）
+    //  - 共有頂点バッファ
+    // =========================================================
+    static void ReleaseTextureCache();
 };
-#pragma once
-//#include <string>
-//#include <DirectXMath.h>
-//#include "Renderer.h"
-//#include "Texture.h"   // テクスチャ読み込み
-//#include <SimpleMath.h>
-//#include "Collision.h"
-//
-//class Object {
-//
-//private:
-//	// 頂点データ
-//	Vertex m_vertexList[4] =
-//	{
-//		//	x		y		z		r		g		b		a		u		v
-//		{ -0.5f,  0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	0.0f },  // 0番目の頂点座標 { x, y, z }
-//		{  0.5f,  0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f },  // 1番目の頂点座標
-//		{ -0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	0.0f,	1.0f },  // 2番目の頂点座標
-//		{  0.5f, -0.5f, 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f },  // 3番目の頂点座標
-//	};
-//
-//	// 座標
-//	DirectX::XMFLOAT3 m_pos = { 0.0f, 0.0f, 0.0f }; // オブジェクトの座標を管理する変数
-//
-//	// 大きさ
-//	DirectX::XMFLOAT3 m_size = { 100.0f, 100.0f, 0.0f };
-//
-//	// 角度
-//	float m_angle = 0.0f;
-//
-//	// オブジェクトの大きさと角度を管理する変数
-//
-//	// 色
-//	DirectX::XMFLOAT4 m_color = { 1.0f, 1.0f, 1.0f, 1.0f }; // デフォルト色
-//
-//	// 頂点バッファ
-//	ID3D11Buffer* m_pVertexBuffer;
-//
-//	// テクスチャ用変数
-//	ID3D11ShaderResourceView* m_pTextureView;
-//	ID3D11ShaderResourceView* m_texture = nullptr;
-//
-//	DirectX::SimpleMath::Vector3 position{};
-//	DirectX::SimpleMath::Vector3 size{};
-//
-//	// テクスチャが縦横に分割されているか
-//	int m_splitX = 1;	// 横分割数
-//	int m_splitY = 1;	// 縦分割数
-//
-//	float m_frameU = 1.0f; // 1フレームのUサイズ
-//	float m_frameV = 1.0f; // 1フレームのVサイズ
-//
-//	// Collision（円）
-//	Collision m_collider;
-//	bool m_flipX = false;  // 左右反転フラグ
-//
-//public:
-//	float numU = 0;
-//	float numV = 0;
-//
-//	HRESULT Init(const char* imgname, int sx = 1, int sy = 1); // 初期化
-//	void Draw();                          // 通常描画
-//	void Draw(int frameIndex);            // アニメーション描画
-//
-//	// スプライトシート設定
-//	void SetSpriteSheet(int splitX, int splitY);
-//
-//	void Uninit();                        // 終了処理
-//	void SetPos(float x, float y, float z);   // 座標設定
-//	void SetSize(float x, float y, float z);  // サイズ設定
-//	void SetAngle(float a);                   // 角度設定
-//	void SetColor(float r, float g, float b, float a); // 色設定
-//
-//	// Collision
-//	// 半径を直接指定したい場合に使用（未指定なら SetSize() の値から自動計算）
-//	void SetCollisionRadius(float r);
-//
-//	// コライダー（円）に直接アクセスしたい場合
-//	Collision& GetCollider();
-//	const Collision& GetCollider() const;
-//
-//	// 他の Object との当たり判定
-//	bool CheckCollision(const Object& other) const;
-//
-//	void SetFlipX(bool flip);
-//
-//	void SetTexture(const char* imgname);
-//
-//	DirectX::XMFLOAT3 GetPos(void);    // 座標取得
-//	DirectX::XMFLOAT3 GetSize(void);   // サイズ取得
-//	float GetAngle(void);              // 角度取得
-//	DirectX::XMFLOAT4 GetColor(void);  // 色取得
-//};

@@ -42,7 +42,6 @@ private:
     Animator m_animator;
     Animation m_idleAnim;
     Animation m_walkAnim;
-    
     enum class State
     {
         Idle,
@@ -62,6 +61,5 @@ private:
     int level = 1;
     int m_animFrame = 0;     // 現在のフレーム
     float m_animTimer = 0;  // 経過時間
-    
     std::vector<Skill*> skills; // Skillは所有しない（Mode側管理）
-};  
+};

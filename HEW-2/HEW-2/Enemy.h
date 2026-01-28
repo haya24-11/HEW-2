@@ -1,53 +1,60 @@
-#pragma once
+ï»¿#pragma once
 #include "Chara.h"
 #include "Object.h"
-/*
-    Enemy
-    =====
-    E“GƒLƒƒƒ‰‹¤’Êˆ—
-    E”íƒ_ƒ[ƒW
-    EƒmƒbƒNƒoƒbƒN
-*/
 
+// Enemy
 class Enemy : public Chara
 {
 public:
     Enemy();
 
-    void Update(float deltaTime)override;
+    void Update(float deltaTime) override;
     void Attack() override;
-
     void TakeDamage(int damage);
 
-    /*
-        KnockBack
-        ----------
-        EMode ‘¤‚©‚çŒÄ‚Î‚ê‚é
-        EAMode ‚Ì‚Æ‚«‚¾‚¯ŒÄ‚Î‚ê‚é‘z’è
-        Eforce : ƒmƒbƒNƒoƒbƒN‚Ì‰‘¬i•ûŒü~‹­‚³jFFFFF
-    */
-    //targetİ’è(player)
+    // target ì„¤ì •(player)
     void SetTarget(Object* target) { m_target = target; }
+
     void SetChaseStopDistance(float d) { chaseStopDistance = d; }
     float GetChaseStopDistance() const { return chaseStopDistance; }
-    //’ÇÕON OFF
+
     void SetChaseEnabled(bool enabled) { chaseEnabled = enabled; }
     bool IsChaseEnabled() const { return chaseEnabled; }
 
     void KnockBack(const DirectX::SimpleMath::Vector2& force);
 
+    // =========================
+    // âœ… Random Spawn è¨­å®š
+    // =========================
+    struct SpawnConfig
+    {
+        float minDist = 200.0f;     // í”Œë ˆì´ì–´ë¶€í„° ìµœì†Œ ê±°ë¦¬
+        float maxDist = 400.0f;     // í”Œë ˆì´ì–´ë¶€í„° ìµœëŒ€ ê±°ë¦¬
+        float interval = 2.0f;      // ìŠ¤í° ê°„ê²©(ì´ˆ)
+        int   maxAlive = 10;        // ë™ì‹œì— ì¡´ì¬ ê°€ëŠ¥í•œ ìµœëŒ€ ìˆ˜
+        float weight = 1.0f;        // ëœë¤ ì„ íƒ ê°€ì¤‘ì¹˜(í™•ë¥ )
+
+        // ìƒì„±ë  Object ì„¤ì •
+        const char* texture = "asset/Texture/NormalEnemy.png";
+        float sizeX = 100.0f;
+        float sizeY = 100.0f;
+        float collisionRadius = 50.0f;
+
+        // (ì„ íƒ) ìŠ¤í° í›„ ì¶”ì  ë©ˆì¶¤ ê±°ë¦¬ë„ ì—¬ê¸°ì„œ í†µì¼ ê°€ëŠ¥
+        float stopDist = 0.0f; // 0ì´ë©´ ëê¹Œì§€ ì¶”ì 
+    };
+
+    // ê° ì  íƒ€ì…ì´ ìê¸° ìŠ¤í° ì„¤ì •ì„ ì œê³µ
+    virtual SpawnConfig GetSpawnConfig() const { return SpawnConfig(); }
+
 protected:
     bool isBoss = false;
 
-
-    Object* m_target = nullptr;        // ’ÇÕ‘ÎÛ
-    float chaseStopDistance = 0.0f;    // 0‚È‚ç–§’…‚Ü‚Å’ÇÕ(Õ“Ë‚É–ß‚·)
+    Object* m_target = nullptr;
+    float chaseStopDistance = 0.0f;
     bool chaseEnabled = true;
 
-    // ƒmƒbƒNƒoƒbƒN—p
     DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f,0.0f };
     float knockBackTimer = 0.0f;
-
-    // ƒmƒbƒNƒoƒbƒNŒp‘±ŠÔi•bj
     float knockBackDuration = 0.15f;
 };
