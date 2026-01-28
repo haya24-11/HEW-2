@@ -9,17 +9,22 @@ public:
     void SetPosition(const DirectX::SimpleMath::Vector2& p) { pos = p; }
     const DirectX::SimpleMath::Vector2& GetPosition() const { return pos; }
 
-    // targetがあればtargetに移動
+    // ✅ カメラの表示範囲（幅・高さ）を設定
+    //  値が小さいほど「狭い範囲」(＝近くが見える) / 大きいほど広い範囲
+    void SetViewSize(float w, float h)
+    {
+        viewW = (w < 1.0f) ? 1.0f : w;
+        viewH = (h < 1.0f) ? 1.0f : h;
+    }
+    float GetViewW() const { return viewW; }
+    float GetViewH() const { return viewH; }
+
     void Update(float dt)
     {
         if (!target) return;
-        // すぐにtargetに移動
         pos = *target;
-
-    // スムーズにフォローしたい場合(オプション):
-    // float k = 10.0f; // 付いて行く速度
-    // pos += (*target - pos) * (1.0f - std::exp(-k * dt));
     }
+
     DirectX::SimpleMath::Vector2 GetOffset() const
     {
         return -pos;
@@ -28,4 +33,7 @@ public:
 private:
     DirectX::SimpleMath::Vector2 pos{ 0,0 };
     const DirectX::SimpleMath::Vector2* target = nullptr;
+
+    float viewW = 1280.0f; // ✅ 表示幅（初期値は適当にSCREEN_WIDTHに合わせてOK）
+    float viewH = 720.0f;  // ✅ 表示高さ（初期値は適当にSCREEN_HEIGHTに合わせてOK）
 };

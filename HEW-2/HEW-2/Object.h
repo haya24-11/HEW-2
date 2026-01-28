@@ -148,4 +148,9 @@ public:
     //  - 共有頂点バッファ
     // =========================================================
     static void ReleaseTextureCache();
+
+    // カメラの表示範囲（プロジェクションに使う）
+    static void SetViewSize(float w, float h);
+    // Collision 半径取得（押し出し計算用）
+    float GetCollisionRadius() const { return m_collider.GetRadius(); }
 };
