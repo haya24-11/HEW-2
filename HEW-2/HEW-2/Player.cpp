@@ -1,30 +1,84 @@
-#include "Player.h"
+ï»¿#include "Player.h"
 #include "Skill.h"
-
+#include <Xinput.h>
+#pragma comment(lib, "Xinput.lib")
 Player::Player()
 {
 	hp = 100;
 	power = 10;
 
-	moveSpeed = 50.0f; // Player ŒÅ—L‚Ì‘¬‚³
+	moveSpeed = 15.0f; // Player å›ºæœ‰ã®é€Ÿã•
 
-	// ===== Animation’è‹` =====
-	// ‘Ò‹@iidle.pngj
+	// ===== Animationå®šç¾© =====
+	// å¾…æ©Ÿï¼ˆidle.pngï¼‰
 	m_idleAnim = { 0, 30, 0.15f, true };
 
-	// ˆÚ“®iwalk.pngj
-	m_walkAnim = { 0, 8, 0.1f, true };
+	// ç§»å‹•ï¼ˆwalk.pngï¼‰
+	m_walkAnim = { 0, 8, 0.5f, true };
+
+	// å¼±æ”»æ’ƒï¼ˆAttack.png)
+	m_attackLightAnim = { 0,15,0.17f,false };
+
+	// å¼·æ”»æ’ƒ
+	m_attackHeavyAnim = { 0,27,0.2f,false };
 }
 
 void Player::Update(float deltaTime)
 {
+	bool attackLightInput = Input::GetKeyTrigger(VK_RETURN); // æŠ¼ã—ãŸç¬é–“
+	bool attackHeavyInput =
+		(GetAsyncKeyState(VK_SHIFT) & 0x8000) &&
+		Input::GetKeyTrigger(VK_RETURN);
+
+	// ===== Attackä¸­ã®å‡¦ç† =====
+	if (m_state == State::AttackLight || m_state == State::AttackHeavy)
+	{
+		if (m_animator.IsFinished())
+		{
+			m_state = State::Idle;
+			m_object->SetTexture("asset/Texture/player_idle.png");
+			m_object->SetSpriteSheet(6, 6);
+			m_animator.Play(m_idleAnim);
+		}
+
+		// å‘ãåæ˜ 
+		bool textureIsRightFacing = true; // idle/attackã¯å³å‘ãåŸç”»
+		bool flipX = (textureIsRightFacing != m_facingRight);
+		m_object->SetFlipX(flipX);
+
+		m_animator.Update(deltaTime);
+		Chara::Update(deltaTime);
+		return; // â˜…è¶…é‡è¦
+	}
+
+	// ===== Attacké–‹å§‹åˆ¤å®š =====
+	// ===== å¼·æ”»æ’ƒï¼ˆå„ªå…ˆï¼‰=====
+	if (attackHeavyInput)
+	{
+		m_state = State::AttackHeavy;
+		m_object->SetTexture("asset/Texture/player_attack_heavy.png");
+		m_object->SetSpriteSheet(6, 5);
+		m_animator.Play(m_attackHeavyAnim);
+		return;
+	}
+
+	// ===== å¼±æ”»æ’ƒ =====
+	if (attackLightInput)
+	{
+		m_state = State::AttackLight;
+		m_object->SetTexture("asset/Texture/player_attack_light.png");
+		m_object->SetSpriteSheet(6, 3);
+		m_animator.Play(m_attackLightAnim);
+		return; // å³Attackã«å…¥ã‚‹
+	}
+
 	printf("[Player] dt=%.3f\n", deltaTime);
-	// ===== “ü—Í =====
+	// ===== å…¥åŠ› =====
 	auto dir = GetMoveInput();
 	printf("dir = (%.1f, %.1f)\n", dir.x, dir.y);
-	bool isMoving = (dir.LengthSquared() > 0.0f);
+	bool isMoving = (dir.LengthSquared() > 0.01f);
 
-	// ===== Œü‚«XVi“ü—Í‚ª‚ ‚é‚¾‚¯j=====
+	// ===== å‘ãæ›´æ–°ï¼ˆå…¥åŠ›ãŒã‚ã‚‹æ™‚ã ã‘ï¼‰=====
 	if (dir.x > 0.0f)
 	{
 		m_facingRight = true;
@@ -34,15 +88,14 @@ void Player::Update(float deltaTime)
 		m_facingRight = false;
 	}
 
-	// ===== ˆÚ“® =====
+	// ===== ç§»å‹• =====
 	auto before = GetPos();
 	Move(dir, deltaTime);
 	auto after = GetPos();
-	// ƒfƒoƒbƒO—p
+	// ãƒ‡ãƒãƒƒã‚°ç”¨
 	printf("pos before(%.1f, %.1f) after(%.1f, %.1f)\n",
 		before.x, before.y, after.x, after.y);
 
-	// ===== ó‘Ô‘JˆÚ =====
 	if (isMoving && m_state != State::Walk)
 	{
 		m_state = State::Walk;
@@ -57,20 +110,21 @@ void Player::Update(float deltaTime)
 		m_object->SetSpriteSheet(6, 6);
 		m_animator.Play(m_idleAnim);
 	}
-	// ===== š Œü‚«”½‰f =====
+	
+	// ===== â˜… å‘ãåæ˜  =====
 	/*
-		Idle : Œ´‰æ‚Í‰EŒü‚«
-		Walk : Œ´‰æ‚Í¶Œü‚«
+		Idle : åŸç”»ã¯å³å‘ã
+		Walk : åŸç”»ã¯å·¦å‘ã
 	*/
 	bool textureIsRightFacing = (m_state == State::Idle);
-	// Œ´‰æ‚ÌŒü‚« ‚Æ Œü‚«‚½‚¢•ûŒü ‚ªˆá‚¦‚Î”½“]
+	// åŸç”»ã®å‘ã ã¨ å‘ããŸã„æ–¹å‘ ãŒé•ãˆã°åè»¢
 	bool flipX = (textureIsRightFacing != m_facingRight);
 	m_object->SetFlipX(flipX);
 
-	// ƒAƒjƒXV
+	// ã‚¢ãƒ‹ãƒ¡æ›´æ–°
 	m_animator.Update(deltaTime);
 
-	// ¶‘¶”»’è‚È‚Ç
+	// ç”Ÿå­˜åˆ¤å®šãªã©
 	Chara::Update(deltaTime);
 }
 
@@ -78,36 +132,67 @@ int Player::GetAnimFrame() const
 {
 	return m_animator.GetCurrentFrame();
 }
-
 DirectX::SimpleMath::Vector2 Player::GetMoveInput() const
 {
 	DirectX::SimpleMath::Vector2 dir(0.0f, 0.0f);
 
-	/*
-	   GetAsyncKeyState
-	   EãˆÊƒrƒbƒg‚ª—§‚Á‚Ä‚¢‚ê‚Î‰Ÿ‰º’†
-   */
-	if (GetAsyncKeyState('W') & 0x8000)dir.y += 1.0f;
-	if (GetAsyncKeyState('S') & 0x8000)dir.y -= 1.0f;
-	if (GetAsyncKeyState('A') & 0x8000)dir.x -= 1.0f;
-	if (GetAsyncKeyState('D') & 0x8000)dir.x += 1.0f;
+	// =========================
+	// (A) ã‚²ãƒ¼ãƒ ãƒ‘ãƒƒãƒ‰ï¼ˆXInputï¼‰- å·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯
+	// =========================
+	XINPUT_STATE state{};
+	DWORD res = XInputGetState(0, &state); // 0ç•ªã®ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©
+
+	if (res == ERROR_SUCCESS)
+	{
+		// ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®ç”Ÿå€¤ï¼ˆ-32768 ï½ 32767ï¼‰
+		float lx = (float)state.Gamepad.sThumbLX;
+		float ly = (float)state.Gamepad.sThumbLY;
+
+		// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³ï¼ˆå°‘ã—è§¦ã‚Œã¦ã‚‚å‹•ãâ€œãƒ‰ãƒªãƒ•ãƒˆâ€é˜²æ­¢ï¼‰
+		const float dead = (float)XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+
+		// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨
+		if (fabsf(lx) < dead) lx = 0.0f;
+		if (fabsf(ly) < dead) ly = 0.0f;
+
+		// æ­£è¦åŒ–ï¼ˆ-1 ï½ 1ï¼‰
+		const float maxv = 32767.0f;
+		dir.x = lx / maxv;
+		dir.y = ly / maxv;
+	}
+
+	// =========================
+	// (B) ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ï¼ˆWASDï¼‰ã‚‚ä½µç”¨ã—ãŸã„å ´åˆ
+	//     â€»ãƒ‘ãƒƒãƒ‰å„ªå…ˆ + ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰è£œåŠ©
+	// =========================
+	if (GetAsyncKeyState('W') & 0x8000) dir.y += 1.0f;
+	if (GetAsyncKeyState('S') & 0x8000) dir.y -= 1.0f;
+	if (GetAsyncKeyState('A') & 0x8000) dir.x -= 1.0f;
+	if (GetAsyncKeyState('D') & 0x8000) dir.x += 1.0f;
+
+	// =========================
+	// (C) é•·ã•ã‚’æ­£è¦åŒ–ï¼ˆæ–œã‚ç§»å‹•ã§ã‚‚é€Ÿåº¦ãŒåŒã˜ã«ãªã‚‹ã‚ˆã†ã«ï¼‰
+	// =========================
+	if (dir.LengthSquared() > 1.0f)
+		dir.Normalize();
 
 	return dir;
-
 }
+
+
 
 void Player::Attack()
 {
-	// ÀÛ‚ÌUŒ‚“à—e‚Í Mode / Skill ‘¤‚ªŒˆ‚ß‚é
+	// å®Ÿéš›ã®æ”»æ’ƒå†…å®¹ã¯ Mode / Skill å´ãŒæ±ºã‚ã‚‹
 }
 
 void Player::ApplyAbility(Skill* skill)
 {
 	if (!skill) return;
 
-	// ŠƒXƒLƒ‹‚Æ‚µ‚Ä“o˜^
+	// æ‰€æŒã‚¹ã‚­ãƒ«ã¨ã—ã¦ç™»éŒ²
 	skills.push_back(skill);
 
-	// ƒXƒL‚ÌŒø‰Ê‚ğ Player ‚É“K—p
+	// ã‚¹ã‚­ã®åŠ¹æœã‚’ Player ã«é©ç”¨
 	//skill->Apply(this);
 }
