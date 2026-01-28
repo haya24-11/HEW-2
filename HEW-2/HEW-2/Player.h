@@ -1,18 +1,20 @@
 #pragma once
 #include <vector>
 #include "Chara.h"
+#include "Animator.h"
+#include "input.h"
 
 class Skill;
 
 /*
     Player
     ======
-    E¬’·—v‘f‚ğ‚ÂƒNƒ‰ƒX
-    EExp
-    ELevel
-    ESkill ƒŠƒXƒg
+    ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½vï¿½fï¿½ï¿½ï¿½ï¿½ï¿½ÂƒNï¿½ï¿½ï¿½X
+    ï¿½EExp
+    ï¿½ELevel
+    ï¿½ESkill ï¿½ï¿½ï¿½Xï¿½g
 
-    ¦ í“¬ˆ—‚Ì’†g‚Í‚½‚È‚¢
+    ï¿½ï¿½ ï¿½í“¬ï¿½ï¿½ï¿½ï¿½ï¿½Ì’ï¿½ï¿½gï¿½Íï¿½ï¿½ï¿½ï¿½È‚ï¿½
 */
 
 class Player : public Chara
@@ -20,25 +22,55 @@ class Player : public Chara
 public:
     Player();
 
-    // “ü—Í‰ğß Ë Charaˆ—ŒÄ‚Ño‚µ
+    Object* GetObject() const { return m_object; }
+
+    // ï¿½ï¿½ï¿½Í‰ï¿½ï¿½ï¿½ ï¿½ï¿½ Charaï¿½ï¿½ï¿½ï¿½ï¿½Ä‚Ñoï¿½ï¿½
     void Update(float deltaTime)override;
 
-    // UŒ‚‚Ì“üŒû
+    int GetAnimFrame() const;
+
+    // ï¿½Uï¿½ï¿½ï¿½Ì“ï¿½ï¿½ï¿½
     void Attack() override;
 
-    // ƒXƒLƒ‹æ“¾‚Ì‹¤’Êˆ—
+    // ï¿½Xï¿½Lï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½Ì‹ï¿½ï¿½Êï¿½ï¿½ï¿½
     void ApplyAbility(Skill* skill);
 
-    //UŒ‚—Í‚ÌƒQƒbƒ^[
+    //ï¿½Uï¿½ï¿½ï¿½Í‚ÌƒQï¿½bï¿½^ï¿½[
     int GetAttck() const;
 
     void SetPower(int value);
 
 private:
-    // WASD“ü—Í‚ğ•ûŒüƒxƒNƒgƒ‹‚É•ÏŠ·
+    // WASDï¿½ï¿½ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½É•ÏŠï¿½
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
 private:
+    // ===== Animation =====
+    Animator m_animator;
+    Animation m_idleAnim;
+    Animation m_walkAnim;
+    Animation m_attackLightAnim;
+    Animation m_attackHeavyAnim;
+
+    enum class State
+    {
+        Idle,
+        Walk,
+        AttackLight,      // ï¿½ï¿½Uï¿½ï¿½
+        AttackHeavy,    // ï¿½ï¿½ï¿½Uï¿½ï¿½
+    };
+    State m_state = State::Idle;
+
+    enum class Facing
+    {
+        Right,
+        Left
+    };
+    Facing m_facing = Facing::Right;
+    bool m_facingRight = true; // ï¿½ï¿½ï¿½ï¿½ï¿½Í‰Eï¿½ï¿½ï¿½ï¿½
+
     int exp = 0;
     int level = 1;
-    std::vector<Skill*> skills; // Skill‚ÍŠ—L‚µ‚È‚¢iMode‘¤ŠÇ—j
+    int m_animFrame = 0;     // ï¿½ï¿½ï¿½İ‚Ìƒtï¿½ï¿½ï¿½[ï¿½ï¿½
+    float m_animTimer = 0;  // ï¿½oï¿½ßï¿½ï¿½ï¿½
+    std::vector<Skill*> skills; // Skillï¿½Íï¿½ï¿½Lï¿½ï¿½ï¿½È‚ï¿½ï¿½iModeï¿½ï¿½ï¿½Ç—ï¿½ï¿½j
 };

@@ -1,7 +1,11 @@
-#pragma once
+﻿#pragma once
+#include <memory>
 #include "Scene.h"
-class GamePlay :
-    public Scene
+#include "Player.h"
+#include "Camera2D.h"
+#include "EnemySpawner.h"
+
+class GamePlay : public Scene
 {
 public:
     GamePlay();
@@ -11,5 +15,8 @@ public:
     void DrawScene() override;
     void UninitScene() override;
 
+private:
+    std::unique_ptr<Player> m_player;
+    EnemySpawner m_spawner;
+    Camera2D m_camera;
 };
-

@@ -2,7 +2,7 @@
 
 Enemy::Enemy()
 {
-
+    moveSpeed = 40.0f;
 }
 
 void Enemy::Update(float deltaTime)
@@ -27,6 +27,34 @@ void Enemy::Update(float deltaTime)
             knockBackVelocity = { 0.0f,0.0f };
             knockBackTimer = 0.0f;
         }
+        return;
+    }
+
+    //==============================
+// Chase (AI) 追加
+//==============================
+    if (!chaseEnabled) return;
+    if (!m_target)     return;
+
+    const auto ePos = m_object->GetPos();
+    const auto tPos = m_target->GetPos();
+
+    DirectX::SimpleMath::Vector2 dir(tPos.x - ePos.x, tPos.y - ePos.y);
+    // 近すぎると止まる
+    if (chaseStopDistance > 0.0f)
+    {
+        const float distSq = dir.LengthSquared();
+        const float stopSq = chaseStopDistance * chaseStopDistance;
+        if (distSq <= stopSq) return;
+    }
+    // 移動前の位置保存
+    const auto old = m_object->GetPos();
+
+    Move(dir, deltaTime);
+    // 重なると元の位置に戻る（壁のように通れないように）
+    if (m_object->CheckCollision(*m_target))
+    {
+        m_object->SetPos(old.x, old.y, old.z);
     }
 }
 
