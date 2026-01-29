@@ -40,7 +40,7 @@ void Result::InitScene()
 
 void Result::UpdateScene(float deltaTime)
 {
-	if (Input::GetKeyTrigger(VK_SPACE) || Input::GetButtonTrigger(XINPUT_RIGHT_SHOULDER))
+	if (Input::GetKeyTrigger(VK_SPACE) || Input::GetButtonTrigger(XINPUT_B))
 	
 		SetNextScene(SceneType::GameOver);
 }
