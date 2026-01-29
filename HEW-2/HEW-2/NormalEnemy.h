@@ -13,8 +13,8 @@ public:
         cfg.maxDist = 400.0f; // （任意）プレイヤーからの最大スポーン距離
         cfg.sizeX = 100.0f;
         cfg.sizeY = 100.0f;
-        cfg.collisionRadius = 50.0f;
-        cfg.stopDist = 100.0f;//敵が近づいたら止まる
+        cfg.collisionRadius = 100.0f;
+        cfg.stopDist = 300.0f;//敵が近づいたら止まる
 
         return cfg;
     }

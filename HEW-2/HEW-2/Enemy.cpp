@@ -120,7 +120,7 @@ void Enemy::Update(float deltaTime)
     // アニメ制御（Hit優先）
     // -------------------------
     if (m_animState == AnimState::Hit)
-    {
+	{
         m_animator.Update(deltaTime);
 
         if (m_animator.IsFinished())

@@ -51,4 +51,5 @@ protected:
  
     // ‚P•b“–‚½‚è‚ÌˆÚ“®—Ê
     float moveSpeed = 300.0f;
+
 };

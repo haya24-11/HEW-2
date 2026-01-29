@@ -67,7 +67,7 @@ void Title::InitScene()
 
 void Title::UpdateScene(float deltaTime)
 {
-	if (Input::GetKeyTrigger(VK_SPACE) || Input::GetButtonTrigger(XINPUT_RIGHT_SHOULDER))
+	//if (Input::GetKeyTrigger(VK_SPACE) || Input::GetButtonTrigger(XINPUT_RIGHT_SHOULDER))
 
 	m_count++;
 
