@@ -93,10 +93,7 @@ void EnemySpawner::Update(float deltaTime)
         {
             obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
         }
-        if (cfg.useAnim)
-        {
-            enemy->GetAnimator().Play(cfg.anim);
-        }
+
         obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
         obj->SetCollisionRadius(cfg.collisionRadius);
         // =========================
@@ -118,6 +115,8 @@ void EnemySpawner::Update(float deltaTime)
         // =========================
         enemy->SetObject(obj);
         enemy->SetTarget(m_player);
+
+        enemy->OnSpawned();
 
         // =========================
         // 追跡設定（念のため明示）
@@ -167,13 +166,14 @@ int EnemySpawner::RandIndexByWeight()
 
 // ※ここで <cmath> を二重 include しているなら片方は消してOK
 // #include <cmath> // sqrtf
+
 void EnemySpawner::ResolveEnemyCollisions()
 {
-    // 敵が2体未満なら、衝突判定する必要なし
+    // 敵が 2 体未満なら判定不要
     if (m_enemies.size() < 2) return;
 
     // =========================
-    // 全ての敵ペア(i < j)で衝突チェック
+    // 全ペア(i<j)で衝突判定
     // =========================
     for (size_t i = 0; i < m_enemies.size(); ++i)
     {
@@ -191,47 +191,38 @@ void EnemySpawner::ResolveEnemyCollisions()
             Object* ob = b->GetObject();
             if (!ob) continue;
 
-            // 円同士の当たり判定（重なっていなければ処理しない）
+            // -------------------------
+            // 円形当たり判定（Object::CheckCollision が半径ベース想定）
+            // -------------------------
             if (!oa->CheckCollision(*ob)) continue;
 
-            // 2体の座標を取得
+            // -------------------------
+            // 重なり解消：お互いを半分ずつ押し出す
+            // -------------------------
             auto pa3 = oa->GetPos();
             auto pb3 = ob->GetPos();
 
-            // a -> b の差分ベクトル
             float dx = pb3.x - pa3.x;
             float dy = pb3.y - pa3.y;
 
-            // 距離計算（0割防止のため最小値を入れる）
             float distSq = dx * dx + dy * dy;
             float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
-            // =========================
-            // 各Objectに設定されている当たり判定半径を使用
-            // （SetCollisionRadius / SetSize によって決まる）
-            // =========================
-            float ra = oa->GetCollisionRadius();
-            float rb = ob->GetCollisionRadius();
+            // ※本来は Object の collisionRadius を取得して使うのが正しい
+            // getter が無いので、とりあえず 50 固定（必要なら改修）
+            float ra = 50.0f;
+            float rb = 50.0f;
 
-            // 重なり量 = (半径の合計) - (中心距離)
             float overlap = (ra + rb) - dist;
             if (overlap <= 0.0f) continue;
 
-            // 押し出し方向（正規化）
+            // 方向ベクトル（正規化）
             float nx = dx / dist;
             float ny = dy / dist;
 
-            // お互いを半分ずつ押し出す
+            // 押し出し量（半分ずつ）
             float push = overlap * 0.5f;
 
-            // =========================
-            // 瞬間移動っぽく見えるのを防ぐため、
-            // 1フレームでの押し出し量に上限を設ける
-            // =========================
-            const float maxPush = 4.0f;
-            if (push > maxPush) push = maxPush;
-
-            // a は -方向へ、b は +方向へ移動させて重なりを解消
             oa->SetPos(pa3.x - nx * push, pa3.y - ny * push, pa3.z);
             ob->SetPos(pb3.x + nx * push, pb3.y + ny * push, pb3.z);
         }

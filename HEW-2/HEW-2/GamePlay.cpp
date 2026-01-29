@@ -4,6 +4,9 @@
 #include "Camera2D.h"
 #include <cmath>
 #include "Texture.h"
+//XINPUT
+#include <Xinput.h>
+#pragma comment(lib, "Xinput.lib")
 
 static void PushOutCircle(Object* playerObj, Object* enemyObj);
 
@@ -32,7 +35,7 @@ void GamePlay::InitScene()
 
     //カメラの大きさ調整
     m_camera.SetViewSize(640.0f, 320.0f); 
-
+    float zoom = 10.0f;
     std::cout << "InitScene" << std::endl;
 
     // MAP
@@ -47,8 +50,10 @@ void GamePlay::InitScene()
     player->Init("asset/Texture/player_idle.png");
     player->SetSpriteSheet(6, 6);
     player->SetSize(130.0f, 150.0f, 0.0f);
+    player->SetSize(150.0f, 170.0f, 0.0f);
     player->SetPos(0.0f, 0.0f, 0.0f);
-    player->SetCollisionRadius(30.0f);
+    // 当たり判定範囲
+    player->SetCollisionRadius(50.0f);
 
     // ロジックと Object を紐づけ
     m_player->SetObject(player);
@@ -82,9 +87,8 @@ void GamePlay::UpdateScene(float deltaTime)
         auto p = playerObj->GetPos();
         m_camera.SetPosition({ p.x, p.y });
     }
-    // ✅スポン + 敵 たち アップデート
+
     m_spawner.Update(deltaTime);
-    // ✅プレイヤーが複数の敵に挟まれた時も抜け出すように(繰り返し分離)
     for (int iter = 0; iter < 3; ++iter)
     {
         bool pushed = false;
@@ -106,76 +110,106 @@ void GamePlay::UpdateScene(float deltaTime)
         if (!pushed) break;
     }
 
+    //PAD処理シ－ン切り替え
+    static WORD prevButtons = 0;
 
-    if (Input::GetKeyTrigger(VK_SPACE))
+    XINPUT_STATE pad{};
+    WORD buttons = 0;
+    if (XInputGetState(0, &pad) == ERROR_SUCCESS)
+        buttons = pad.Gamepad.wButtons;
+
+    auto PadTrigger = [&](WORD mask) -> bool
+        {
+            return (buttons & mask) && !(prevButtons & mask);
+        };
+
+    if (Input::GetKeyTrigger(VK_SPACE) || PadTrigger(XINPUT_GAMEPAD_RIGHT_SHOULDER))
+    {
         SetNextScene(SceneType::Result);
-}
+    }
 
+    prevButtons = buttons;
+}
 void GamePlay::DrawScene()
 {
-    // ✅ カメラの表示範囲を適用（Object::Draw のプロジェクションがこれを使う）
-    Object::SetViewSize(m_camera.GetViewW(), m_camera.GetViewH());
-
     auto off = m_camera.GetOffset();
 
     for (auto& obj : objects)
     {
         auto old = obj->GetPos();
-
-        // カメラオフセットを適用（描画中のみ一時的に座標をずらす）
         obj->SetPos(old.x + off.x, old.y + off.y, old.z);
+
+        int frame = -1;
 
         if (obj.get() == m_player->GetObject())
         {
-            obj->Draw(m_player->GetAnimFrame());
+            frame = m_player->GetAnimFrame();
         }
         else
         {
-            obj->Draw();
+            for (const auto& e : m_spawner.GetEnemies())
+            {
+                if (!e) continue;
+                if (e->GetObject() == obj.get())
+                {
+                    frame = e->GetAnimFrame();
+                    break;
+                }
+            }
         }
 
-        // 元の位置に戻す
+        if (frame >= 0) obj->Draw(frame);
+        else            obj->Draw();
+
         obj->SetPos(old.x, old.y, old.z);
     }
 }
+
 
 void GamePlay::UninitScene()
 {
     Object::ReleaseTextureCache();
     std::cout << "UninitScene" << std::endl;
 }
-static void PushOutCircle(Object* aObj, Object* bObj)
+static void PushOutCircle(Object* playerObj, Object* enemyObj)
 {
-    if (!aObj || !bObj) return;
-    if (!aObj->CheckCollision(*bObj)) return;
+    if (!playerObj || !enemyObj) return;
+    if (!playerObj->CheckCollision(*enemyObj)) return;
 
-    auto a3 = aObj->GetPos();
-    auto b3 = bObj->GetPos();
+    auto p3 = playerObj->GetPos();
+    auto e3 = enemyObj->GetPos();
 
-    float dx = b3.x - a3.x;
-    float dy = b3.y - a3.y;
+    float dx = p3.x - e3.x;
+    float dy = p3.y - e3.y;
 
     float distSq = dx * dx + dy * dy;
-    float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
-    // ✅ それぞれ設定した半径を使用
-    float ra = aObj->GetCollisionRadius();
-    float rb = bObj->GetCollisionRadius();
+    // 実際の当たり判定半径を使用（Object に GetCollisionRadius() が必要）
+    float rp = playerObj->GetCollisionRadius();
+    float re = enemyObj->GetCollisionRadius();
 
-    float overlap = (ra + rb) - dist;
+    // 距離がほぼ0のとき（法線が作れず押し出しが暴れるのを防ぐ）
+    float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.0f;
+    if (dist <= 0.0001f)
+    {
+        // 完全に重なっている場合：適当な方向に少しだけずらして抜け出す（瞬間移動っぽさ防止）
+        playerObj->SetPos(p3.x + 1.0f, p3.y, p3.z);
+        return;
+    }
+
+    // 重なり量（半径合計 - 実距離）
+    float overlap = (rp + re) - dist;
     if (overlap <= 0.0f) return;
 
+    // 押し出し方向（正規化ベクトル）
     float nx = dx / dist;
     float ny = dy / dist;
 
-    // お互いに半分ずつ押し合い
-    float push = overlap * 0.5f;
+    // 1フレームで押し出す最大量を制限（大きく飛ぶ＝瞬間移動を防ぐ）
+    const float maxPushPerFrame = 10.0f; 
+    float push = overlap;
+    if (push > maxPushPerFrame) push = maxPushPerFrame;
 
-    // 瞬間移動感防止(フレーム当たり最大密林制限)
-    const float maxPush = 4.0f;   // ご希望の場合は2~10の間に調節
-    if (push > maxPush) push = maxPush;
-
-    aObj->SetPos(a3.x - nx * push, a3.y - ny * push, a3.z);
-    bObj->SetPos(b3.x + nx * push, b3.y + ny * push, b3.z);
+    // プレイヤーだけを押し出す（敵は固定）
+    playerObj->SetPos(p3.x + nx * push, p3.y + ny * push, p3.z);
 }
-

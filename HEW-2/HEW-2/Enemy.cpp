@@ -1,154 +1,157 @@
 ﻿#include "Enemy.h"
 
-Enemy::Enemy()
+Enemy::Enemy() {}
+
+void Enemy::OnSpawned()
 {
+    if (!m_object) return;
+    // 派生クラス側のコンストラクタで SetupAnimation() を呼ぶことが多いが、
+    // 万が一呼び忘れていた場合に備えて、ここで呼んでもよい（必要ならコメント解除）
+    // SetupAnimation();
+
+    PlayIdle();
+}
+
+void Enemy::OnDamaged(int /*damage*/)
+{
+    // 基本動作：被弾モーションを再生
+    PlayHit();
+}
+
+void Enemy::PlayIdle()
+{
+    if (m_animState == AnimState::Idle) return;
+    m_animState = AnimState::Idle;
+    m_isWalking = false;
+
+    ApplyIdleVisual();
+    m_animator.Play(m_idleAnim);
+}
+
+void Enemy::PlayWalk()
+{
+    if (m_animState == AnimState::Walk) return;
+    m_animState = AnimState::Walk;
+    m_isWalking = true;
+
+    ApplyWalkVisual();
+    m_animator.Play(m_walkAnim);
+}
+
+void Enemy::PlayHit()
+{
+    m_animState = AnimState::Hit;
+    m_isWalking = false;
+
+    ApplyHitVisual();
+    m_animator.Play(m_hitAnim);
 }
 
 void Enemy::Update(float deltaTime)
 {
-    // Chara 共通更新（HPチェックなど）
-	Chara::Update(deltaTime);
-    
-    // Object が無ければ何もしない
-    if (!m_object)
-        return;
-    /*
-       ノックバック中の処理
-       --------------------
-       ・残り時間がある間だけ押し出す
-       ・時間経過で自然に止まる
-   */
+    Chara::Update(deltaTime);
+
+    if (!m_object) return;
+
+    // -------------------------
+    // ノックバック中
+    // -------------------------
     if (knockBackTimer > 0.0f)
     {
-        // 現在座標取得
         position = m_object->GetPos();
-
-        // ノックバック移動（2D）
         position.x += knockBackVelocity.x * deltaTime;
         position.y += knockBackVelocity.y * deltaTime;
-
-        // Object に反映
         m_object->SetPos(position.x, position.y, position.z);
 
         knockBackTimer -= deltaTime;
-
-        // 時間切れ
         if (knockBackTimer <= 0.0f)
         {
             knockBackVelocity = { 0.0f, 0.0f };
             knockBackTimer = 0.0f;
         }
 
-        // ノックバック中は歩行扱いにしない
+        // 被弾/移動アニメを含め、再生中のアニメは継続して更新する
         m_animator.Update(deltaTime);
         return;
     }
 
-//==============================
-// Chase (AI) 追加
-//==============================
-    if (!chaseEnabled || !m_target)
-        return;
+    // -------------------------
+    // 追跡（Chase）計算
+    // -------------------------
+    bool isMoving = false;
+    DirectX::SimpleMath::Vector2 dir(0.0f, 0.0f);
 
-    const auto ePos = m_object->GetPos();
-    const auto tPos = m_target->GetPos();
-
-    DirectX::SimpleMath::Vector2 dir(tPos.x - ePos.x, tPos.y - ePos.y);
-
-    bool isMoving = true;
-
-    // 近すぎると止まる
-    if (chaseStopDistance > 0.0f)
+    if (chaseEnabled && m_target)
     {
-        const float distSq = dir.LengthSquared();
-        const float stopSq = chaseStopDistance * chaseStopDistance;
-        if (distSq <= stopSq)
+        const auto ePos = m_object->GetPos();
+        const auto tPos = m_target->GetPos();
+        dir = { tPos.x - ePos.x, tPos.y - ePos.y };
+
+        isMoving = true;
+
+        if (chaseStopDistance > 0.0f)
         {
-            isMoving = false;
+            const float distSq = dir.LengthSquared();
+            const float stopSq = chaseStopDistance * chaseStopDistance;
+            if (distSq <= stopSq) isMoving = false;
+        }
+
+        // 向きの更新
+        if (dir.x > 0.0f)      m_facingRight = true;
+        else if (dir.x < 0.0f) m_facingRight = false;
+
+        // 移動
+        if (isMoving)
+        {
+            const auto old = m_object->GetPos();
+
+            Move(dir, deltaTime);
+
+            if (m_object->CheckCollision(*m_target))
+            {
+                // 対象（ターゲット）に当たったら移動前の座標へ戻す
+                m_object->SetPos(old.x, old.y, old.z);
+                isMoving = false;
+            }
         }
     }
 
-   // ==============================
-   // 向き更新
-   // ==============================
-    if (dir.x > 0.0f)      m_facingRight = true;
-    else if (dir.x < 0.0f) m_facingRight = false;
-
-    // ==============================
-    // 移動
-    // ==============================
-    if (isMoving)
+    // -------------------------
+    // アニメ制御（Hit優先）
+    // -------------------------
+    if (m_animState == AnimState::Hit)
     {
-        // 移動前の位置保存
-        const auto old = m_object->GetPos();
+        m_animator.Update(deltaTime);
 
-        Move(dir, deltaTime);
-        // 重なると元の位置に戻る（壁のように通れないように）
-        if (m_object->CheckCollision(*m_target))
+        if (m_animator.IsFinished())
         {
-            m_object->SetPos(old.x, old.y, old.z);
-            isMoving = false;
-        }
-    }
-
-    // ==============================
-    // ★ 移動アニメ制御（ここが本体）
-    // ==============================
-    if (isMoving)
-    {
-        if (!m_isWalking)
-        {
-            m_isWalking = true;
-            ApplyWalkVisual();      // ★ 子クラス依存
-            m_animator.Play(m_walkAnim);
+            // 被弾が終わったら、現在の移動状態に応じて復帰
+            if (isMoving) PlayWalk();
+            else          PlayIdle();
         }
     }
     else
     {
-        // ★ 止まったら歩行終了
-        m_isWalking = false;
-        // フレーム0固定（Animatorを止める）
-        // → Update を呼ばなければOK
-    }
+        if (isMoving) PlayWalk();
+        else          PlayIdle();
 
-    // ==============================
-    // 向き反映
-    // （enemy walk 原画は左向き想定）
-    // ==============================
-    bool flipX = (m_textureRightFacing != m_facingRight);
-    m_object->SetFlipX(flipX);
-
-    // ==============================
-    // アニメ更新（歩いてる時だけ）
-    // ==============================
-    if (m_isWalking)
-    {
         m_animator.Update(deltaTime);
     }
 
-}
-
-void Enemy::Attack()
-{
-    // AI / 行動決定は別担当
+    // 向き反映
+    bool flipX = (m_textureRightFacing != m_facingRight);
+    m_object->SetFlipX(flipX);
 }
 
 void Enemy::TakeDamage(int damage)
 {
     hp -= damage;
+    OnDamaged(damage); // 派生クラス側のcppで被弾モーションを管理できる
 }
 
 void Enemy::KnockBack(const DirectX::SimpleMath::Vector2& force)
 {
-    /*
-        Mode 側で
-        ・AMode のときだけ呼ばれる
-        ・他モードでは呼ばれない or force が 0
-        という前提
-    */
-    if (force.LengthSquared() == 0.0f)
-        return;
-    // Boss だけノックバック無効
+    if (force.LengthSquared() == 0.0f) return;
     if (isBoss) return;
 
     knockBackVelocity = force;

@@ -11,10 +11,9 @@ void Result::InitScene()
 
 void Result::UpdateScene(float deltaTime)
 {
-	if (Input::GetKeyTrigger(VK_SPACE))
-	{
+	if (Input::GetKeyTrigger(VK_SPACE) || Input::GetButtonTrigger(XINPUT_RIGHT_SHOULDER))
+	
 		SetNextScene(SceneType::GameOver);
-	}
 }
 
 void Result::DrawScene()
