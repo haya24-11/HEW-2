@@ -331,6 +331,16 @@ void Player::ApplyAbility(Skill* skill)
     skills.push_back(skill);
 }
 
+int Player::GetPower() const
+{
+    return power;
+}
+
+void Player::SetPower(int value)
+{
+    power = value;
+}
+
 void Player::ApplyVisualSize(const SizeScale& s)
 {
     if (!m_object) return;
