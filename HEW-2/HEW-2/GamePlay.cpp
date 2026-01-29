@@ -66,6 +66,98 @@ void GamePlay::InitScene()
     m_spawner.Init(this, m_player->GetObject());
     m_spawner.RegisterType<NormalEnemy>(1.0f);
   
+	std::cout << "(Debug) GamePlayScene!" << std::endl;
+
+
+	// ���U���{�^��
+	LightAttackButton = AddObject()
+		->SetPos(300.0f, -250.0f, 0.0f)
+		->SetSize(45.0f, 35.0f, 0.0f)
+		->SetAngle(0.0f);
+	LightAttackButton->Init("asset/lightattackbutton.png");
+
+	// ���U���{�^��
+	HeavyAttackButton = AddObject()
+		->SetPos(260.0f, -220.0f, 0.0f)
+		->SetSize(45.0f, 35.0f, 0.0f)
+		->SetAngle(0.0f);
+	HeavyAttackButton->Init("asset/heavyattackbutton.png");
+
+	// �v���C���[�A�C�R��
+	PlayerIcon = AddObject()
+		->SetPos(-745.0f, 385.0f, 0.0f)
+		->SetSize(100.0f, 100.0f, 0.0f)
+		->SetAngle(0.0f);
+	PlayerIcon->Init("asset/playericon.png");
+
+	// �v���C���[HP�o�[
+	PlayerHeartPointBar = AddObject()
+		->SetPos(-580.0f, 390.0f, 0.0f)
+		->SetSize(500.0f, 150.0f, 0.0f)
+		->SetAngle(0.0f);
+	PlayerHeartPointBar->Init("asset/playerheartpointbar.png");
+
+	// �o�t�A�C�R��
+	for (int i = 0; i < 5; i++) {
+		// �I�u�W�F�N�g���ǉ�
+		Object* newBuff = AddObject()
+			->SetPos(-630.0f + (i * 50.0f), 300.0f, 0.0f) // ����50�����炵�Ĕz�u������
+			->SetSize(50.0f, 50.0f, 1.0f)
+			->SetAngle(0.0f);
+
+		// �摜�̏�����
+		newBuff->Init("asset/bufficon.png");
+
+		// vector�ɒǉ����ĕێ����Ă���
+		BuffIcons.push_back(newBuff);
+	}
+
+	// ���@�w
+	MagicCircle = AddObject()
+		->SetPos(800.0f, 450.0f, 0.0f)
+		->SetSize(400.0f, 400.0f, 0.0f)
+		->SetAngle(0.0f);
+	MagicCircle->Init("asset/magiccircle.png");
+
+	/* �GHP�o�[
+	EnemyHeartPointBar = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	EnemyHeartPointBar->Init("asset/enemyheartpointbar.png");
+	*/
+	/*
+	// �o���l�o�[
+	ExpBar = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	ExpBar->Init("asset/expbar.png");
+	*/
+	/*
+	// �R���{�\��
+	Combo = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	Combo->Init("asset/combo.png");
+	*/
+	/*
+	// �v���C���[
+	Player = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	Player->Init("asset/player.png");
+	*/
+	/*
+	// �G
+	Enemy = AddObject()
+		->SetPos(0.0f, 0.0f, 0.0f)
+		->SetSize(0.0f, 0.0f, 0.0f)
+		->SetAngle(0.0f);
+	Enemy->Init("asset/enemy.png");
+	*/
 }
 
 void GamePlay::UpdateScene(float deltaTime)

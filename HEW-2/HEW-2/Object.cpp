@@ -272,7 +272,7 @@ void Object::SetPos(float x, float y, float z)
 	m_collider.SetPosition({ x, y });
 }
 
-void Object::SetSize(float x, float y, float z)
+Object* Object::SetSize(float x, float y, float z)
 {
 	// 大きさを設定
 	m_size.x = x;
@@ -284,12 +284,16 @@ void Object::SetSize(float x, float y, float z)
 
 	// 位置も念のため更新
 	m_collider.SetPosition({ m_pos.x, m_pos.y });
+	return this;
+	// ��size�f�[�^�����������֐�
 }
 
-void Object::SetAngle(float a)
+Object* Object::SetAngle(float a)
 {
 	// 角度を設定
 	m_angle = a;
+	return this;
+	// ��angle�f�[�^�����������֐�
 }
 
 void Object::SetColor(float r, float g, float b, float a)

@@ -84,11 +84,16 @@ private:
 
     float collisionRadius = 0.0f;
 public:
-    // =========================================================
-    // UVアニメーション用（旧方式：numU/numV を直接使う場合）
-    // =========================================================
-    float numU = 0.0f;
-    float numV = 0.0f;
+	// ���ォ�牽�i�ڂ�؂蔲���ĕ\�����邩
+	float numU = 0;
+	float numV = 0;
+	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// ������
+	void Draw();											// �`��
+	void Uninit();										// �I��
+	Object* SetPos(float x, float y, float z);	// ���W���Z�b�g
+	Object* SetSize(float x, float y, float z); // �傫�����Z�b�g
+	Object* SetAngle(float a);						// �p�x���Z�b�g
+	void SetColor(float r, float g, float b, float a); // �F���Z�b�g
 
 public:
     // =========================================================
