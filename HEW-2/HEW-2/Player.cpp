@@ -44,9 +44,7 @@ void Player::Update(float deltaTime)
 
     // ===== キーボード攻撃 =====
     const bool attackLightKey = Input::GetKeyTrigger(VK_RETURN);
-    const bool attackHeavyKey =
-        (GetAsyncKeyState(VK_SHIFT) & 0x8000) &&
-        Input::GetKeyTrigger(VK_RETURN);
+    const bool attackHeavyKey = (GetAsyncKeyState(VK_SHIFT) & 0x8000) &&Input::GetKeyTrigger(VK_RETURN);
 
     // 攻撃入力（キーボード or パッド）
     const bool attackLightInput = attackLightKey || attackLightPad;
@@ -83,7 +81,7 @@ void Player::Update(float deltaTime)
         const bool aHeld = (buttons & XINPUT_GAMEPAD_A) != 0;
         const bool aUp = (!aHeld) && ((m_prevPadButtons & XINPUT_GAMEPAD_A) != 0);
 
-        if (aUp)
+        if (aUp || Input::GetKeyRelease(VK_RETURN))
         {
             // 実際の攻撃モーションへ遷移
             m_state = State::AttackHeavy;
