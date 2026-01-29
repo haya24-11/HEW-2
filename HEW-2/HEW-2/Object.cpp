@@ -18,17 +18,6 @@ static std::unordered_map<std::string, ID3D11ShaderResourceView*> g_textureCache
 ID3D11Buffer* Object::s_pSharedVB = nullptr;
 bool Object::s_sharedVBReady = false;
 
-//cameraの大きさ
-
-static float g_viewW = (float)SCREEN_WIDTH;
-static float g_viewH = (float)SCREEN_HEIGHT;
-
-void Object::SetViewSize(float w, float h)
-{
-	g_viewW = (w < 1.0f) ? 1.0f : w;
-	g_viewH = (h < 1.0f) ? 1.0f : h;
-}
-
 // ------------------------------------------------------------
 // 内部ユーティリティ：テクスチャをキャッシュ経由で取得
 //  - 戻り値は「Objectが1参照(AddRef済み)持った状態」
@@ -137,12 +126,8 @@ void Object::Draw()
 	// =========================
 	// プロジェクション行列（2D用：正射影）
 	// =========================
-	//DirectX::XMMATRIX matrixProj =
-		//DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
-		// 
-	//カメラの大きさ調整のため
 	DirectX::XMMATRIX matrixProj =
-		DirectX::XMMatrixOrthographicLH(g_viewW, g_viewH, 0.0f, 3.0f);
+		DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
 
 	// =========================
 	// ワールド行列（拡大 + 回転 + 平行移動）
@@ -367,9 +352,13 @@ DirectX::XMFLOAT4 Object::GetColor(void)
 // =========================
 void Object::SetCollisionRadius(float r)
 {
-	m_collider.SetRadius(r);
+	collisionRadius = r;
 }
 
+float Object::GetCollisionRadius() const
+{
+	return collisionRadius;
+}
 Collision& Object::GetCollider()
 {
 	return m_collider;

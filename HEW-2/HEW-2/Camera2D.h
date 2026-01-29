@@ -8,15 +8,24 @@ public:
     void SetPosition(const DirectX::SimpleMath::Vector2& p) { pos = p; }
     const DirectX::SimpleMath::Vector2& GetPosition() const { return pos; }
 
-    // ✅ カメラの表示範囲（幅・高さ）を設定
-    //  値が小さいほど「狭い範囲」(＝近くが見える) / 大きいほど広い範囲
+    // ✅ View Size / Zoom
     void SetViewSize(float w, float h)
     {
-        viewW = (w < 1.0f) ? 1.0f : w;
-        viewH = (h < 1.0f) ? 1.0f : h;
+        if (w < 1.0f) w = 1.0f;
+        if (h < 1.0f) h = 1.0f;
+        baseViewW = w;
+        baseViewH = h;
     }
-    float GetViewW() const { return viewW; }
-    float GetViewH() const { return viewH; }
+
+    void SetZoom(float z)
+    {
+        if (z < 0.05f) z = 0.05f;
+        zoom = z;
+    }
+    float GetZoom() const { return zoom; }
+
+    float GetViewW() const { return baseViewW / zoom; }
+    float GetViewH() const { return baseViewH / zoom; }
 
     void Update(float dt)
     {
@@ -33,6 +42,7 @@ private:
     DirectX::SimpleMath::Vector2 pos{ 0,0 };
     const DirectX::SimpleMath::Vector2* target = nullptr;
 
-    float viewW = 1280.0f; // ✅ 表示幅（初期値は適当にSCREEN_WIDTHに合わせてOK）
-    float viewH = 720.0f;  // ✅ 表示高さ（初期値は適当にSCREEN_HEIGHTに合わせてOK）
+    float baseViewW = 640.0f;
+    float baseViewH = 320.0f;
+    float zoom = 1.0f;
 };

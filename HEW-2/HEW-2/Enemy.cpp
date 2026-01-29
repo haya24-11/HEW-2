@@ -1,154 +1,157 @@
-#include "Enemy.h"
+ï»¿#include "Enemy.h"
 
-Enemy::Enemy()
+Enemy::Enemy() {}
+
+void Enemy::OnSpawned()
 {
+    if (!m_object) return;
+    // æ´¾ç”Ÿã‚¯ãƒ©ã‚¹å´ã®ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§ SetupAnimation() ã‚’å‘¼ã¶ã“ã¨ãŒå¤šã„ãŒã€
+    // ä¸‡ãŒä¸€å‘¼ã³å¿˜ã‚Œã¦ã„ãŸå ´åˆã«å‚™ãˆã¦ã€ã“ã“ã§å‘¼ã‚“ã§ã‚‚ã‚ˆã„ï¼ˆå¿…è¦ãªã‚‰ã‚³ãƒ¡ãƒ³ãƒˆè§£é™¤ï¼‰
+    // SetupAnimation();
+
+    PlayIdle();
+}
+
+void Enemy::OnDamaged(int /*damage*/)
+{
+    // åŸºæœ¬å‹•ä½œï¼šè¢«å¼¾ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿ
+    PlayHit();
+}
+
+void Enemy::PlayIdle()
+{
+    if (m_animState == AnimState::Idle) return;
+    m_animState = AnimState::Idle;
+    m_isWalking = false;
+
+    ApplyIdleVisual();
+    m_animator.Play(m_idleAnim);
+}
+
+void Enemy::PlayWalk()
+{
+    if (m_animState == AnimState::Walk) return;
+    m_animState = AnimState::Walk;
+    m_isWalking = true;
+
+    ApplyWalkVisual();
+    m_animator.Play(m_walkAnim);
+}
+
+void Enemy::PlayHit()
+{
+    m_animState = AnimState::Hit;
+    m_isWalking = false;
+
+    ApplyHitVisual();
+    m_animator.Play(m_hitAnim);
 }
 
 void Enemy::Update(float deltaTime)
 {
-    // Chara ‹¤’ÊXViHPƒ`ƒFƒbƒN‚È‚Çj
-	Chara::Update(deltaTime);
-    
-    // Object ‚ª–³‚¯‚ê‚Î‰½‚à‚µ‚È‚¢
-    if (!m_object)
-        return;
-    /*
-       ƒmƒbƒNƒoƒbƒN’†‚Ìˆ—
-       --------------------
-       Ec‚èŠÔ‚ª‚ ‚éŠÔ‚¾‚¯‰Ÿ‚µo‚·
-       EŠÔŒo‰ß‚Å©‘R‚É~‚Ü‚é
-   */
+    Chara::Update(deltaTime);
+
+    if (!m_object) return;
+
+    // -------------------------
+    // ãƒãƒƒã‚¯ãƒãƒƒã‚¯ä¸­
+    // -------------------------
     if (knockBackTimer > 0.0f)
     {
-        // Œ»İÀ•Wæ“¾
         position = m_object->GetPos();
-
-        // ƒmƒbƒNƒoƒbƒNˆÚ“®i2Dj
         position.x += knockBackVelocity.x * deltaTime;
         position.y += knockBackVelocity.y * deltaTime;
-
-        // Object ‚É”½‰f
         m_object->SetPos(position.x, position.y, position.z);
 
         knockBackTimer -= deltaTime;
-
-        // ŠÔØ‚ê
         if (knockBackTimer <= 0.0f)
         {
             knockBackVelocity = { 0.0f, 0.0f };
             knockBackTimer = 0.0f;
         }
 
-        // ƒmƒbƒNƒoƒbƒN’†‚Í•àsˆµ‚¢‚É‚µ‚È‚¢
+        // è¢«å¼¾/ç§»å‹•ã‚¢ãƒ‹ãƒ¡ã‚’å«ã‚ã€å†ç”Ÿä¸­ã®ã‚¢ãƒ‹ãƒ¡ã¯ç¶™ç¶šã—ã¦æ›´æ–°ã™ã‚‹
         m_animator.Update(deltaTime);
         return;
     }
 
-//==============================
-// Chase (AI) ’Ç‰Á
-//==============================
-    if (!chaseEnabled || !m_target)
-        return;
+    // -------------------------
+    // è¿½è·¡ï¼ˆChaseï¼‰è¨ˆç®—
+    // -------------------------
+    bool isMoving = false;
+    DirectX::SimpleMath::Vector2 dir(0.0f, 0.0f);
 
-    const auto ePos = m_object->GetPos();
-    const auto tPos = m_target->GetPos();
-
-    DirectX::SimpleMath::Vector2 dir(tPos.x - ePos.x, tPos.y - ePos.y);
-
-    bool isMoving = true;
-
-    // ‹ß‚·‚¬‚é‚Æ~‚Ü‚é
-    if (chaseStopDistance > 0.0f)
+    if (chaseEnabled && m_target)
     {
-        const float distSq = dir.LengthSquared();
-        const float stopSq = chaseStopDistance * chaseStopDistance;
-        if (distSq <= stopSq)
+        const auto ePos = m_object->GetPos();
+        const auto tPos = m_target->GetPos();
+        dir = { tPos.x - ePos.x, tPos.y - ePos.y };
+
+        isMoving = true;
+
+        if (chaseStopDistance > 0.0f)
         {
-            isMoving = false;
+            const float distSq = dir.LengthSquared();
+            const float stopSq = chaseStopDistance * chaseStopDistance;
+            if (distSq <= stopSq) isMoving = false;
+        }
+
+        // å‘ãã®æ›´æ–°
+        if (dir.x > 0.0f)      m_facingRight = true;
+        else if (dir.x < 0.0f) m_facingRight = false;
+
+        // ç§»å‹•
+        if (isMoving)
+        {
+            const auto old = m_object->GetPos();
+
+            Move(dir, deltaTime);
+
+            if (m_object->CheckCollision(*m_target))
+            {
+                // å¯¾è±¡ï¼ˆã‚¿ãƒ¼ã‚²ãƒƒãƒˆï¼‰ã«å½“ãŸã£ãŸã‚‰ç§»å‹•å‰ã®åº§æ¨™ã¸æˆ»ã™
+                m_object->SetPos(old.x, old.y, old.z);
+                isMoving = false;
+            }
         }
     }
 
-   // ==============================
-   // Œü‚«XV
-   // ==============================
-    if (dir.x > 0.0f)      m_facingRight = true;
-    else if (dir.x < 0.0f) m_facingRight = false;
-
-    // ==============================
-    // ˆÚ“®
-    // ==============================
-    if (isMoving)
+    // -------------------------
+    // ã‚¢ãƒ‹ãƒ¡åˆ¶å¾¡ï¼ˆHitå„ªå…ˆï¼‰
+    // -------------------------
+    if (m_animState == AnimState::Hit)
     {
-        // ˆÚ“®‘O‚ÌˆÊ’u•Û‘¶
-        const auto old = m_object->GetPos();
+        m_animator.Update(deltaTime);
 
-        Move(dir, deltaTime);
-        // d‚È‚é‚ÆŒ³‚ÌˆÊ’u‚É–ß‚éi•Ç‚Ì‚æ‚¤‚É’Ê‚ê‚È‚¢‚æ‚¤‚Éj
-        if (m_object->CheckCollision(*m_target))
+        if (m_animator.IsFinished())
         {
-            m_object->SetPos(old.x, old.y, old.z);
-            isMoving = false;
-        }
-    }
-
-    // ==============================
-    // š ˆÚ“®ƒAƒjƒ§Œäi‚±‚±‚ª–{‘Ìj
-    // ==============================
-    if (isMoving)
-    {
-        if (!m_isWalking)
-        {
-            m_isWalking = true;
-            ApplyWalkVisual();      // š qƒNƒ‰ƒXˆË‘¶
-            m_animator.Play(m_walkAnim);
+            // è¢«å¼¾ãŒçµ‚ã‚ã£ãŸã‚‰ã€ç¾åœ¨ã®ç§»å‹•çŠ¶æ…‹ã«å¿œã˜ã¦å¾©å¸°
+            if (isMoving) PlayWalk();
+            else          PlayIdle();
         }
     }
     else
     {
-        // š ~‚Ü‚Á‚½‚ç•àsI—¹
-        m_isWalking = false;
-        // ƒtƒŒ[ƒ€0ŒÅ’èiAnimator‚ğ~‚ß‚éj
-        // ¨ Update ‚ğŒÄ‚Î‚È‚¯‚ê‚ÎOK
-    }
+        if (isMoving) PlayWalk();
+        else          PlayIdle();
 
-    // ==============================
-    // Œü‚«”½‰f
-    // ienemy walk Œ´‰æ‚Í¶Œü‚«‘z’èj
-    // ==============================
-    bool flipX = (m_textureRightFacing != m_facingRight);
-    m_object->SetFlipX(flipX);
-
-    // ==============================
-    // ƒAƒjƒXVi•à‚¢‚Ä‚é‚¾‚¯j
-    // ==============================
-    if (m_isWalking)
-    {
         m_animator.Update(deltaTime);
     }
 
-}
-
-void Enemy::Attack()
-{
-    // AI / s“®Œˆ’è‚Í•Ê’S“–
+    // å‘ãåæ˜ 
+    bool flipX = (m_textureRightFacing != m_facingRight);
+    m_object->SetFlipX(flipX);
 }
 
 void Enemy::TakeDamage(int damage)
 {
     hp -= damage;
+    OnDamaged(damage); // æ´¾ç”Ÿã‚¯ãƒ©ã‚¹å´ã®cppã§è¢«å¼¾ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ç®¡ç†ã§ãã‚‹
 }
 
 void Enemy::KnockBack(const DirectX::SimpleMath::Vector2& force)
 {
-    /*
-        Mode ‘¤‚Å
-        EAMode ‚Ì‚Æ‚«‚¾‚¯ŒÄ‚Î‚ê‚é
-        E‘¼ƒ‚[ƒh‚Å‚ÍŒÄ‚Î‚ê‚È‚¢ or force ‚ª 0
-        ‚Æ‚¢‚¤‘O’ñ
-    */
-    if (force.LengthSquared() == 0.0f)
-        return;
-    // Boss ‚¾‚¯ƒmƒbƒNƒoƒbƒN–³Œø
+    if (force.LengthSquared() == 0.0f) return;
     if (isBoss) return;
 
     knockBackVelocity = force;

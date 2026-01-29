@@ -114,6 +114,8 @@ private:
 #include "Animator.h"
 #include "Input.h"   // ※プロジェクト側のファイル名に合わせて (Input.h / input.h)
 
+#include <Xinput.h>
+
 class Skill;
 
 /*
@@ -192,16 +194,15 @@ private:
     Animation m_idleAnim;          // 待機アニメーション
     Animation m_walkAnim;          // 移動アニメーション
     Animation m_attackLightAnim;   // 弱攻撃アニメーション
-    Animation m_attackHeavyAnim;   // 強攻撃アニメーション
-
-    Animation m_attackHeavyChargeAnim; // 0~13 차징
+    Animation m_heavyChargeAnim;   // 強攻撃チャージアニメーション
+    Animation m_heavyStartAnim;    // 強攻撃アニメーション
     // プレイヤーの状態
     enum class State
     {
         Idle,               // 待機
         Walk,               // 移動
         AttackLight,        // 弱攻撃
-        AttackHeavyCharge,
+        AttackHeavyCharge,  // 強攻撃チャージ
         AttackHeavy,        // 強攻撃
     };
     State m_state = State::Idle;
@@ -244,7 +245,14 @@ private:
     float m_heavyChargeTimer = 0.0f;    
 
 
-
     int  m_heavyDashStartFrame = 14; 
     bool m_heavyDashStarted = false; 
+
+    //PAD入力
+    WORD m_prevPadButtons = 0;
+
+    //強攻撃時の方向固定
+    bool m_lockFacing = false;
+    bool m_lockedFacingRight = true;
+
 };
