@@ -104,7 +104,7 @@ private:
     // 表示サイズを反映
     void ApplyVisualSize(const SizeScale& s);
 };
-*/#pragma once
+#pragma once*/
 
 #include <vector>
 #include <DirectXMath.h>
