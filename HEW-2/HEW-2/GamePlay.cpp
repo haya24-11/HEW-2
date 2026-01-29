@@ -13,8 +13,8 @@
 #include "Texture.h"
 #include "CameraGlobals.h"
 #include <cmath>
-#include <algorithm> // (std::clamp 쓰고 싶으면)
 #include <cmath>
+#include <algorithm> // std::clamp
 
 static DirectX::SimpleMath::Vector2 ReflectVec(
     const DirectX::SimpleMath::Vector2& v,
@@ -34,6 +34,13 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj);
 static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj);
 
 static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj);
+
+static float ClampFloat(float v, float lo, float hi)
+{
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+}
 
 
 GamePlay::GamePlay() : Scene(SceneType::GamePlay)
@@ -57,7 +64,7 @@ void GamePlay::InitScene()
     dummy.Uninit();
 
     // カメラの大きさ調整
-    m_camera.SetViewSize(640.0f, 320.0f);
+    m_camera.SetViewSize(1670.0f, 940.0f);
     std::cout << "InitScene" << std::endl;
 
     // ===== MAP =====
@@ -65,6 +72,9 @@ void GamePlay::InitScene()
     map->Init("asset/Texture/map.png");
     map->SetPos(0.0f, 0.0f, 0.0f);
     map->SetSize(3000.0f, 3000.0f, 0.0f);
+
+    m_map = map; 
+
 
     // ===== Player Logic =====
     m_player = std::make_unique<Player>();
@@ -172,7 +182,6 @@ void GamePlay::UpdateScene(float deltaTime)
 {
     std::cout << "objects: " << objects.size() << std::endl;
 
-
     if (!m_player) return;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
 
@@ -183,12 +192,8 @@ void GamePlay::UpdateScene(float deltaTime)
 
     m_player->Update(deltaTime);
 
-    {
-        auto p = playerObj->GetPos();
-        m_camera.SetPosition({ p.x, p.y });
-    }
-
     m_spawner.Update(deltaTime);
+
     for (int iter = 0; iter < 3; ++iter)
     {
         bool pushed = false;
@@ -208,16 +213,15 @@ void GamePlay::UpdateScene(float deltaTime)
                 }
                 else
                 {
-                    // ✅ 적이 날아가는 중이면 플레이어를 밀지 말기 (멈춘 것처럼 보이는 원인 제거)
+                    // ✅ 敵が吹き飛び中ならプレイヤーを押し返さない
                     if (!e->IsKnockBacking())
                     {
                         PushOutCircle(playerObj, enemyObj);
+                        pushed = true;
                     }
                     else
                     {
-                        // (선택) 겹침만 살짝 해소하고 끝내기: 적의 속도는 유지
-                        // -> 플레이어를 밀지 않고, 적을 밖으로만 살짝 빼주면 더 안정적
-                        // 간단 버전(적을 플레이어 반대 방향으로 2~5 정도 밀기):
+                        //（任意）めり込みだけ軽く解消：敵の速度は維持
                         auto p = playerObj->GetPos();
                         auto q = enemyObj->GetPos();
                         float dx = q.x - p.x;
@@ -228,38 +232,14 @@ void GamePlay::UpdateScene(float deltaTime)
                             float d = sqrtf(d2);
                             dx /= d; dy /= d;
                             enemyObj->SetPos(q.x + dx * 3.0f, q.y + dy * 3.0f, q.z);
+                            pushed = true;
                         }
                     }
                 }
             }
-
         }
 
         if (!pushed) break;
-    }
-    // =========================
-    // 敵同士の反動（ノックバック中の敵がぶつかったら受け渡し）
-    // =========================
-    auto& enemies = m_spawner.GetEnemies();
-    for (size_t i = 0; i < enemies.size(); ++i)
-    {
-        Enemy* a = enemies[i].get();
-        if (!a) continue;
-        Object* aObj = a->GetObject();
-        if (!aObj) continue;
-
-        for (size_t j = i + 1; j < enemies.size(); ++j)
-        {
-            Enemy* b = enemies[j].get();
-            if (!b) continue;
-            Object* bObj = b->GetObject();
-            if (!bObj) continue;
-
-            if (aObj->CheckCollision(*bObj))
-            {
-                EnemyReboundBounce(a, aObj, b, bObj);
-            }
-        }
     }
 
     //PAD処理シ－ン切り替え
@@ -280,19 +260,50 @@ void GamePlay::UpdateScene(float deltaTime)
         SetNextScene(SceneType::Result);
     }
 
+    // ✅ すべての移動/衝突処理が終わった「最後」にカメラを確定する
+    {
+        auto p = playerObj->GetPos();
+        float camX = p.x, camY = p.y;
+
+        if (m_map)
+        {
+            auto mp = m_map->GetPos();
+            auto ms = m_map->GetSize();
+
+            float left = mp.x - ms.x * 0.5f;
+            float right = mp.x + ms.x * 0.5f;
+            float bottom = mp.y - ms.y * 0.5f;
+            float top = mp.y + ms.y * 0.5f;
+
+            float halfVW = m_camera.GetViewW() * 0.5f;
+            float halfVH = m_camera.GetViewH() * 0.5f;
+
+            float loX = left + halfVW;
+            float hiX = right - halfVW;
+            float loY = bottom + halfVH;
+            float hiY = top - halfVH;
+
+            // ✅ lo > hi の場合（ビューがマップより大きい等）は中心固定
+            if (loX > hiX) camX = (left + right) * 0.5f;
+            else           camX = ClampFloat(camX, loX, hiX);
+
+            if (loY > hiY) camY = (bottom + top) * 0.5f;
+            else           camY = ClampFloat(camY, loY, hiY);
+        }
+
+        m_camera.SetPosition({ camX, camY });
+        g_cameraX = camX;
+        g_cameraY = camY;
+    }
+
     prevButtons = buttons;
     UpdateUIFollowCamera();
-
 }
+
 void GamePlay::DrawScene()
 {
-    auto off = m_camera.GetOffset();
-
     for (auto& obj : objects)
     {
-        auto old = obj->GetPos();
-        obj->SetPos(old.x + off.x, old.y + off.y, old.z);
-
         int frame = -1;
 
         if (obj.get() == m_player->GetObject())
@@ -314,10 +325,9 @@ void GamePlay::DrawScene()
 
         if (frame >= 0) obj->Draw(frame);
         else            obj->Draw();
-
-        obj->SetPos(old.x, old.y, old.z);
     }
 }
+
 
 
 void GamePlay::UninitScene()
@@ -325,6 +335,7 @@ void GamePlay::UninitScene()
     Object::ReleaseTextureCache();
     std::cout << "UninitScene" << std::endl;
 }
+
 static void PushOutCircle(Object* playerObj, Object* enemyObj)
 {
     if (!playerObj || !enemyObj) return;
@@ -370,130 +381,113 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
-    auto c = m_camera.GetPosition();
+    const float halfW = SCREEN_WIDTH * 0.5f;
+    const float halfH = SCREEN_HEIGHT * 0.5f;
+    const float pad = 30.0f;
 
-    const float halfW = 835.0f;  // 画面幅 1670 の半分
-    const float halfH = 470.0f;  // 画面高さ 940 の半分
-    const float pad = 30.0f;   // 画面端からの余白
+    // 画面基準の左上付近
+    const float hpBarX = -halfW + pad + 180.0f;
+    const float hpBarY = halfH - pad - 44.0f;
 
-    // =========================
-    // 左上：HPバー（中にアイコンを入れる）
-    // =========================
-
-    // HPバーの基準位置（左上に固定）
-    const float hpBarX = c.x - halfW + pad + 180.0f; // 左端から少し内側（※見た目に合わせて調整）
-    const float hpBarY = c.y + halfH - pad - 44.0f;  // 上端から少し下
-
-    // HPバーを配置
     if (PlayerHeartPointBar)
         PlayerHeartPointBar->SetPos(hpBarX, hpBarY, 0.0f);
 
-    // -------------------------
-    // アイコンを「HPバーの左側の丸枠の中」に配置する
-    // -------------------------
-    // 前提：
-    // ・Object の SetPos は「中心座標」
-    // ・HPバー画像の左側に丸い枠があるデザイン
-    // ・その丸枠の中心位置は「HPバー中心から左へ寄せた位置」
-    //
-    // ここで使う数値は「HPバーのサイズ」と「丸枠の大きさ」に依存するので、
-    // 見た目に合わせて少しずつ調整してください。
-
-    // HPバーの描画サイズ（InitScene で SetSize した値と合わせる）
-    const float hpW = 360.0f;    // HPバーの横幅（例：360）
-    const float hpH = 48.0f;     // HPバーの高さ（例：48）
-
-    // アイコンのサイズ（丸枠に収まる大きさ）
+    // アイコン
+    const float hpW = 360.0f;
     const float iconSize = 72.0f;
-
-    // 丸枠の中心を、HPバーの左端から「アイコン半径」分だけ内側に取る
-    // ※ circlePadding を増やすと、アイコンが右へ移動（枠の中心に合わせやすい）
-    const float circlePadding = 22.0f; 
+    const float circlePadding = 22.0f;
 
     const float circleCenterX = hpBarX - (hpW * 0.5f) + (iconSize * 0.5f) + circlePadding;
     const float circleCenterY = hpBarY + 10.0f;
 
-    // アイコンを丸枠の中心へ配置
     if (PlayerIcon)
     {
         PlayerIcon->SetPos(circleCenterX, circleCenterY, 0.0f);
         PlayerIcon->SetSize(iconSize, iconSize, 0.0f);
     }
 
-    // =========================
-    // バフ：HPバーの下に横並び
-    // =========================
+    // バフアイコン（HPバーの下）
     for (int i = 0; i < (int)BuffIcons.size(); i++)
     {
         if (!BuffIcons[i]) continue;
 
-        // 左上付近で、アイコンの下に横並びで配置
         BuffIcons[i]->SetPos(
-            c.x - halfW + pad + 150.0f + (i * 48.0f),   // 横方向：間隔 48
-            c.y + halfH - pad - 36.0f - 70.0f,         // 縦方向：HPバーより少し下
+            -halfW + pad + 150.0f + (i * 48.0f),
+            halfH - pad - 36.0f - 70.0f,
             0.0f
         );
     }
 
-    // =========================
-    // 右下：ボタン（同じ行）
-    // =========================
+    // 右下のボタン
     if (LightAttackButton)
-        LightAttackButton->SetPos(c.x + halfW - pad - 70.0f, c.y - halfH + pad + 30.0f, 0.0f);
+        LightAttackButton->SetPos(halfW - pad - 70.0f, -halfH + pad + 30.0f, 0.0f);
 
     if (HeavyAttackButton)
-        HeavyAttackButton->SetPos(c.x + halfW - pad - 160.0f, c.y - halfH + pad + 30.0f, 0.0f);
+        HeavyAttackButton->SetPos(halfW - pad - 160.0f, -halfH + pad + 30.0f, 0.0f);
 
-    // =========================
-    // 右上：魔法陣（小さく）
-    // =========================
+    // 右上の魔法陣
     if (MagicCircle)
-        MagicCircle->SetPos(c.x + halfW - pad - 110.0f, c.y + halfH - pad - 110.0f, 0.0f);
+        MagicCircle->SetPos(halfW - pad - 110.0f, halfH - pad - 110.0f, 0.0f);
 
+    // 経験値バー（HPバー付近）
     if (ExpBar)
     {
-        // HPバーの中心位置(hpBarX, hpBarY)を基準に、少し上へずらす
-        // ※ gapY を大きくすると、より上へ移動する
-        const float gapY = 10.0f; // 余白（必要に応じて 40～70 で調整）
-
-        ExpBar->SetPos(hpBarX + 85.0f, hpBarY + gapY, 0.0f); // +60 はHPバーに対して右寄せしたい場合
+        const float gapY = 10.0f;
+        ExpBar->SetPos(hpBarX + 85.0f, hpBarY + gapY, 0.0f);
     }
 }
+
 static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
     Enemy* enemyLogic, Object* enemyObj)
 {
+    // NULLチェック（どれか欠けてたら処理しない）
     if (!playerLogic || !playerObj || !enemyLogic || !enemyObj) return;
+
+    // すでにノックバック中の敵には再度当てない（多段ヒット・暴走防止）
     if (enemyLogic->IsKnockBacking()) return;
 
+    // プレイヤー/敵の位置を取得
     auto p3 = playerObj->GetPos();
     auto e3 = enemyObj->GetPos();
 
     DirectX::SimpleMath::Vector2 p(p3.x, p3.y);
     DirectX::SimpleMath::Vector2 e(e3.x, e3.y);
 
+    // 衝突方向の法線（プレイヤー→敵）
     auto n = e - p;
+
+    // 位置がほぼ同じで法線が作れない場合は、プレイヤーの突進速度方向を使う
     if (n.LengthSquared() < 0.0001f)
         n = playerLogic->GetHeavyDashVelocity();
 
+    // それでもゼロなら適当な方向（右）を使う
     if (n.LengthSquared() < 0.0001f) n = { 1.0f, 0.0f };
+
+    // 正規化（単位ベクトル化）
     n.Normalize();
 
+    // プレイヤーの強攻撃（突進）の速度
     auto vP = playerLogic->GetHeavyDashVelocity();
-    float relN = vP.Dot(n);          // ✅ 이 형태가 안전 (C2660 방지)
 
+    // 突進速度の「法線方向成分」（相手に向かってどれだけ速度が出ているか）
+    // ※ vP.Dot(n) の形にしておくと引数ミス等の C2660 を避けやすい
+    float relN = vP.Dot(n);
+
+    // 一定以上の突進じゃないと弾かない（弱すぎる当たりを無視）
     if (relN < 50.0f) return;
 
-    // ===== 조절 포인트(속도/거리) =====
-    const float baseKick = 100.0f;  // 기본 날리는 속도
-    const float kickBySpeed = 0.7f;    // 대쉬가 빠를수록 추가
-    const float maxKick = 300.0f;  // 상한
+    // ===== 調整ポイント（ノックバックの強さ）=====
+    const float baseKick = 100.0f;   // 基本の吹っ飛び速度
+    const float kickBySpeed = 0.7f;  // 突進が速いほど上乗せ
+    const float maxKick = 300.0f;    // 吹っ飛び速度の上限
 
+    // 吹っ飛び量を計算して上限を適用
     float kick = baseKick + relN * kickBySpeed;
     if (kick > maxKick) kick = maxKick;
 
+    // 敵を法線方向へノックバックさせる
     enemyLogic->KnockBack(n * kick);
 }
-
 
 
 static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
@@ -504,11 +498,11 @@ static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
     const bool aFly = a->IsKnockBacking();
     const bool bFly = b->IsKnockBacking();
 
-    // 둘 다 날아가거나, 둘 다 그냥 걸으면 처리 안 함
+    // 両方とも飛んでいる / 両方とも歩行中 なら処理しない
     if (aFly == bFly) return;
 
-    Enemy* fly = aFly ? a : b;      // 날아가던 적
-    Enemy* walk = aFly ? b : a;      // 다가오던 적
+    Enemy* fly = aFly ? a : b;       // 飛んでいた敵
+    Enemy* walk = aFly ? b : a;      // 歩行していた敵（これから飛ばされる側）
     Object* flyOb = aFly ? aObj : bObj;
     Object* walkOb = aFly ? bObj : aObj;
 
@@ -516,39 +510,40 @@ static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
     float speed = v.Length();
     if (speed < 1.0f)
     {
+        // ほぼ止まっているならノックバック終了
         fly->StopKnockBack();
         return;
     }
 
-    // 충돌 방향(날아가던 적 -> 다가오던 적)
+    // 衝突方向（飛んでいた敵 -> 歩いていた敵）
     auto fp = flyOb->GetPos();
     auto wp = walkOb->GetPos();
     DirectX::SimpleMath::Vector2 n(wp.x - fp.x, wp.y - fp.y);
 
-    // 완전 겹침이면 속도 방향 사용
+    // 完全に重なっている場合は速度方向を使って法線を作る
     if (n.LengthSquared() < 0.0001f) n = v;
     if (n.LengthSquared() < 0.0001f) n = { 1.0f, 0.0f };
     n.Normalize();
 
-    // fly가 실제로 walk 쪽으로 밀고 있을 때만(뒤에서 스치면 무시)
+    // fly が実際に walk 側へ押し込んでいる時だけ処理（すれ違い/背中側ヒットは無視）
     if (v.Dot(n) <= 0.0f) return;
 
-    // ===== 반동 세기(조절 포인트) =====
-    const float reboundRate = 0.85f; // 0~1: 작을수록 반동 약함
-    const float minKick = 250.0f;    // 최소 반동 속도
-    const float maxKick = 1600.0f;   // 최대 반동 속도
+    // ===== 反動の強さ（調整ポイント） =====
+    const float reboundRate = 0.85f; // 0～1：小さいほど反動が弱い
+    const float minKick = 250.0f;    // 最低反動速度
+    const float maxKick = 1600.0f;   // 最大反動速度
 
     float kick = speed * reboundRate;
     if (kick < minKick) kick = minKick;
     if (kick > maxKick) kick = maxKick;
 
-    // 1) 날아가던 적 멈춤
+    // 1) 飛んでいた敵は止める
     fly->StopKnockBack();
 
-    // 2) 다가오던 적이 반동으로 날아감
+    // 2) 歩いていた敵に反動を渡して飛ばす
     walk->KnockBack(n * kick);
 
-    // 겹침 해소(다음 프레임 연타 충돌 방지): walk만 살짝 밖으로
+    // 重なり解消（次フレームで連続衝突しないように）：walk だけ少し外へ出す
     float rf = flyOb->GetCollisionRadius();
     float rw = walkOb->GetCollisionRadius();
 
@@ -560,10 +555,11 @@ static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
     float overlap = (rf + rw) - dist;
     if (overlap > 0.0f)
     {
-        float push = overlap + 2.0f;
+        float push = overlap + 2.0f; // +2 は再衝突防止の余裕
         walkOb->SetPos(wp.x + n.x * push, wp.y + n.y * push, wp.z);
     }
 }
+
 static void EnemyReboundBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 {
     if (!a || !b || !aObj || !bObj) return;
@@ -571,18 +567,18 @@ static void EnemyReboundBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 
     const bool aFly = a->IsKnockBacking();
     const bool bFly = b->IsKnockBacking();
-    if (!aFly && !bFly) return; // 둘 다 안날아가면 무시
+    if (!aFly && !bFly) return; // 両方とも飛んでいなければ無視
 
     auto a3 = aObj->GetPos();
     auto b3 = bObj->GetPos();
     DirectX::SimpleMath::Vector2 pa(a3.x, a3.y);
     DirectX::SimpleMath::Vector2 pb(b3.x, b3.y);
 
-    // 충돌 노말( a -> b )
+    // 衝突法線（a -> b）
     DirectX::SimpleMath::Vector2 n = pb - pa;
     if (n.LengthSquared() < 0.0001f)
     {
-        // 완전 겹치면 상대속도(대충)로 노말을 만든다
+        // 完全に重なっているなら相対速度っぽいものから法線を作る
         DirectX::SimpleMath::Vector2 rel(0, 0);
         if (aFly) rel += a->GetKnockBackVelocity();
         if (bFly) rel -= b->GetKnockBackVelocity();
@@ -590,32 +586,34 @@ static void EnemyReboundBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
     }
     n.Normalize();
 
-    // ===== 튜닝 포인트 =====
-    const float restitution = 0.85f; // 1.0에 가까울수록 “퐁퐁” 튕김, 0.7~0.9 추천
-    const float minSpeed = 150.0f;
-    const float maxSpeed = 1600.0f;
+    // ===== チューニングポイント =====
+    const float restitution = 0.85f; // 1.0に近いほど“よく跳ねる”（0.7～0.9推奨）
+    const float minSpeed = 150.0f;   // 反射後の最低速度
+    const float maxSpeed = 1600.0f;  // 反射後の最大速度
 
     auto bounceOne = [&](Enemy* e, const DirectX::SimpleMath::Vector2& normal)
         {
             auto v = e->GetKnockBackVelocity();
 
-            // normal 방향으로 파고들 때만 튕김 (붙어있을 때 연타 방지)
+            // normal 方向へ食い込んでいる時だけ反射（くっついた状態での連打を防ぐ）
             if (v.Dot(normal) <= 0.0f) return;
 
+            // 反射：v' = v - 2*(v·n)*n
             auto vNew = ReflectVec(v, normal) * restitution;
 
+            // 速度の下限/上限をクランプ
             float s = vNew.Length();
             if (s < minSpeed) vNew = (-normal) * minSpeed;
             if (s > maxSpeed) vNew *= (maxSpeed / s);
 
-            // ✅ 타이머 유지하고 속도만 변경
+            // ✅ タイマーは維持して速度だけ更新（ノックバック継続）
             e->SetKnockBackVelocity(vNew);
         };
 
-    if (aFly) bounceOne(a, n);   // a는 +n 기준으로 반사
-    if (bFly) bounceOne(b, -n);   // b는 -n 기준으로 반사
+    if (aFly) bounceOne(a, n);    // a は +n を基準に反射
+    if (bFly) bounceOne(b, -n);   // b は -n を基準に反射
 
-    // ===== 겹침 해소(서로 끼어서 떨리는 것 방지) =====
+    // ===== 重なり解消（挟まって震えるの防止） =====
     float ra = aObj->GetCollisionRadius();
     float rb = bObj->GetCollisionRadius();
 
@@ -626,11 +624,13 @@ static void EnemyReboundBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
     float overlap = (ra + rb) - dist;
     if (overlap > 0.0f)
     {
+        // お互い半分ずつ離して分離
         float push = overlap * 0.5f + 1.0f;
         aObj->SetPos(a3.x - n.x * push, a3.y - n.y * push, a3.z);
         bObj->SetPos(b3.x + n.x * push, b3.y + n.y * push, b3.z);
     }
 }
+
 
 
 static float ClampF(float x, float a, float b)
@@ -639,33 +639,39 @@ static float ClampF(float x, float a, float b)
     if (x > b) return b;
     return x;
 }
-
 static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 {
+    // nullチェック
     if (!a || !b || !aObj || !bObj) return;
+
+    // 当たっていなければ何もしない
     if (!aObj->CheckCollision(*bObj)) return;
 
     const bool aFly = a->IsKnockBacking();
     const bool bFly = b->IsKnockBacking();
-    if (!aFly && !bFly) return; // 둘 다 걷는 상태면 무시
 
+    // 両方とも歩き状態なら無視（ピンボール処理の対象外）
+    if (!aFly && !bFly) return;
+
+    // 位置取得（3D -> 2Dへ）
     auto ap3 = aObj->GetPos();
     auto bp3 = bObj->GetPos();
     DirectX::SimpleMath::Vector2 ap(ap3.x, ap3.y);
     DirectX::SimpleMath::Vector2 bp(bp3.x, bp3.y);
 
-    // a -> b 방향 노말
+    // 法線（a -> b 方向）
     DirectX::SimpleMath::Vector2 n = bp - ap;
     if (n.LengthSquared() < 0.0001f) n = { 1.0f, 0.0f };
     n.Normalize();
 
-    // ==== 튜닝 포인트(여기서 체감이 바뀜) ====
-    const float transferRate = 0.95f; // 맞은 적에게 전달 비율 (0~1)
-    const float bounceRate = 0.85f; // 튕겨나갈 때 감쇠 (0~1)
-    const float minKick = 700.0f; // 맞은 적 최소 속도
-    const float maxKick = 1100.0f; // 맞은 적 최대 속도
-    const float stopSpeed = 10.0f;  // 이 이하로 느리면 멈춘 것으로 처리(선택)
+    // ==== チューニングポイント（体感が変わる）====
+    const float transferRate = 0.95f; // ぶつかった相手に速度を渡す比率（0～1）
+    const float bounceRate = 0.85f; // 反射時の減衰（0～1）
+    const float minKick = 700.0f; // 相手に与える最小速度
+    const float maxKick = 1100.0f; // 相手に与える最大速度
+    const float stopSpeed = 10.0f;  // これ未満なら停止扱い（任意）
 
+    // 重なり解消（連続衝突で暴れないように分離する）
     auto ResolveOverlap = [&](Object* o1, Object* o2, const DirectX::SimpleMath::Vector2& normal)
         {
             float r1 = o1->GetCollisionRadius();
@@ -682,64 +688,67 @@ static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
             float overlap = (r1 + r2) - dist;
             if (overlap > 0.0f)
             {
-                float push = overlap + 2.0f; // +2는 재충돌 방지 여유
-                // 둘 다 반씩 밀어서 분리 (연타 충돌 방지에 중요)
+                float push = overlap + 2.0f; // +2 は再衝突防止の余裕
+                // 両方を半分ずつ押し戻して分離（連打衝突防止に重要）
                 o1->SetPos(p1.x - normal.x * (push * 0.5f), p1.y - normal.y * (push * 0.5f), p1.z);
                 o2->SetPos(p2.x + normal.x * (push * 0.5f), p2.y + normal.y * (push * 0.5f), p2.z);
             }
         };
 
-    auto BounceOne = [&](Enemy* fly, Object* flyObj, Enemy* other, Object* otherObj, DirectX::SimpleMath::Vector2 normalFlyToOther)
+    // 「飛んでいる敵(fly)」が「相手(other)」に当たったときの処理
+    auto BounceOne = [&](Enemy* fly, Object* flyObj, Enemy* other, Object* otherObj,
+        DirectX::SimpleMath::Vector2 normalFlyToOther)
         {
             auto v = fly->GetKnockBackVelocity();
             float vn = v.Dot(normalFlyToOther);
 
-            // ✅ 이게 네가 물어본 "if (v.Dot(normal) <= 0.0f) return;" 같은 역할
-            // 상대쪽으로 실제로 박고 있을 때만 처리 (떨어지는 중이면 무시)
+            // 相手方向へ実際に食い込んでいる時だけ処理（離れていく/かすりは無視）
             if (vn <= 0.0f) return;
 
-            // 1) 맞은 적에게 전달
+            // 1) 相手に速度を渡してノックバックさせる
             float kick = ClampF(vn * transferRate, minKick, maxKick);
             other->KnockBack(normalFlyToOther * kick);
 
-            // 2) 날아가던 적은 "반사" (거울 반사: v - 2*(v·n)*n)
+            // 2) 飛んでいる側は反射（鏡面反射: v - 2*(v·n)*n）して減衰
             DirectX::SimpleMath::Vector2 vRef = v - 2.0f * vn * normalFlyToOther;
             vRef *= bounceRate;
 
             if (vRef.Length() < stopSpeed)
             {
-                // 너무 느리면 멈추게(원하면 삭제해도 됨)
+                // 遅すぎるなら停止（任意）
                 fly->StopKnockBack();
             }
             else
             {
-                // ✅ 중요: 여기서 Stop하지 말고 속도만 바꿔서 계속 날아가게
+                // 止めずに速度だけ差し替えて飛び続けさせる
                 fly->SetKnockBackVelocity(vRef);
             }
 
-            // 3) 겹침 해소 (이거 없으면 매 프레임 계속 튕김/전달 반복해서 폭주함)
+            // 3) 重なり解消（これがないと毎フレーム当たり続けて暴走しやすい）
             ResolveOverlap(flyObj, otherObj, normalFlyToOther);
         };
 
     if (aFly && !bFly)
     {
+        // a が飛んでいて b が歩き → a から b へ
         BounceOne(a, aObj, b, bObj, n);
     }
     else if (!aFly && bFly)
     {
+        // b が飛んでいて a が歩き → b から a へ（法線は逆）
         BounceOne(b, bObj, a, aObj, -n);
     }
     else
     {
-        // 둘 다 날아가는 상태면: 서로 튕기게 (간단 버전: 서로 반사)
-        // (원하면 더 물리적인 탄성충돌로 바꿀 수도 있음)
+        // 両方飛んでいる → 簡易的にお互い反射させる
+        //（必要なら「弾性衝突」っぽく改善可能）
         auto va = a->GetKnockBackVelocity();
         auto vb = b->GetKnockBackVelocity();
 
         float vna = va.Dot(n);
         float vnb = vb.Dot(n);
 
-        // 서로 접근 중일 때만
+        // お互い近づいているときだけ
         if ((vna - vnb) <= 0.0f) return;
 
         DirectX::SimpleMath::Vector2 vaRef = va - 2.0f * vna * n;

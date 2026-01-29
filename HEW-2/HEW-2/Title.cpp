@@ -21,7 +21,7 @@ void Title::InitScene()
 		->SetSize(1670.0f, 940.0f, 0.0f)
 		->SetAngle(0.0f);
 	TitleBackground->Init("asset/titlebackground.jpg");
-
+	TitleBackground->SetUI(true);
 	// =========================
 	// タイトルロゴ
 	// =========================
@@ -30,7 +30,7 @@ void Title::InitScene()
 		->SetSize(550.0f, 450.0f, 0.0f)
 		->SetAngle(0.0f);
 	TitleLogo->Init("asset/titlelogo.png");
-
+	TitleLogo->SetUI(true);
 	// =========================
 	// SCORE（スプライトシート 2枚）
 	// =========================
@@ -39,7 +39,7 @@ void Title::InitScene()
 		->SetSize(250.0f, 110.0f, 0.0f)
 		->SetAngle(0.0f);
 	ScoreLogo->Init("asset/score.png", 2, 1);
-
+	ScoreLogo->SetUI(true);
 	// =========================
 	// GAME START（スプライトシート 2枚）
 	// =========================
@@ -47,6 +47,7 @@ void Title::InitScene()
 		->SetPos(20.0f, -100.0f, 0.0f)
 		->SetSize(370.0f, 110.0f, 0.0f)
 		->SetAngle(0.0f);
+	GameStartLogo->SetUI(true);
 	GameStartLogo->Init("asset/gamestart.png", 2, 1);
 
 	// =========================
@@ -57,7 +58,7 @@ void Title::InitScene()
 		->SetSize(200.0f, 100.0f, 0.0f)
 		->SetAngle(0.0f);
 	ExitLogo->Init("asset/exit.png", 2, 1);
-
+	ExitLogo->SetUI(true);
 	// =========================
 	// スプライトシート設定（2×1）
 	// =========================

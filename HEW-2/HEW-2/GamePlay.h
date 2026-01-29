@@ -39,4 +39,6 @@ private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
     Camera2D m_camera;
+
+    Object* m_map = nullptr;
 };

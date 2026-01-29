@@ -14,13 +14,13 @@ void GameOver::InitScene()
 	BlackScreen->SetAngle(0.0f);
 	BlackScreen->Init("asset/blackscreen.png");
 	BlackScreen->SetColor(1.0f, 1.0f, 1.0f, 0.5f);
-
+	BlackScreen->SetUI(true);
 	Object* GameOverLogo = AddObject();
 	GameOverLogo->SetPos(0.0f, 0.0f, 0.0f);
 	GameOverLogo->SetSize(200.0f, 100.0f, 0.0f);
 	GameOverLogo->SetAngle(0.0f);
 	GameOverLogo->Init("asset/gameoverlogo.png");
-
+	GameOverLogo->SetUI(true);
 
 	std::cout << "(Debug) GameOverScene!" << std::endl;
 }
