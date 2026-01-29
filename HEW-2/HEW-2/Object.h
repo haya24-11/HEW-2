@@ -83,18 +83,13 @@ private:
     static bool s_sharedVBReady;
 
     float collisionRadius = 0.0f;
+    bool m_isUI = false;
 public:
-	// ���ォ�牽�i�ڂ�؂蔲���ĕ\�����邩
 	float numU = 0;
 	float numV = 0;
-	HRESULT Init(const char* imgname,int sx=1,int sy=1);	// ������
-	void Draw();											// �`��
-	void Uninit();										// �I��
-	Object* SetPos(float x, float y, float z);	// ���W���Z�b�g
-	Object* SetSize(float x, float y, float z); // �傫�����Z�b�g
-	Object* SetAngle(float a);						// �p�x���Z�b�g
-	void SetColor(float r, float g, float b, float a); // �F���Z�b�g
 
+    void SetUI(bool isUI) { m_isUI = isUI; }
+    bool IsUI() const { return m_isUI; }
 public:
     // =========================================================
     // 基本
@@ -115,14 +110,11 @@ public:
     // 終了（保持リソース解放）
     void Uninit();
 
-    // =========================================================
-    // Transform Setter
-    // =========================================================
-    void SetPos(float x, float y, float z);
-    void SetSize(float x, float y, float z);
-    void SetAngle(float a);
-    void SetColor(float r, float g, float b, float a);
-
+    // Transform Setter（チェーン用）
+    Object* SetPos(float x, float y, float z);
+    Object* SetSize(float x, float y, float z);
+    Object* SetAngle(float a);
+    Object* SetColor(float r, float g, float b, float a);
     // =========================================================
     // Collision
     //  - SetSize で半径を計算する方式とは別に、手動で半径設定したい場合に使用

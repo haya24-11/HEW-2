@@ -9,27 +9,31 @@ class GamePlay : public Scene
 {
 public:
     GamePlay();
+        
 
-    //ƒQ[ƒ€ƒvƒŒƒCUIƒIƒuƒWƒFƒNƒgˆê——
-    Object* LightAttackButton; //ãUŒ‚ƒ{ƒ^ƒ“
-    Object* HeavyAttackButton; //‹­UŒ‚ƒ{ƒ^ƒ“
+    //ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤UIã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆä¸€è¦§
+    Object* LightAttackButton; //å¼±æ”»æ’ƒãƒœã‚¿ãƒ³
+    Object* HeavyAttackButton; //å¼·æ”»æ’ƒãƒœã‚¿ãƒ³
     std::vector<Object*> BuffIcons;
-    Object* BuffIcon; //ƒoƒtƒAƒCƒRƒ“
-    Object* BuffIcon_A; //ƒoƒtƒAƒCƒRƒ“
-    Object* PlayerIcon; //ƒvƒŒƒCƒ„[‚Ìó‘ÔƒAƒCƒRƒ“
-    Object* MagicCircle; //‘I‘ğ‚µ‚½ƒ‚[ƒh‚Ì–‚–@w‚ğ•\¦
-    Object* PlayerHeartPointBar; //ƒvƒŒƒCƒ„[‚ÌHP
-   // Object* EnemyHeartPointBar; //“G‚ÌHP
-    Object* ExpBar; //ŒoŒ±’lƒQ[ƒW
-    //Object* Combo; //ƒRƒ“ƒ{•\¦
-    //Object* Player; //ƒvƒŒƒCƒ„[
-    //Object* Enemy; //“G
+    Object* BuffIcon; //ãƒãƒ•ã‚¢ã‚¤ã‚³ãƒ³
+    Object* BuffIcon_A; //ãƒãƒ•ã‚¢ã‚¤ã‚³ãƒ³
+    Object* PlayerIcon; //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çŠ¶æ…‹ã‚¢ã‚¤ã‚³ãƒ³
+    Object* MagicCircle; //é¸æŠã—ãŸãƒ¢ãƒ¼ãƒ‰ã®é­”æ³•é™£ã‚’è¡¨ç¤º
+    Object* PlayerHeartPointBar; //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®HP
+    // Object* EnemyHeartPointBar; //æ•µã®HP
+    Object* ExpBar; //çµŒé¨“å€¤ã‚²ãƒ¼ã‚¸
+    //Object* Combo; //ã‚³ãƒ³ãƒœè¡¨ç¤º
+    //Object* Player; //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼
+    //Object* Enemy; //æ•µ
 
-    //ƒV[ƒ“‚Ì“®ì
+
+    //ã‚·ãƒ¼ãƒ³ã®å‹•ä½œ
     void InitScene() override;
     void UpdateScene(float deltaTime) override;
     void DrawScene() override;
     void UninitScene() override;
+
+    void UpdateUIFollowCamera();
 
 private:
     std::unique_ptr<Player> m_player;
