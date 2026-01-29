@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string>
 #include "Texture.h"
+#include "CameraGlobals.h"
 
 // =========================
 // テクスチャキャッシュ
@@ -139,7 +140,11 @@ void Object::Draw()
 		DirectX::XMMatrixRotationZ(m_angle * 3.14f / 180.0f);
 
 	DirectX::XMMATRIX matrixPos =
-		DirectX::XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);
+		DirectX::XMMatrixTranslation(
+			m_isUI ? m_pos.x : (m_pos.x - g_cameraX),
+			m_isUI ? m_pos.y : (m_pos.y - g_cameraY),
+			m_pos.z
+		);
 
 	DirectX::XMMATRIX matrixWorld =
 		matrixScale * matrixAngle * matrixPos;
@@ -173,58 +178,85 @@ void Object::Draw()
 	----------------
 	frameIndex : 0,1,2,3...
 	左上 → 右 → 下 の順で並ぶスプライトを想定
-*/
-void Object::Draw(int frameIndex)
+*/void Object::Draw(int frameIndex)
 {
-	// frameIndex から (x,y) を算出
+	// カメラ座標（どこかで毎フレーム更新しておく）
+	extern float g_cameraX;
+	extern float g_cameraY;
+
+	// frameIndex から (frameX, frameY) を計算
+	// 例：横に m_splitX 枚並んでいるスプライトシートを想定
 	int frameX = frameIndex % m_splitX;
 	int frameY = frameIndex / m_splitX;
 
+	// 1フレーム分のUVサイズ(m_frameU/m_frameV)を使って、開始UVを求める
 	float u = frameX * m_frameU;
 	float v = frameY * m_frameV;
 
+	// =========================
 	// 頂点バッファ設定
+	// =========================
 	UINT strides = sizeof(Vertex);
 	UINT offsets = 0;
 	g_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &strides, &offsets);
 
+	// =========================
 	// テクスチャ設定
+	// =========================
 	g_pDeviceContext->PSSetShaderResources(0, 1, &m_pTextureView);
 
-	// 行列計算（2D正射影）
+	// =========================
+	// プロジェクション行列（2D：正射影）
+	// =========================
 	DirectX::XMMATRIX matrixProj =
 		DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
 
+	// =========================
+	// ワールド行列（拡大・回転・移動）
+	// =========================
 	DirectX::XMMATRIX matrixScale =
 		DirectX::XMMatrixScaling(m_size.x, m_size.y, m_size.z);
 
 	DirectX::XMMATRIX matrixAngle =
 		DirectX::XMMatrixRotationZ(m_angle * 3.141592f / 180.0f);
 
+	// 位置行列
+	// ・通常（ワールドオブジェクト）は「カメラ分だけ座標を引く」ことでカメラ追従表示
+	// ・UI（m_isUI==true）は「カメラを引かず」画面に固定したように表示
 	DirectX::XMMATRIX matrixPos =
-		DirectX::XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);
+		DirectX::XMMatrixTranslation(
+			m_isUI ? m_pos.x : (m_pos.x - g_cameraX),
+			m_isUI ? m_pos.y : (m_pos.y - g_cameraY),
+			m_pos.z
+		);
 
 	DirectX::XMMATRIX matrixWorld =
 		matrixScale * matrixAngle * matrixPos;
 
 	// =========================
-	// UV変換行列（スプライトシート + 反転）
+	// UV変換行列（スプライトシート + 左右反転）
 	// =========================
 	DirectX::XMMATRIX matrixTex;
 	if (m_flipX)
 	{
-		// 左右反転：Uを反転 + 位置補正
+		// 左右反転：
+		// ・U方向を反転（-m_frameU）
+		// ・そのままだと位置がずれるので (u + m_frameU) へ補正
 		matrixTex =
 			DirectX::XMMatrixScaling(-m_frameU, m_frameV, 1.0f) *
 			DirectX::XMMatrixTranslation(u + m_frameU, v, 0.0f);
 	}
 	else
 	{
+		// 通常（反転なし）
 		matrixTex =
 			DirectX::XMMatrixScaling(m_frameU, m_frameV, 1.0f) *
 			DirectX::XMMatrixTranslation(u, v, 0.0f);
 	}
 
+	// =========================
+	// 定数バッファ更新
+	// =========================
 	ConstBuffer cb;
 	cb.matrixProj = DirectX::XMMatrixTranspose(matrixProj);
 	cb.matrixWorld = DirectX::XMMatrixTranspose(matrixWorld);
@@ -233,8 +265,12 @@ void Object::Draw(int frameIndex)
 
 	g_pDeviceContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
+	// =========================
+	// 描画（Quad：4頂点）
+	// =========================
 	g_pDeviceContext->Draw(4, 0);
 }
+
 
 /*
 	スプライトシート設定
@@ -261,18 +297,18 @@ void Object::Uninit()
 	SAFE_RELEASE(m_pVertexBuffer);
 }
 
-void Object::SetPos(float x, float y, float z)
+Object* Object::SetPos(float x, float y, float z)
 {
-	// 座標を設定
 	m_pos.x = x;
 	m_pos.y = y;
 	m_pos.z = z;
 
-	// コライダー位置も更新
 	m_collider.SetPosition({ x, y });
+	return this;
 }
 
-void Object::SetSize(float x, float y, float z)
+
+Object* Object::SetSize(float x, float y, float z)
 {
 	// 大きさを設定
 	m_size.x = x;
@@ -284,21 +320,25 @@ void Object::SetSize(float x, float y, float z)
 
 	// 位置も念のため更新
 	m_collider.SetPosition({ m_pos.x, m_pos.y });
+	return this;
+	// ��size�f�[�^�����������֐�
 }
 
-void Object::SetAngle(float a)
+Object* Object::SetAngle(float a)
 {
 	// 角度を設定
 	m_angle = a;
+	return this;
+	// ��angle�f�[�^�����������֐�
 }
 
-void Object::SetColor(float r, float g, float b, float a)
+Object* Object::SetColor(float r, float g, float b, float a)
 {
-	// カラーを設定
 	m_color.x = r;
 	m_color.y = g;
 	m_color.z = b;
 	m_color.w = a;
+	return this;
 }
 
 void Object::SetFlipX(bool flip)
