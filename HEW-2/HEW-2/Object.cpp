@@ -1,6 +1,7 @@
 ﻿#include "Object.h"
 #include <unordered_map>
 #include <string>
+#include "Texture.h"
 
 // =========================
 // テクスチャキャッシュ
@@ -16,17 +17,6 @@ static std::unordered_map<std::string, ID3D11ShaderResourceView*> g_textureCache
 // =========================
 ID3D11Buffer* Object::s_pSharedVB = nullptr;
 bool Object::s_sharedVBReady = false;
-
-//cameraの大きさ
-
-static float g_viewW = (float)SCREEN_WIDTH;
-static float g_viewH = (float)SCREEN_HEIGHT;
-
-void Object::SetViewSize(float w, float h)
-{
-	g_viewW = (w < 1.0f) ? 1.0f : w;
-	g_viewH = (h < 1.0f) ? 1.0f : h;
-}
 
 // ------------------------------------------------------------
 // 内部ユーティリティ：テクスチャをキャッシュ経由で取得
@@ -104,13 +94,16 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 	// テクスチャ読み込み（キャッシュ）
 	//  - Object側は1参照(AddRef済み)を受け取る
 	// =========================
-	SAFE_RELEASE(m_pTextureView); // 念のため既存を解放
-	hr = GetTextureCached(imgname, &m_pTextureView);
-	if (FAILED(hr))
+	SAFE_RELEASE(m_pTextureView);
+
+	m_pTextureView = GetTextureSRV(g_pDevice, imgname);
+	if (!m_pTextureView)
 	{
 		MessageBoxA(NULL, "テクスチャ読み込み失敗", "エラー", MB_ICONERROR | MB_OK);
-		return hr;
+		return E_FAIL;
 	}
+
+	m_pTextureView->AddRef();
 
 	return S_OK;
 }
@@ -127,17 +120,14 @@ void Object::Draw()
 	// =========================
 	// テクスチャをピクセルシェーダに設定
 	// =========================
+	// =========================
 	g_pDeviceContext->PSSetShaderResources(0, 1, &m_pTextureView);
 
 	// =========================
 	// プロジェクション行列（2D用：正射影）
 	// =========================
-	//DirectX::XMMATRIX matrixProj =
-		//DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
-		// 
-	//カメラの大きさ調整のため
 	DirectX::XMMATRIX matrixProj =
-		DirectX::XMMatrixOrthographicLH(g_viewW, g_viewH, 0.0f, 3.0f);
+		DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
 
 	// =========================
 	// ワールド行列（拡大 + 回転 + 平行移動）
@@ -269,7 +259,6 @@ void Object::Uninit()
 	//  - AddRef した分だけ Release する
 	// =========================
 	SAFE_RELEASE(m_pVertexBuffer);
-	SAFE_RELEASE(m_pTextureView);
 }
 
 void Object::SetPos(float x, float y, float z)
@@ -320,18 +309,23 @@ void Object::SetFlipX(bool flip)
 
 void Object::SetTexture(const char* imgname)
 {
-	// =========================
-	// テクスチャ差し替え（キャッシュ経由）
-	//  - 直接 LoadTexture するとカクつきや共有破壊の原因になる
-	// =========================
+	// 既存のテクスチャ（Object が保持していた参照）を解放
 	SAFE_RELEASE(m_pTextureView);
 
-	HRESULT hr = GetTextureCached(imgname, &m_pTextureView);
-	if (FAILED(hr))
+	// Texture.cpp 側のキャッシュからテクスチャを取得
+	m_pTextureView = GetTextureSRV(g_pDevice, imgname);
+	if (!m_pTextureView)
 	{
 		MessageBoxA(NULL, "テクスチャ読み込み失敗", "エラー", MB_ICONERROR | MB_OK);
+		return;
 	}
+
+	// ⚠️ 重要：
+	// キャッシュは 1 つ参照を保持しているため、
+	// Object 側でも安全に使用できるよう参照カウントを 1 増やす
+	m_pTextureView->AddRef();
 }
+
 
 DirectX::XMFLOAT3 Object::GetPos(void)
 {
@@ -358,9 +352,13 @@ DirectX::XMFLOAT4 Object::GetColor(void)
 // =========================
 void Object::SetCollisionRadius(float r)
 {
-	m_collider.SetRadius(r);
+	collisionRadius = r;
 }
 
+float Object::GetCollisionRadius() const
+{
+	return collisionRadius;
+}
 Collision& Object::GetCollider()
 {
 	return m_collider;

@@ -82,6 +82,7 @@ private:
     static ID3D11Buffer* s_pSharedVB;
     static bool s_sharedVBReady;
 
+    float collisionRadius = 0.0f;
 public:
     // =========================================================
     // UVアニメーション用（旧方式：numU/numV を直接使う場合）
@@ -122,6 +123,8 @@ public:
     //  - SetSize で半径を計算する方式とは別に、手動で半径設定したい場合に使用
     // =========================================================
     void SetCollisionRadius(float r);
+    float GetCollisionRadius() const;
+
     Collision& GetCollider();
     const Collision& GetCollider() const;
 
@@ -148,9 +151,4 @@ public:
     //  - 共有頂点バッファ
     // =========================================================
     static void ReleaseTextureCache();
-
-    // カメラの表示範囲（プロジェクションに使う）
-    static void SetViewSize(float w, float h);
-    // Collision 半径取得（押し出し計算用）
-    float GetCollisionRadius() const { return m_collider.GetRadius(); }
 };
