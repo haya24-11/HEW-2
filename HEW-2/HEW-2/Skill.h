@@ -14,12 +14,12 @@ class Player;
 class Skill
 {
 public:
-    Skill(const std::string& name, int id);
+    Skill();
     virtual ~Skill() = default;
 
-    // ★スキルの派生クラスを作る際に↓のコメントを外す
-   // virtual void Apply(Player* player) = 0;
-   // virtual void Remove(Player* player) = 0;
+     
+    virtual void Apply(Player* player) = 0;
+    virtual void Remove(Player* player) = 0;
 
 protected:
     std::string skillName;
