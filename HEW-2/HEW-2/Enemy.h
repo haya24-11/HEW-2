@@ -28,6 +28,27 @@ public:
     // ノックバック（force : 方向 × 強さ）
     void KnockBack(const DirectX::SimpleMath::Vector2& force);
 
+    bool IsKnockBacking() const { return knockBackTimer > 0.0f; }
+
+    // ノックバック速度を取得（敵同士の反動計算に使う）
+    DirectX::SimpleMath::Vector2 GetKnockBackVelocity() const { return knockBackVelocity; }
+
+    // ノックバックを強制停止（飛んでる敵を止める）
+    void StopKnockBack()
+    {
+        knockBackTimer = 0.0f;
+        knockBackVelocity = { 0.0f, 0.0f };
+    }
+
+
+    // 노크백 유지한 채 속도만 교체 (타이머는 유지)
+    void SetKnockBackVelocity(const DirectX::SimpleMath::Vector2& v)
+    {
+        knockBackVelocity = v;
+        if (knockBackTimer <= 0.0f)
+            knockBackTimer = knockBackDuration;
+    }
+
     // ============================================================
     // SpawnConfig
     // ・EnemySpawner が参照してスポーン位置/間隔/最大数などを制御
@@ -82,6 +103,7 @@ public:
     // 各敵タイプが自分のスポーン設定を返す（派生クラスで override 推奨）
     virtual SpawnConfig GetSpawnConfig() const { return SpawnConfig(); }
 
+   
 protected:
     bool isBoss = false; // ボス判定（必要なら派生で利用）
 
@@ -99,7 +121,7 @@ protected:
     // =========================
     DirectX::SimpleMath::Vector2 knockBackVelocity{ 0.0f, 0.0f }; // ノックバック速度
     float knockBackTimer = 0.0f;          // ノックバック経過時間
-    float knockBackDuration = 0.15f;      // ノックバック継続時間
+    float knockBackDuration = 2.0f;      // ノックバック継続時間
 
     // =========================
     // アニメーション定義（派生クラスが SetupAnimation() で設定）
