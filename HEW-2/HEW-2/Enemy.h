@@ -79,8 +79,6 @@ public:
     // スポーン直後（Object と紐付け後）に 1 回呼んで Idle 開始
     void OnSpawned();
 
-    // ✅ スプライトシート描画用の frameIndex
-    int GetAnimFrame() const { return m_animator.GetCurrentFrame(); }
     // 各敵タイプが自分のスポーン設定を返す（派生クラスで override 推奨）
     virtual SpawnConfig GetSpawnConfig() const { return SpawnConfig(); }
 
