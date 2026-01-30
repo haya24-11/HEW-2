@@ -4,6 +4,7 @@
 #include <Windows.h>   // GetAsyncKeyState（キーボード入力取得）
 #include <Xinput.h>    // XInput（ゲームパッド入力）
 #include <cmath>       // fabsf
+#include "sound.h"
 #pragma comment(lib, "Xinput.lib")
 
 namespace SM = DirectX::SimpleMath;
@@ -27,7 +28,7 @@ void Player::Update(float deltaTime)
 {
     m_attackInputTriggered = false;
 
-    if (Input::GetKeyTrigger(VK_Z))
+    if (Input::GetKeyTrigger(VK_RETURN))
     {
         m_attackInputTriggered = true;
     }
@@ -93,6 +94,8 @@ void Player::Update(float deltaTime)
             // 実際の攻撃モーションへ遷移
             m_state = State::AttackHeavy;
 
+            m_attackSEPlayed = false;
+
             // 攻撃アニメ（ループなし）
             m_animator.Play(m_heavyStartAnim);
 
@@ -136,6 +139,31 @@ void Player::Update(float deltaTime)
         // 強攻撃中はダッシュ移動
         if (m_state == State::AttackHeavy)
             UpdateHeavyDash(deltaTime);
+
+        // ===== ★ 攻撃SE再生ここ ★ =====
+        if (!m_attackSEPlayed)
+        {
+            int hitFrame = 0;
+
+            if (m_state == State::AttackLight)
+            {
+                hitFrame = 6;   // 弱攻撃の当たりフレーム
+            }
+            else if (m_state == State::AttackHeavy)
+            {
+                hitFrame = 10;  // 強攻撃の当たりフレーム
+            }
+
+            if (m_animator.GetCurrentFrame() >= hitFrame)
+            {
+                if (m_state == State::AttackLight)
+                    Sound::GetInstance()->Play(SOUND_LABEL_SE_ATTACK_LIGHT);
+                else
+                    Sound::GetInstance()->Play(SOUND_LABEL_SE_ATTACK_HEAVY);
+
+                m_attackSEPlayed = true;
+            }
+        }
 
         // アニメ終了で待機に戻す
         if (m_animator.IsFinished())
@@ -203,6 +231,8 @@ void Player::Update(float deltaTime)
         m_lockedFacingRight = m_facingRight;
 
         m_state = State::AttackLight;
+
+        m_attackSEPlayed = false;
 
         m_object->SetTexture("asset/Texture/player_attack_light.png");
         m_object->SetSpriteSheet(6, 3);

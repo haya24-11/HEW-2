@@ -22,7 +22,8 @@ void Scene::UpdateScene(float deltaTime)
 
 void Scene::DrawScene()
 {
-
+    for (auto& obj : objects)
+        obj->Draw();
 }
 void Scene::UninitScene()
 {

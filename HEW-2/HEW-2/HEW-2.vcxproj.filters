@@ -165,14 +165,14 @@
     <ClCompile Include="CameraGlobals.cpp">
       <Filter>ソース ファイル\Objects\camera</Filter>
     </ClCompile>
-    <ClCompile Include="AttackSlashEffect.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="SlimeEnemy.cpp">
       <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
     </ClCompile>
     <ClCompile Include="Effect.cpp">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ソース ファイル\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="AttackSlashEffect.cpp">
+      <Filter>ソース ファイル\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -287,14 +287,14 @@
     <ClInclude Include="CameraGlobals.h">
       <Filter>ソース ファイル\Objects\camera</Filter>
     </ClInclude>
-    <ClInclude Include="AttackSlashEffect.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="SlimeEnemy.h">
       <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
     </ClInclude>
+    <ClInclude Include="AttackSlashEffect.h">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClInclude>
     <ClInclude Include="Effect.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ソース ファイル\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -181,6 +181,9 @@ private:
 
     bool m_attackInputTriggered = false;
 
+    // ===== 攻撃SE制御 =====
+    bool m_attackSEPlayed = false;
+
 
     Object* m_map = nullptr;
 };
