@@ -9,6 +9,7 @@
 #include "GamePlay.h"
 #include "Player.h"
 #include "Enemy.h"
+#include"Boss.h"
 #include "NormalEnemy.h"
 #include "Texture.h"
 #include "CameraGlobals.h"
@@ -130,6 +131,11 @@ void GamePlay::InitScene()
     // ===== Enemy Spawner =====
     m_spawner.Init(this, m_player->GetObject());
     m_spawner.RegisterType<NormalEnemy>(1.0f);
+    m_spawner.RegisterType<Boss>(0.0f);
+
+
+
+
 
     std::cout << "(Debug) GamePlayScene!" << std::endl;
 
@@ -229,9 +235,28 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (!m_player) return;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
+    m_player->Update(deltaTime);
 
     Object* playerObj = m_player->GetObject();
     if (!playerObj) return;
+
+
+    if (!m_bossPhase)
+    {
+        m_bossTimer += deltaTime;
+
+        if (m_bossTimer >= 10.0f)
+        {
+            m_bossPhase = true;
+
+            // 通常敵を無効化
+            m_spawner.RegisterType<NormalEnemy>(0.0f);
+
+            // ボスのみ有効
+            m_spawner.RegisterType<Boss>(1.0f);
+        }
+    }
+
 
     const auto oldPos = playerObj->GetPos();
 

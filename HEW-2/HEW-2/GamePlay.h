@@ -47,5 +47,7 @@ private:
     float m_rotation = 0.0f;        // 現在の角度（ラジアン or 度）
     float m_rotationSpeed = 7.5f; // 回転速度（度/秒）
 
-
+    //ボスタイマー
+    float m_bossTimer = 0.0f;
+    bool  m_bossPhase = false;
 };

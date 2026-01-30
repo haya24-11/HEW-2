@@ -27,9 +27,11 @@ public:
     // 衝突チェック用（必要なら GamePlay 側で利用）
     const std::vector<std::unique_ptr<Enemy>>& GetEnemies() const { return m_enemies; }
 
+    // ★ デバッグ / 即スポーン用
+   // Enemy* SpawnOneImmediate();
 
 private:
-    Enemy* SpawnOne(); // 1体スポーン
+ //   Enemy* SpawnOne(); // 1体スポーン
 
     // 乱数ユーティリティ
     float RandFloat(float a, float b);
