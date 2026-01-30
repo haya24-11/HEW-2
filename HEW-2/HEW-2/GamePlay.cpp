@@ -42,6 +42,28 @@ static float ClampFloat(float v, float lo, float hi)
     return v;
 }
 
+static void ClampObjectToMap(Object* obj, Object* map)
+{
+    if (!obj || !map) return;
+
+    auto p = obj->GetPos();
+    auto mp = map->GetPos();
+    auto ms = map->GetSize();
+
+    float r = obj->GetCollisionRadius();
+
+    float left = mp.x - ms.x * 0.5f + r;
+    float right = mp.x + ms.x * 0.5f - r;
+    float bottom = mp.y - ms.y * 0.5f + r;
+    float top = mp.y + ms.y * 0.5f - r;
+
+    p.x = ClampFloat(p.x, left, right);
+    p.y = ClampFloat(p.y, bottom, top);
+
+    obj->SetPos(p.x, p.y, p.z);
+}
+
+
 
 GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 {
@@ -319,6 +341,40 @@ void GamePlay::UpdateScene(float deltaTime)
         g_cameraX = camX;
         g_cameraY = camY;
     }
+    // ===== プレイヤーをマップ外に出さない =====
+   /* if (m_map && playerObj)
+    {
+        auto p = playerObj->GetPos();
+        auto mp = m_map->GetPos();
+        auto ms = m_map->GetSize();
+
+        float r = playerObj->GetCollisionRadius();
+
+        float left = mp.x - ms.x * 0.5f + r;
+        float right = mp.x + ms.x * 0.5f - r;
+        float bottom = mp.y - ms.y * 0.5f + r;
+        float top = mp.y + ms.y * 0.5f - r;
+
+        p.x = ClampFloat(p.x, left, right);
+        p.y = ClampFloat(p.y, bottom, top);
+
+        playerObj->SetPos(p.x, p.y, p.z);
+    }*/
+
+    
+    if (m_map)
+    {
+        ClampObjectToMap(playerObj, m_map);
+
+        for (const auto& e : m_spawner.GetEnemies())
+        {
+            if (!e) continue;
+            if (auto* eo = e->GetObject())
+                ClampObjectToMap(eo, m_map);
+        }
+    }
+
+
 
     prevButtons = buttons;
     UpdateUIFollowCamera();
