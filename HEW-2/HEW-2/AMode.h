@@ -7,10 +7,12 @@ class AMode : public Mode
 private:
    int weakAtk = 2;
    int strongAtkMin = 3;
+   int skillIdmin = 0;
+   int skillIdMax = 10;
 
 public:
-    AMode();
+    bool CanLearnSkill(int skillId) const;
     int WeakAttack(int BaseAtk);
     int StrongAttakc(int BaseAtk,float pushTime);
-    int ComboDamage();
+    float CalculateComboMultiplier(int comboCount) const override;
 };

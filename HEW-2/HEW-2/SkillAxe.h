@@ -3,18 +3,7 @@
 
 class SkillAxe:public WeaponSkills
 {
-
-private:
-
-
-	float axePower;
-	DirectX::SimpleMath::Vector2 aexArea;
-
-
 public:
 	SkillAxe();
-
-	float GetPower() const;
-	DirectX::SimpleMath::Vector2 GetArea() const;
-
+	int CalculateDamage(Player* player, AMode* mode) override;
 };

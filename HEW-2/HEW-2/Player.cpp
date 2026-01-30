@@ -331,6 +331,11 @@ void Player::ApplyAbility(Skill* skill)
     skills.push_back(skill);
 }
 
+const std::vector<Skill*>& Player::GetLearnedSkills() const
+{
+    return skills;
+}
+
 int Player::GetPower() const
 {
     return power;

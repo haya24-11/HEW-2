@@ -1,26 +1,30 @@
 #include "ModeManager.h"
+#include "Player.h"
+#include "Skill.h"
 
-void ModeManager::SwitchMode(const Mode& mode)
+void ModeManager::SwitchMode(Mode* mode)
 {
     currentMode = mode;
 }
 
-const Mode& ModeManager::GetCurrentMode() const
+std::vector<Skill*> ModeManager::GetAvailableSkills(const Player& player) const
 {
-    return currentMode;
+    std::vector<Skill*> result;
+
+    for (auto s : player.GetLearnedSkills())
+    {
+        if (currentMode && currentMode->CanUseSkill(*s))
+            result.push_back(s);
+    }
+    return result;
 }
 
-std::vector<Skill*> ModeManager::GetAvailableSkills() const
+int ModeManager::CalculateFinalExp(int baseExp) const
 {
-    return currentMode.GetSkills();
-}
+    if (!currentMode) return baseExp;
 
-void ModeManager::AddComboBonus()
-{
-    combo.AddCombo();
-}
+    float comboMul = currentMode->CalculateComboMultiplier(combo.GetCount());
 
-void ModeManager::ResetCombo()
-{
-    combo.Reset();
+    return static_cast<int>(baseExp * comboMul);
+
 }

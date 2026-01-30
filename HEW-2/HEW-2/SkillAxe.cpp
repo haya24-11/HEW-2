@@ -1,15 +1,15 @@
 #include "SkillAxe.h"
 
-SkillAxe::SkillAxe():WeaponSkills("Aex", 2), axePower(100.0f),aexArea(30.0f,30.0f)
+SkillAxe::SkillAxe():WeaponSkills("Aex", 2)
 {
+	basePower = 1.5f;
+	attackRange = 2.0f; 
 }
 
-float SkillAxe::GetPower() const
+int SkillAxe::CalculateDamage(Player* player, AMode* mode)
 {
-	return axePower;
+	int base = player->GetPower() * basePower;
+	return mode->WeakAttack(base);  // ÉÇÅ[Éhï‚ê≥
+
 }
 
-DirectX::SimpleMath::Vector2 SkillAxe::GetArea() const
-{
-	return aexArea ;
-}

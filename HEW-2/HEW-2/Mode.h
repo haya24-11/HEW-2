@@ -6,9 +6,10 @@
 class Mode
 {
 public:
-    const std::vector<Skill*>& GetSkills() const;
+    virtual ~Mode() = default;
 
-protected:
-    std::string name;
-    std::vector<Skill*> skills;
+    virtual bool CanLearnSkill(int skillId) const = 0;
+    virtual bool CanUseSkill(const Skill& skill) const = 0;
+    virtual float CalculateComboMultiplier(int comboCount) const = 0;
+
 };

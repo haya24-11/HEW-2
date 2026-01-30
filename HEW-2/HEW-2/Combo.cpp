@@ -2,15 +2,15 @@
 
 void Combo::AddCombo()
 {
-	combCount++;
+	comboCount++;
 }
 
 void Combo::Reset()
 {
-	combCount = 0;
+	comboCount = 0;
 }
 
-float Combo::GetMultiplier() const
+float Combo::GetCount() const
 {
-	return 1.0f + combCount * combBonus;
+	return comboCount;
 }

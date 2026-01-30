@@ -12,9 +12,9 @@ class Combo
 public:
     void AddCombo();
     void Reset();
-    float GetMultiplier() const;
+    float GetCount() const;
 
 private:
-    int combCount = 0;
+    int comboCount = 0;
     float combBonus = 0.3f;
 };
