@@ -8,6 +8,8 @@
 #include "Chara.h"
 #include "Animator.h"
 #include "Input.h"
+#include "AttackSlashEffect.h"
+
 
 class Skill;
 
@@ -169,6 +171,9 @@ private:
     float m_heavyHitOffset = 80.0f;
     float m_heavyHitRadius = 55.0f;
     float m_heavyKnockBackPower = 900.0f; 
+
+    // 攻撃エフェクト用
+    std::vector<AttackSlashEffect*> m_attackEffects;
 
 
     Object* m_map = nullptr;

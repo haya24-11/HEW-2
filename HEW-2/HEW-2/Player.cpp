@@ -189,6 +189,11 @@ void Player::Update(float deltaTime)
         const bool textureIsRightFacing = true;
         m_object->SetFlipX(textureIsRightFacing != m_facingRight);
 
+        // 斬撃エフェクト生成
+        m_attackEffects.push_back(
+            new AttackSlashEffect(m_object, m_facingRight)
+        );
+
         CommitPad();
         return;
     }
