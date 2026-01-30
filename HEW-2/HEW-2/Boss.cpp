@@ -1,50 +1,21 @@
-//#include "Boss.h"
-//
-//Boss::Boss()
-//{
-//    hp = 300;
-//    power = 20;
-//    isBoss = true;
-//}
 
 #include "Boss.h"
 
 Boss::Boss()
 {
+    hp = 50;
+    power = 5;
+
     isBoss = true;
 
+    moveSpeed = 5.0f;
     // ボスはノックバック後に死なない
     EnableDeathAfterKnockback(false);
 
+
+    SetupAnimation();
     // インパクトダメージ大きめ
     SetImpactDamage(30);
-}
-
-Enemy::SpawnConfig Boss::GetSpawnConfig() const
-{
-    SpawnConfig cfg;
-
-    cfg.texture = "asset/Texture/BossEnemy.png";
-    cfg.sizeX = 300.0f;
-    cfg.sizeY = 300.0f;
-    cfg.collisionRadius = 140.0f;
-
-    cfg.hp = 1000;
-    cfg.power = 20;
-
-    cfg.minDist = 600.0f;
-    cfg.maxDist = 800.0f;
-    cfg.interval = 9999.0f; // 再スポーンさせない
-    cfg.maxAlive = 1;
-    cfg.weight = 0.0f;      // 通常抽選には出さない
-
-    cfg.dieDelay = 2.0f;
-    cfg.disappearDelay = 3.0f;
-
-    cfg.useAnim = true;
-    cfg.anim = { 0, 8, 0.15f, true };
-
-    return cfg;
 }
 
 void Boss::SetupAnimation()
@@ -57,9 +28,8 @@ void Boss::SetupAnimation()
 
 void Boss::ApplyWalkVisual()
 {
-    // 例：常に大きく表示
-    if (auto* obj = GetObject())
-        obj->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_object->SetTexture("asset/Texture/BossWalk.png");
+    m_object->SetSpriteSheet(8, 4);
 }
 
 void Boss::ApplyIdleVisual()
@@ -90,3 +60,5 @@ void Boss::OnDamaged(int damage)
     // ボス専用：一定以下のダメージ無効とかも可能
     Enemy::OnDamaged(damage);
 }
+
+

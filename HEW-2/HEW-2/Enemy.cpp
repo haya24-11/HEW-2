@@ -347,3 +347,4 @@ void Enemy::UpdateHitFlash(float dt)
         m_hitFlashTimer = 0.0f;
     }
 }
+

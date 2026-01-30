@@ -5,6 +5,7 @@
 #include "Enemy.h"
 #include <algorithm> // std::erase_if
 #include <unordered_map>
+#include "Boss.h" 
 
 EnemySpawner::EnemySpawner()
 {
@@ -22,7 +23,11 @@ void EnemySpawner::Init(Scene* ownerScene, Object* playerObj)
     m_enemies.clear();
     m_entries.clear();
     m_spawnTimer = 0.0f;
+
+    m_killCount = 0;        // ✅ 初期化：キル数
+    m_bossSpawned = false;  // ✅ 初期化：ボス出現フラグ
 }
+
 
 void EnemySpawner::Update(float deltaTime)
 {
@@ -41,12 +46,16 @@ void EnemySpawner::Update(float deltaTime)
         if (e) e->Update(deltaTime);
     }
 
+    // 死亡した敵を掃除（ここでキル数も加算する）
     CleanupDeadEnemies();
 
     // =========================
     // (1.5) 敵同士の当たり判定（押し出し）
     // =========================
     ResolveEnemyCollisions();
+
+    // ✅ ボスが出現済みなら、以後は通常スポーンを止めたい場合は return してOK
+    // if (m_bossSpawned) return;
 
     // =========================
     // (2) スポーン用タイマー更新
@@ -64,6 +73,7 @@ void EnemySpawner::Update(float deltaTime)
     // タイプ数が多い/毎フレーム呼ぶと重くなり得る（最適化は後で可能）
     // -------------------------
     std::unique_ptr<Enemy> temp = m_entries[idx].createFn();
+    if (!temp) return;
     Enemy::SpawnConfig cfg = temp->GetSpawnConfig();
 
     // 同時に存在できる最大数に達していたらスポーンしない
@@ -92,8 +102,7 @@ void EnemySpawner::Update(float deltaTime)
         // 生成する Object の見た目/サイズ/当たり判定
         obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
 
-        // （保険）もし Init 内で SetSpriteSheet を呼ばない構成なら、
-        // 下の1行も有効にしておくと確実
+        // （保険）もし Init 内で SetSpriteSheet を呼ばない構成なら、下の1行も有効
         if (cfg.useSheet)
         {
             obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
@@ -122,6 +131,10 @@ void EnemySpawner::Update(float deltaTime)
         enemy->SetObject(obj);
         enemy->SetTarget(m_player);
 
+        // ✅ 死亡演出時間（SpawnConfigを反映）
+        enemy->SetDeathDelay(cfg.dieDelay);
+        enemy->SetDisappearDelay(cfg.disappearDelay);
+
         enemy->OnSpawned();
 
         // =========================
@@ -130,7 +143,6 @@ void EnemySpawner::Update(float deltaTime)
         enemy->SetChaseEnabled(true);
 
         // stopDist が 0 より大きければ、その距離で追跡を止める
-        // 0 の場合は最後まで追跡
         if (cfg.stopDist > 0.0f) enemy->SetChaseStopDistance(cfg.stopDist);
         else                    enemy->SetChaseStopDistance(0.0f);
 
@@ -138,7 +150,6 @@ void EnemySpawner::Update(float deltaTime)
         m_enemies.emplace_back(std::move(enemy));
     }
 }
-
 
 
 float EnemySpawner::RandFloat(float a, float b)
@@ -255,23 +266,100 @@ void EnemySpawner::ResolveEnemyCollisions()
 
 void EnemySpawner::CleanupDeadEnemies()
 {
-    std::erase_if(m_enemies, [&](const std::unique_ptr<Enemy>& e)
+    for (auto it = m_enemies.begin(); it != m_enemies.end(); )
+    {
+        Enemy* e = it->get();
+        if (!e)
         {
-            if (!e) return true;
+            it = m_enemies.erase(it);
+            continue;
+        }
 
-            // Enemy/Chara 側で hp<=0 になったら isAlive=false にしている前提
-            if (!e->IsAlive())
+        if (!e->IsAlive())
+        {
+            // ✅ 雑魚だけ討伐数を加算（ボスはカウントしない）
+            if (!e->IsBoss())
             {
-                // Object を「完全削除」できない構造なら、最低限 無効化しておく
-                if (Object* o = e->GetObject())
+                m_killCount++;
+
+                // ✅ 10体倒したらボス出現（1回だけ）
+                if (m_killCount >= 10 && !m_bossSpawned)
                 {
-                    o->SetCollisionRadius(0.0f);
-                    o->SetColor(1, 1, 1, 0.0f);
-                    auto p = o->GetPos();
-                    o->SetPos(999999.0f, 999999.0f, p.z);
+                    SpawnBoss();
                 }
-                return true; // ✅ リストから除去（sizeが減るのでリスポーン可能になる）
             }
-            return false;
-        });
+
+            // Object無効化（完全削除できない構造なら保険）
+            if (Object* o = e->GetObject())
+            {
+                o->SetCollisionRadius(0.0f);
+                o->SetColor(1, 1, 1, 0.0f);
+                auto p = o->GetPos();
+                o->SetPos(999999.0f, 999999.0f, p.z);
+            }
+
+            it = m_enemies.erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+}
+
+
+
+
+void EnemySpawner::SpawnBoss()
+{
+    // ✅ ボスは一度だけ出現
+    if (m_bossSpawned) return;
+    if (!m_scene || !m_player) return;
+
+    std::unique_ptr<Enemy> boss = std::make_unique<Boss>();
+    if (!boss) return;
+
+    // スポーン設定取得
+    Enemy::SpawnConfig cfg = boss->GetSpawnConfig();
+
+    // Object生成（Scene所有）
+    Object* obj = m_scene->AddObject();
+    if (!obj) return;
+
+    // 見た目/スプライトシート
+    obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
+    if (cfg.useSheet)
+        obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
+
+    obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
+    obj->SetCollisionRadius(cfg.collisionRadius);
+
+    // ✅ スポーン位置：プレイヤー周りに円環で出す（minDist/maxDistを利用）
+    auto pp3 = m_player->GetPos();
+    DirectX::SimpleMath::Vector2 center(pp3.x, pp3.y);
+
+    float angle = RandFloat(0.0f, 6.2831853f); // 0～2π
+    float dist = RandFloat(cfg.minDist, cfg.maxDist);
+
+    float sx = center.x + cosf(angle) * dist;
+    float sy = center.y + sinf(angle) * dist;
+    obj->SetPos(sx, sy, 0.0f);
+
+    // ロジック接続
+    boss->SetObject(obj);
+    boss->SetTarget(m_player);
+
+    // ✅ 死亡演出時間（SpawnConfigの値を反映）
+    boss->SetDeathDelay(cfg.dieDelay);
+    boss->SetDisappearDelay(cfg.disappearDelay);
+
+    boss->OnSpawned();
+
+    // 念のため追跡ON
+    boss->SetChaseEnabled(true);
+    if (cfg.stopDist > 0.0f) boss->SetChaseStopDistance(cfg.stopDist);
+
+    // 管理リストへ追加
+    m_enemies.emplace_back(std::move(boss));
+
+    m_bossSpawned = true;
 }

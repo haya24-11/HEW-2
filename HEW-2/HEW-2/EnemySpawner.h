@@ -61,6 +61,12 @@ private:
     std::mt19937 m_rng;
 
     void CleanupDeadEnemies();
+
+    int  m_killCount = 0;        
+    bool m_bossSpawned = false;  
+
+
+    void SpawnBoss();            // ✅ ボスを強制スポーン
 };
 
 // =========================

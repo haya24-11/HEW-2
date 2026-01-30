@@ -131,6 +131,8 @@ public:
         return true;
     }
 
+    bool IsBoss() const { return isBoss; }
+
 protected:
     bool isBoss = false;
 
