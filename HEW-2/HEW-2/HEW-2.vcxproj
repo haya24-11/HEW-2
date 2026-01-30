@@ -151,6 +151,7 @@
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Chara.cpp" />
     <ClCompile Include="Combo.cpp" />
+    <ClCompile Include="Effect.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Exp.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="Chara.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Combo.h" />
+    <ClInclude Include="Effect.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="EnemySpawner.h" />
     <ClInclude Include="Exp.h" />

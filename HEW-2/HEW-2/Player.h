@@ -90,6 +90,10 @@ public:
 
     void SetPower(int value);
 
+    bool IsAttackInputTriggered() const;
+
+    bool IsFacingRight() const { return m_facingRight; }
+
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
@@ -174,6 +178,8 @@ private:
 
     // 攻撃エフェクト用
     std::vector<AttackSlashEffect*> m_attackEffects;
+
+    bool m_attackInputTriggered = false;
 
 
     Object* m_map = nullptr;

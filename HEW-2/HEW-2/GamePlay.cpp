@@ -55,6 +55,7 @@ void GamePlay::InitScene()
     PreloadTexture(g_pDevice, "asset/Texture/player_walk.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_attack_light.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_attack_heavy.png");
+    PreloadTexture(g_pDevice, "asset/Texture/slash_effect.png");
 
     Object dummy;
     dummy.Init("asset/Texture/player_attack_heavy.png", 1, 1);
@@ -190,6 +191,7 @@ void GamePlay::InitScene()
     ExpBarFrame->Init("asset/UI/expbar_frame.png"); // ここは実際のパスに合わせて
     ExpBarFrame->SetUI(true);
 
+
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -208,6 +210,42 @@ void GamePlay::UpdateScene(float deltaTime)
     const auto oldPos = playerObj->GetPos();
 
     m_player->Update(deltaTime);
+
+    if (m_player->IsAttackInputTriggered())
+    {
+        m_attackEffects.push_back(
+            new AttackSlashEffect(this,
+                m_player->GetObject(),
+                m_player->IsFacingRight())
+        );
+    }
+
+    /* ================================
+   ★ 攻撃エフェクトの更新＆破棄
+   ================================ */
+    for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
+    {
+        AttackSlashEffect* e = *it;
+
+        if (!e)
+        {
+            it = m_attackEffects.erase(it);
+            continue;
+        }
+
+        e->Update(deltaTime);
+
+        if (e->IsDead())
+        {
+            e->Uninit();
+            delete e;
+            it = m_attackEffects.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 
     m_spawner.Update(deltaTime);
 
@@ -350,6 +388,7 @@ void GamePlay::DrawScene()
         if (frame >= 0) obj->Draw(frame);
         else            obj->Draw();
     }
+
 }
 
 
@@ -358,6 +397,11 @@ void GamePlay::UninitScene()
 {
     Object::ReleaseTextureCache();
     std::cout << "UninitScene" << std::endl;
+    for (auto e : m_attackEffects)
+    {
+        delete e;
+    }
+    m_attackEffects.clear();
 }
 
 static void PushOutCircle(Object* playerObj, Object* enemyObj)
@@ -463,6 +507,7 @@ void GamePlay::UpdateUIFollowCamera()
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }
+
 
 static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
     Enemy* enemyLogic, Object* enemyObj)

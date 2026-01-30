@@ -66,6 +66,22 @@ Object* Scene::AddObject()
 	return objects.back().get();
 }
 
+void Scene::RemoveObject(Object* obj)
+{
+    if (!obj) return;
+
+    auto it = std::remove_if(
+        objects.begin(),
+        objects.end(),
+        [&](const std::unique_ptr<Object>& o)
+        {
+            return o.get() == obj;
+        }
+    );
+
+    objects.erase(it, objects.end());
+}
+
 void Scene::ClearObject()
 {
 	objects.clear();

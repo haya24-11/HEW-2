@@ -25,6 +25,13 @@ Player::Player()
 
 void Player::Update(float deltaTime)
 {
+    m_attackInputTriggered = false;
+
+    if (Input::GetKeyTrigger(VK_Z))
+    {
+        m_attackInputTriggered = true;
+    }
+
     // ===== XInput：ボタン取得（トリガー判定用） =====
     XINPUT_STATE pad{};
     WORD buttons = 0;
@@ -95,6 +102,23 @@ void Player::Update(float deltaTime)
             CommitPad();
             return;
         }
+
+        for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
+        {
+            (*it)->Update(deltaTime);
+
+            if ((*it)->IsDead())
+            {
+                delete* it;
+                it = m_attackEffects.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+       
 
         // チャージアニメを継続更新
         m_animator.Update(deltaTime);
@@ -188,11 +212,6 @@ void Player::Update(float deltaTime)
         // 攻撃開始フレームでも反転を適用
         const bool textureIsRightFacing = true;
         m_object->SetFlipX(textureIsRightFacing != m_facingRight);
-
-        // 斬撃エフェクト生成
-        m_attackEffects.push_back(
-            new AttackSlashEffect(m_object, m_facingRight)
-        );
 
         CommitPad();
         return;
@@ -344,6 +363,11 @@ int Player::GetPower() const
 void Player::SetPower(int value)
 {
     power = value;
+}
+
+bool Player::IsAttackInputTriggered() const
+{
+    return m_attackInputTriggered;
 }
 
 void Player::ApplyVisualSize(const SizeScale& s)

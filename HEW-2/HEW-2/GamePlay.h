@@ -4,6 +4,9 @@
 #include "Player.h"
 #include "Camera2D.h"
 #include "EnemySpawner.h"
+#include <vector>
+
+class AttackSlashEffect; // 前方宣言
 
 class GamePlay : public Scene
 {
@@ -37,6 +40,8 @@ public:
 
     void UpdateUIFollowCamera();
 
+  
+
 private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
@@ -46,4 +51,6 @@ private:
 
     float m_rotation = 0.0f;        // 現在の角度（ラジアン or 度）
     float m_rotationSpeed = 7.5f; // 回転速度（度/秒）
+
+    std::vector<AttackSlashEffect*> m_attackEffects;
 };
