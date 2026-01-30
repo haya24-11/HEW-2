@@ -128,7 +128,7 @@ void GamePlay::InitScene()
     // ===== プレイヤーHPバー UI =====
     PlayerHeartPointBar = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
-        ->SetSize(420.0f, 240.0f, 0.0f)
+        ->SetSize(420.0f, 300.0f, 0.0f)
         ->SetAngle(0.0f);
     PlayerHeartPointBar->Init("asset/UI/playerheartpointbar.png");
     PlayerHeartPointBar->SetUI(true);
@@ -159,19 +159,36 @@ void GamePlay::InitScene()
     // ===== 魔法陣 UI =====
     MagicCircle = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
-        ->SetSize(180.0f, 180.0f, 0.0f)
+        ->SetSize(360.0f, 360.0f, 0.0f)
         ->SetAngle(0.0f)
         ->SetColor(1, 1, 1, 0.55f);
     MagicCircle->Init("asset/UI/magiccircle.png");
     MagicCircle->SetUI(true);
 
-    // ===== 経験値バー UI =====
-    ExpBar = AddObject()
-        ->SetPos(0.0f, 0.0f, 0.0f)
-        ->SetSize(280.0f, 100.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
+    // ===== 経験値バー UI 関連 =====
+    // 経験値バー 背景
+    ExpBarBack = AddObject()
+        ->SetPos(0.0f, 1000.0f, 0.0f)
+        ->SetSize(1780.0f, 295.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
         ->SetAngle(0.0f);
-    ExpBar->Init("asset/UI/expbar.png"); // ここは実際のパスに合わせて
-    ExpBar->SetUI(true);
+    ExpBarBack->Init("asset/UI/expbar_back.png"); // ここは実際のパスに合わせて
+    ExpBarBack->SetUI(true);
+
+    // 経験値バー ゲージ ※todo
+    ExpBarGauge = AddObject()
+        ->SetPos(0.0f, 1000.0f, 0.0f)
+        ->SetSize(20.0f, 30.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
+        ->SetAngle(0.0f);
+    ExpBarGauge->Init("asset/UI/expbar_gauge.png"); // ここは実際のパスに合わせて
+    ExpBarGauge->SetUI(true);
+
+    // 経験値バー フレーム
+    ExpBarFrame = AddObject()
+        ->SetPos(0.0f, 1000.0f, 0.0f)
+        ->SetSize(1780.0f, 300.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
+        ->SetAngle(0.0f);
+    ExpBarFrame->Init("asset/UI/expbar_frame.png"); // ここは実際のパスに合わせて
+    ExpBarFrame->SetUI(true);
 
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
@@ -193,6 +210,13 @@ void GamePlay::UpdateScene(float deltaTime)
     m_player->Update(deltaTime);
 
     m_spawner.Update(deltaTime);
+
+    m_rotation += m_rotationSpeed * deltaTime;
+    MagicCircle->SetAngle(m_rotation);
+
+    // 360度超えたら戻す（任意だけどおすすめ）
+    if (m_rotation >= 360.0f)
+        m_rotation -= 360.0f;
 
     for (int iter = 0; iter < 3; ++iter)
     {
@@ -390,7 +414,7 @@ void GamePlay::UpdateUIFollowCamera()
     const float hpBarY = halfH - pad - 44.0f;
 
     if (PlayerHeartPointBar)
-        PlayerHeartPointBar->SetPos(hpBarX, hpBarY, 0.0f);
+        PlayerHeartPointBar->SetPos(hpBarX, hpBarY-20, 0.0f);
 
     // アイコン
     const float hpW = 360.0f;
@@ -400,9 +424,10 @@ void GamePlay::UpdateUIFollowCamera()
     const float circleCenterX = hpBarX - (hpW * 0.5f) + (iconSize * 0.5f) + circlePadding;
     const float circleCenterY = hpBarY + 10.0f;
 
+
     if (PlayerIcon)
     {
-        PlayerIcon->SetPos(circleCenterX, circleCenterY, 0.0f);
+        PlayerIcon->SetPos(circleCenterX+0, circleCenterY-10, 0.0f);
         PlayerIcon->SetSize(iconSize, iconSize, 0.0f);
     }
 
@@ -412,8 +437,8 @@ void GamePlay::UpdateUIFollowCamera()
         if (!BuffIcons[i]) continue;
 
         BuffIcons[i]->SetPos(
-            -halfW + pad + 150.0f + (i * 48.0f),
-            halfH - pad - 36.0f - 70.0f,
+            -halfW + pad + 155.0f + (i * 48.0f),
+            halfH - pad - 36.0f - 100.0f,
             0.0f
         );
     }
@@ -427,13 +452,15 @@ void GamePlay::UpdateUIFollowCamera()
 
     // 右上の魔法陣
     if (MagicCircle)
-        MagicCircle->SetPos(halfW - pad - 110.0f, halfH - pad - 110.0f, 0.0f);
+        MagicCircle->SetPos(halfW - pad - 10.0f, halfH - pad - 10.0f, 0.0f);
 
     // 経験値バー（HPバー付近）
-    if (ExpBar)
+    if (ExpBarFrame)
     {
-        const float gapY = 10.0f;
-        ExpBar->SetPos(hpBarX + 85.0f, hpBarY + gapY, 0.0f);
+        const float gapY = -855.0f;
+        ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
+        ExpBarGauge->SetPos(hpBarX + -180.0f, hpBarY + gapY, 0.0f); // 経験値バー ゲージ ※todo
+        ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }
 
