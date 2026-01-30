@@ -12,8 +12,10 @@ Player::Player()
 {
     hp = 100;
     power = 10;
+    //powerの2倍のダメージ   
 
     moveSpeed = 30.0f;
+
 
     // アニメーション（開始フレーム / フレーム数 / 1フレーム時間 / ループ）
     m_idleAnim = { 0, 30, 0.15f, true };

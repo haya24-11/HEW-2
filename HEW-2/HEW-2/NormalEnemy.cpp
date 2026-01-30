@@ -6,8 +6,7 @@ NormalEnemy::NormalEnemy()
 	power = 5;
 	isBoss = false;
 
-	moveSpeed = 15.0f;
-	chaseStopDistance = 300.0f;
+	moveSpeed = 10.0f;
 
 	SetupAnimation();
 }
@@ -16,7 +15,9 @@ void NormalEnemy::SetupAnimation()
 {
     // 歩行アニメ
     m_walkAnim = { 0, 31, 0.1f, true };
-    m_hitAnim =  { 0, 31, 0.1f, true };
+    m_idleAnim = { 0, 31, 0.1f, true };
+    m_hitAnim  = { 0, 31, 0.1f, true };
+    m_dieAnim  = { 0, 31, 0.1f, true };
     // 原画は左向き
     m_textureRightFacing = false;
 }
@@ -31,12 +32,13 @@ void NormalEnemy::Attack()
 {
 
 }
-//モーション追加sする時利用してください。
+//モーション追加する時利用してください。
 
 void NormalEnemy::ApplyIdleVisual()
 {
     // 基本は Walk と同じシートを使用
-    ApplyWalkVisual();
+    m_object->SetTexture("asset/Texture/enemy_slime.png");
+    m_object->SetSpriteSheet(8, 4);
 
     // もし Idle だけ別テクスチャ/別シートを使いたい場合は、ここで差し替える
     // m_object->SetTexture("asset/Texture/NormalEnemy_idle.png");
@@ -45,12 +47,19 @@ void NormalEnemy::ApplyIdleVisual()
 
 void NormalEnemy::ApplyHitVisual()
 {
-    // 基本は Walk と同じスプライトシートを使用
-    ApplyWalkVisual();
+    m_object->SetTexture("asset/Texture/enemy_slime_down.png");
+    m_object->SetSpriteSheet(8, 4);
+    //m_object->SetTexture("asset/Texture/enemy_slime_down.png");
+    //m_object->SetSpriteSheet(8, 4);
+}
 
-    // ✅ 被弾時だけ別テクスチャ/別シートを使いたい場合は、ここでのみ差し替えればOK
-    // m_object->SetTexture("asset/Texture/enemy_slime_hit.png");
-    // m_object->SetSpriteSheet(8, 4);
+
+void NormalEnemy::ApplyDieVisual()
+{
+    m_object->SetTexture("asset/Texture/enemy_slime_down.png");
+    m_object->SetSpriteSheet(8, 4);
+    //m_object->SetTexture("asset/Texture/enemy_slime_down.png");
+    //m_object->SetSpriteSheet(8, 4);
 }
 
 void NormalEnemy::OnDamaged(int damage)
@@ -62,3 +71,4 @@ void NormalEnemy::OnDamaged(int damage)
     // 例：damage が大きい時はより強く吹き飛ばす、など
     (void)damage;
 }
+

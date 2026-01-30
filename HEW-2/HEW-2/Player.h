@@ -88,6 +88,8 @@ public:
 
     void SetPower(int value);
 
+    float GetHeavyDamageMul() const { return m_heavyDamageMul; }
+    void SetHeavyDamageMul(float v) { m_heavyDamageMul = v; }
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
@@ -158,7 +160,7 @@ private:
     int  m_heavyDashStartFrame = 14;
     bool m_heavyDashStarted = false;
 
-    // PAD入力（WORD 대신 안전하게)
+    // PAD入力
     std::uint16_t m_prevPadButtons = 0;
 
     // 強攻撃時の方向固定
@@ -170,6 +172,7 @@ private:
     float m_heavyHitRadius = 55.0f;
     float m_heavyKnockBackPower = 900.0f; 
 
-
+    //強攻撃調整
+    float m_heavyDamageMul = 2.0f;
     Object* m_map = nullptr;
 };

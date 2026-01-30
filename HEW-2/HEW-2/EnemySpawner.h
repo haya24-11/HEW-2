@@ -27,8 +27,6 @@ public:
     // 衝突チェック用（必要なら GamePlay 側で利用）
     const std::vector<std::unique_ptr<Enemy>>& GetEnemies() const { return m_enemies; }
 
-    // 敵-敵の衝突処理（重なったら押し出す）
-    void ResolveEnemyCollisions();
 
 private:
     Enemy* SpawnOne(); // 1体スポーン
@@ -37,6 +35,8 @@ private:
     float RandFloat(float a, float b);
     int   RandIndexByWeight();
 
+    // 敵-敵の衝突処理（重なったら押し出す）
+    void ResolveEnemyCollisions();
 private:
     Scene* m_scene = nullptr;
     Object* m_player = nullptr;
@@ -57,6 +57,8 @@ private:
 
     // 乱数エンジン
     std::mt19937 m_rng;
+
+    void CleanupDeadEnemies();
 };
 
 // =========================

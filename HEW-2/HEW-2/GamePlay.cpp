@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cmath>
 #include <algorithm> // std::clamp
+#include <unordered_map>
 
 static DirectX::SimpleMath::Vector2 ReflectVec(
     const DirectX::SimpleMath::Vector2& v,
@@ -42,6 +43,8 @@ static float ClampFloat(float v, float lo, float hi)
     return v;
 }
 
+// 強攻撃のヒットクールタイム（同じ敵に毎フレーム当たらないようにする）
+static std::unordered_map<Enemy*, float> s_heavyHitCD;
 
 GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 {
@@ -193,6 +196,14 @@ void GamePlay::UpdateScene(float deltaTime)
     m_player->Update(deltaTime);
 
     m_spawner.Update(deltaTime);
+
+    // 強攻撃ヒットCD更新
+    for (auto it = s_heavyHitCD.begin(); it != s_heavyHitCD.end(); )
+    {
+        it->second -= deltaTime;
+        if (it->second <= 0.0f) it = s_heavyHitCD.erase(it);
+        else ++it;
+    }
 
     for (int iter = 0; iter < 3; ++iter)
     {
@@ -436,58 +447,70 @@ void GamePlay::UpdateUIFollowCamera()
         ExpBar->SetPos(hpBarX + 85.0f, hpBarY + gapY, 0.0f);
     }
 }
-
 static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
     Enemy* enemyLogic, Object* enemyObj)
 {
-    // NULLチェック（どれか欠けてたら処理しない）
     if (!playerLogic || !playerObj || !enemyLogic || !enemyObj) return;
 
-    // すでにノックバック中の敵には再度当てない（多段ヒット・暴走防止）
+    // すでにノックバック中なら無視（連打防止）
     if (enemyLogic->IsKnockBacking()) return;
 
-    // プレイヤー/敵の位置を取得
+    // 同じ敵へのクールタイム（連打防止）
+    const float hitCooldown = 0.20f;
+    if (s_heavyHitCD.find(enemyLogic) != s_heavyHitCD.end()) return;
+
     auto p3 = playerObj->GetPos();
     auto e3 = enemyObj->GetPos();
 
     DirectX::SimpleMath::Vector2 p(p3.x, p3.y);
     DirectX::SimpleMath::Vector2 e(e3.x, e3.y);
 
-    // 衝突方向の法線（プレイヤー→敵）
+    // 衝突法線（プレイヤー → 敵）
     auto n = e - p;
-
-    // 位置がほぼ同じで法線が作れない場合は、プレイヤーの突進速度方向を使う
     if (n.LengthSquared() < 0.0001f)
         n = playerLogic->GetHeavyDashVelocity();
-
-    // それでもゼロなら適当な方向（右）を使う
     if (n.LengthSquared() < 0.0001f) n = { 1.0f, 0.0f };
-
-    // 正規化（単位ベクトル化）
     n.Normalize();
 
-    // プレイヤーの強攻撃（突進）の速度
     auto vP = playerLogic->GetHeavyDashVelocity();
-
-    // 突進速度の「法線方向成分」（相手に向かってどれだけ速度が出ているか）
-    // ※ vP.Dot(n) の形にしておくと引数ミス等の C2660 を避けやすい
     float relN = vP.Dot(n);
-
-    // 一定以上の突進じゃないと弾かない（弱すぎる当たりを無視）
     if (relN < 50.0f) return;
 
-    // ===== 調整ポイント（ノックバックの強さ）=====
-    const float baseKick = 100.0f;   // 基本の吹っ飛び速度
-    const float kickBySpeed = 0.7f;  // 突進が速いほど上乗せ
-    const float maxKick = 300.0f;    // 吹っ飛び速度の上限
+    // =========================
+    // ① ダメージ（power × 強攻撃倍率 + 速度ボーナス）
+    // =========================
+    int baseDmg = (int)(playerLogic->GetPower() * playerLogic->GetHeavyMul());
+    int bonus = (int)(relN / 120.0f);
+    int dmg = baseDmg + bonus;
+    if (dmg < 1) dmg = 1;
 
-    // 吹っ飛び量を計算して上限を適用
+    // =========================
+    // ② ノックバック
+    // =========================
+    const float baseKick = 100.0f;
+    const float kickBySpeed = 0.7f;
+    const float maxKick = 300.0f;
+
     float kick = baseKick + relN * kickBySpeed;
     if (kick > maxKick) kick = maxKick;
 
-    // 敵を法線方向へノックバックさせる
+    // ✅ ここ！強攻撃で当たった時だけ「止まった後に死ぬ」モードON
+    enemyLogic->EnableDeathAfterKnockback(true);
+
+    // ✅ 吹き飛んでいく敵が持ち運ぶ衝突ダメージを保存
+    enemyLogic->SetImpactDamage(dmg);
+
+    // ✅ ダメージは1回だけ
+    enemyLogic->TakeDamage(dmg);
+
+    // ✅ 吹き飛ばす
     enemyLogic->KnockBack(n * kick);
+
+    // クールタイム開始
+    s_heavyHitCD[enemyLogic] = hitCooldown;
 }
+
+
 
 
 static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
@@ -665,11 +688,11 @@ static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
     n.Normalize();
 
     // ==== チューニングポイント（体感が変わる）====
-    const float transferRate = 0.95f; // ぶつかった相手に速度を渡す比率（0～1）
-    const float bounceRate = 0.85f; // 反射時の減衰（0～1）
-    const float minKick = 700.0f; // 相手に与える最小速度
-    const float maxKick = 1100.0f; // 相手に与える最大速度
-    const float stopSpeed = 10.0f;  // これ未満なら停止扱い（任意）
+    const float transferRate = 0.9f; // ぶつかった相手に速度を渡す比率（0～1）
+    const float bounceRate = 0.8f; // 反射時の減衰（0～1）
+    const float minKick = 600.0f; // 相手に与える最小速度
+    const float maxKick = 1400.0f; // 相手に与える最大速度
+    const float stopSpeed = 15.0f;   // これ未満なら停止扱い（任意）
 
     // 重なり解消（連続衝突で暴れないように分離する）
     auto ResolveOverlap = [&](Object* o1, Object* o2, const DirectX::SimpleMath::Vector2& normal)

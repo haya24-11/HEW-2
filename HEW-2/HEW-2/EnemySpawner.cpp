@@ -3,6 +3,8 @@
 #include "Scene.h"
 #include "Object.h"
 #include "Enemy.h"
+#include <algorithm> // std::erase_if
+#include <unordered_map>
 
 EnemySpawner::EnemySpawner()
 {
@@ -38,6 +40,8 @@ void EnemySpawner::Update(float deltaTime)
     {
         if (e) e->Update(deltaTime);
     }
+
+    CleanupDeadEnemies();
 
     // =========================
     // (1.5) 敵同士の当たり判定（押し出し）
@@ -88,7 +92,8 @@ void EnemySpawner::Update(float deltaTime)
         // 生成する Object の見た目/サイズ/当たり判定
         obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
 
-        // (보험) 혹시 Init에서 SetSpriteSheet를 안 해주는 프로젝트면 아래 한 줄도 같이 켜두면 확실함
+        // （保険）もし Init 内で SetSpriteSheet を呼ばない構成なら、
+        // 下の1行も有効にしておくと確実
         if (cfg.useSheet)
         {
             obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
@@ -96,6 +101,7 @@ void EnemySpawner::Update(float deltaTime)
 
         obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
         obj->SetCollisionRadius(cfg.collisionRadius);
+
         // =========================
         // スポーン位置：プレイヤー中心の「円環(minDist～maxDist)」でランダム
         // =========================
@@ -166,15 +172,10 @@ int EnemySpawner::RandIndexByWeight()
 
 // ※ここで <cmath> を二重 include しているなら片方は消してOK
 // #include <cmath> // sqrtf
-
 void EnemySpawner::ResolveEnemyCollisions()
 {
-    // 敵が 2 体未満なら判定不要
     if (m_enemies.size() < 2) return;
 
-    // =========================
-    // 全ペア(i<j)で衝突判定
-    // =========================
     for (size_t i = 0; i < m_enemies.size(); ++i)
     {
         Enemy* a = m_enemies[i].get();
@@ -191,14 +192,15 @@ void EnemySpawner::ResolveEnemyCollisions()
             Object* ob = b->GetObject();
             if (!ob) continue;
 
-            // -------------------------
-            // 円形当たり判定（Object::CheckCollision が半径ベース想定）
-            // -------------------------
             if (!oa->CheckCollision(*ob)) continue;
 
-            // -------------------------
-            // 重なり解消：お互いを半分ずつ押し出す
-            // -------------------------
+            // =====================================================
+            // ✅ （追加）強攻撃で飛んでいる敵が他の敵にぶつかったらダメージを与える
+            // =====================================================
+            const bool aFly = a->IsKnockBacking();
+            const bool bFly = b->IsKnockBacking();
+
+            // 法線（a -> b）を計算
             auto pa3 = oa->GetPos();
             auto pb3 = ob->GetPos();
 
@@ -208,23 +210,66 @@ void EnemySpawner::ResolveEnemyCollisions()
             float distSq = dx * dx + dy * dy;
             float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
-            // ※本来は Object の collisionRadius を取得して使うのが正しい
-            // getter が無いので、とりあえず 50 固定（必要なら改修）
-            float ra = 50.0f;
-            float rb = 50.0f;
+            float nx = dx / dist;
+            float ny = dy / dist;
+
+            // a が飛んでいて b が歩行中なら：a のインパクトダメージを b に与える
+            if (aFly && !bFly)
+            {
+                int impact = 0;
+                if (a->TryConsumeImpactDamage(impact))
+                {
+                    b->TakeDamage(impact);
+                }
+            }
+            // b が飛んでいて a が歩行中なら：b のインパクトダメージを a に与える
+            else if (!aFly && bFly)
+            {
+                int impact = 0;
+                if (b->TryConsumeImpactDamage(impact))
+                {
+                    a->TakeDamage(impact);
+                }
+            }
+            // （両方飛んでいる場合）必要なら相互にダメージを与える処理も可能
+            // else if (aFly && bFly) { ... }
+
+            // =====================================================
+            // 既存：重なり解消（押し出し）
+            // =====================================================
+            float ra = oa->GetCollisionRadius();
+            float rb = ob->GetCollisionRadius();
 
             float overlap = (ra + rb) - dist;
             if (overlap <= 0.0f) continue;
 
-            // 方向ベクトル（正規化）
-            float nx = dx / dist;
-            float ny = dy / dist;
-
-            // 押し出し量（半分ずつ）
             float push = overlap * 0.5f;
 
             oa->SetPos(pa3.x - nx * push, pa3.y - ny * push, pa3.z);
             ob->SetPos(pb3.x + nx * push, pb3.y + ny * push, pb3.z);
         }
     }
+}
+
+void EnemySpawner::CleanupDeadEnemies()
+{
+    std::erase_if(m_enemies, [&](const std::unique_ptr<Enemy>& e)
+        {
+            if (!e) return true;
+
+            // Enemy/Chara 側で hp<=0 になったら isAlive=false にしている前提
+            if (!e->IsAlive())
+            {
+                // Object を「完全削除」できない構造なら、最低限 無効化しておく
+                if (Object* o = e->GetObject())
+                {
+                    o->SetCollisionRadius(0.0f);
+                    o->SetColor(1, 1, 1, 0.0f);
+                    auto p = o->GetPos();
+                    o->SetPos(999999.0f, 999999.0f, p.z);
+                }
+                return true; // ✅ リストから除去（sizeが減るのでリスポーン可能になる）
+            }
+            return false;
+        });
 }
