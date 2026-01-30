@@ -10,8 +10,8 @@ typedef enum
 	SOUND_LABEL_BGM_GAME,			// ゲームプレイ BGM
 	SOUND_LABEL_BGM_RESULT,			// リザルトシーン BGM
 	SOUND_LABEL_BGM_GAMEOVER,	// ゲームオーバーシーン BGM
-	//SOUND_LABEL_SE000,		// サンプルSE
-	//SOUND_LABEL_SE001,		// サンプルSE
+	SOUND_LABEL_SE_ATTACK_LIGHT,		// サンプルSE
+	SOUND_LABEL_SE_ATTACK_HEAVY,		// サンプルSE
 
 	SOUND_LABEL_MAX,
 } SOUND_LABEL;
@@ -31,8 +31,8 @@ private:
 		{"asset/BGM/BGM_GamePlay.wav", true},	// ゲームプレイ BGM
 		{"asset/BGM/BGM_Result.wav", true},			// リザルトシーン BGM
 		{"asset/BGM/BGM_Result.wav", true},			// ゲームオーバーシーン BGM
-//		{"asset/SE/○○○.wav", false},  		// サンプルSE（ループしないのでfalse設定）
-//		{"asset/SE/○○○.wav", false},		// サンプルSE
+		{"asset/SE/se_attack_light.wav", false},  		// サンプルSE（ループしないのでfalse設定）
+		{"asset/SE/se_attack_light.wav", false},		// サンプルSE
 
 
 
@@ -53,6 +53,8 @@ private:
 	float m_volumeSE = 5.0f;
 
 public:
+	static Sound* GetInstance();
+
 	// ゲームループ開始前に呼び出すサウンドの初期化処理
 	HRESULT Init(void);
 
@@ -79,5 +81,7 @@ public:
 	// 音量調整を追加
 	void SetVolumeBGM(float volume);  // BGM専用
 	void SetVolumeSE(float volume);   // SE専用
+
+	
 
 };

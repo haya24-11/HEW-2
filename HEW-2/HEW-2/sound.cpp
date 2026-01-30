@@ -141,6 +141,13 @@ void Sound::Uninit(void)
 //=============================================================================
 void Sound::Play(SOUND_LABEL label)
 {
+	// ===== ガード（超重要）=====
+	if (!m_pXAudio2)
+	{
+		// Initされてない
+		return;
+	}
+
 	IXAudio2SourceVoice*& pSV = m_pSourceVoice[(int)label];
 
 	if (pSV != nullptr)
@@ -156,6 +163,12 @@ void Sound::Play(SOUND_LABEL label)
 	// 再生
 	pSV->Start(0);
 
+}
+
+Sound* Sound::GetInstance()
+{
+	static Sound instance;
+	return &instance;
 }
 
 //=============================================================================

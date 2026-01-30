@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <vector>
 #include <DirectXMath.h>
@@ -8,6 +8,8 @@
 #include "Chara.h"
 #include "Animator.h"
 #include "Input.h"
+#include "AttackSlashEffect.h"
+
 
 class Skill;
 
@@ -90,6 +92,10 @@ public:
 
     float GetHeavyDamageMul() const { return m_heavyDamageMul; }
     void SetHeavyDamageMul(float v) { m_heavyDamageMul = v; }
+    bool IsAttackInputTriggered() const;
+
+    bool IsFacingRight() const { return m_facingRight; }
+
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
@@ -174,5 +180,14 @@ private:
 
     //強攻撃調整
     float m_heavyDamageMul = 2.0f;
+    // 攻撃エフェクト用
+    std::vector<AttackSlashEffect*> m_attackEffects;
+
+    bool m_attackInputTriggered = false;
+
+    // ===== 攻撃SE制御 =====
+    bool m_attackSEPlayed = false;
+
+
     Object* m_map = nullptr;
 };

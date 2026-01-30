@@ -4,6 +4,9 @@
 #include "Player.h"
 #include "Camera2D.h"
 #include "EnemySpawner.h"
+#include <vector>
+
+class AttackSlashEffect; // 前方宣言
 
 class GamePlay : public Scene
 {
@@ -37,6 +40,8 @@ public:
 
     void UpdateUIFollowCamera();
 
+  
+
 private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
@@ -50,4 +55,5 @@ private:
     //ボスタイマー
     float m_bossTimer = 0.0f;
     bool  m_bossPhase = false;
+    std::vector<AttackSlashEffect*> m_attackEffects;
 };

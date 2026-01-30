@@ -7,8 +7,8 @@ public:
     SpawnConfig GetSpawnConfig() const override
     {
         SpawnConfig cfg;
-        cfg.interval = 0.10f;   // ✅ リスポーン（スポーン）間隔（秒）：0.7秒ごとに出現
-        cfg.maxAlive = 10;     // （任意）同時に存在できる最大数
+        cfg.interval = 2.0f;   // ✅ リスポーン（スポーン）間隔（秒）：0.7秒ごとに出現
+        cfg.maxAlive = 20;     // （任意）同時に存在できる最大数
         cfg.minDist = 300.0f; // （任意）プレイヤーからの最小スポーン距離
         cfg.maxDist = 800.0f; // （任意）プレイヤーからの最大スポーン距離
         cfg.sizeX = 100.0f;
