@@ -36,6 +36,11 @@ static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 
 static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj);
 
+
+// 強攻撃の同一敵ヒット連打防止用クールダウン
+static std::unordered_map<Enemy*, float> s_heavyHitCD;
+
+
 static float ClampFloat(float v, float lo, float hi)
 {
     if (v < lo) return lo;
@@ -50,8 +55,6 @@ static void ClampObjectToMap(Object* obj, Object* map)
     auto p = obj->GetPos();
     auto mp = map->GetPos();
     auto ms = map->GetSize();
-// 強攻撃のヒットクールタイム（同じ敵に毎フレーム当たらないようにする）
-//static std::unordered_map<Enemy*, float> s_heavyHitCD;
 
     float r = obj->GetCollisionRadius();
 
@@ -530,6 +533,8 @@ void GamePlay::UpdateUIFollowCamera()
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }
+
+
 static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
     Enemy* enemyLogic, Object* enemyObj)
 {
