@@ -41,7 +41,7 @@ public:
     }
 
 
-    // 노크백 유지한 채 속도만 교체 (타이머는 유지)
+    //  ノックバックは維持したまま、速度だけを差し替える（タイマーは維持）
     void SetKnockBackVelocity(const DirectX::SimpleMath::Vector2& v)
     {
         knockBackVelocity = v;

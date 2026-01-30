@@ -168,5 +168,8 @@ private:
     // ===== 強攻撃ヒット（前方判定） =====
     float m_heavyHitOffset = 80.0f;
     float m_heavyHitRadius = 55.0f;
-    float m_heavyKnockBackPower = 900.0f; // ← 여기 깨져있던 부분 복구
+    float m_heavyKnockBackPower = 900.0f; 
+
+
+    Object* m_map = nullptr;
 };

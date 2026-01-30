@@ -15,6 +15,7 @@ void Result::InitScene()
 		->SetAngle(0.0f);
 	ResultWindow->Init("asset/resultwindow.png");
 
+	ResultWindow->SetUI(true);
 	/*// プレイヤーキャラクター
 	PlayerCharacter = AddObject()
 		->SetPos(0.0f, 0.0f, 0.0f)
