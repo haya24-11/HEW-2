@@ -4,15 +4,15 @@
 class AMode : public Mode
 {
     // Mode‚²‚Æ‚Ì“Áêƒ‹[ƒ‹
-      //UŒ‚—Í‚ÆUŒ‚”ÍˆÍ
-    int weakPower = 10;
-    int strongPower = 50;
+private:
+   int weakAtk = 2;
+   int strongAtkMin = 3;
+   int skillIdmin = 0;
+   int skillIdMax = 10;
 
-    DirectX::SimpleMath::Vector2 weakAttckArea{ 10.0f, 10.0f };
-    DirectX::SimpleMath::Vector2 strongAttckArea{ 80.0f, 80.0f };
-
-
-    void WeakAttck();
-    void StrongAttkc();
-
+public:
+    bool CanLearnSkill(int skillId) const;
+    int WeakAttack(int BaseAtk);
+    int StrongAttakc(int BaseAtk,float pushTime);
+    float CalculateComboMultiplier(int comboCount) const override;
 };

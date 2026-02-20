@@ -10,7 +10,7 @@
 class Exp
 {
 public:
-    int CalculateGain(int baseExp);
+    int CalculateGain(int mutiplier);
 
 protected:
     int expBase = 1;

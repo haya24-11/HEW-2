@@ -85,6 +85,11 @@ public:
 
     // スキル取得時の共通処理
     void ApplyAbility(Skill* skill);
+   
+    //取得したスキル一覧
+    const std::vector<Skill*>& GetLearnedSkills() const;
+
+
 
     int GetPower() const;
 
@@ -138,6 +143,7 @@ private:
     int exp = 0;
     int level = 1;
 
+    // 所持スキル 所有権を持つ
     std::vector<Skill*> skills;
 
     // 基本サイズ

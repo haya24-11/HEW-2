@@ -1,12 +1,22 @@
 #include "AMode.h"
 
-void AMode::WeakAttck()
+bool AMode::CanLearnSkill(int skillId) const
 {
-	int damage = weakPower;
-
-	/*weakAttckArea;*/
+	return (skillId >= 0 && skillId < 10);
 }
 
-void AMode::StrongAttkc()
+int AMode::WeakAttack(int BaseAtk)
 {
+	return BaseAtk* weakAtk;
+}
+
+int AMode::StrongAttakc(int BaseAtk,float pushTime)
+{
+	return BaseAtk * strongAtkMin * pushTime;
+}
+
+float AMode::CalculateComboMultiplier(int comboCount) const
+{
+	return 1.0f + comboCount * 0.3f;
+
 }
