@@ -9,7 +9,7 @@
 #include "Animator.h"
 #include "Input.h"
 #include "AttackSlashEffect.h"
-
+#include "AttackDir.h"
 
 class Skill;
 
@@ -96,6 +96,12 @@ public:
 
     bool IsFacingRight() const { return m_facingRight; }
 
+    bool ConsumeAttackEffectRequest();
+
+    AttackDir GetAttackDir() const { return m_attackDir; }
+
+    AttackDir GetHeavyDir() const { return m_attackDir; }
+
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
@@ -128,8 +134,12 @@ private:
         AttackLight,
         AttackHeavyCharge,
         AttackHeavy,
+        AttackHeavyDash      // 突進
     };
     State m_state = State::Idle;
+
+   
+    AttackDir m_attackDir = AttackDir::Right;
 
     // 向き
     bool m_facingRight = true;
@@ -188,6 +198,31 @@ private:
     // ===== 攻撃SE制御 =====
     bool m_attackSEPlayed = false;
 
+    // 弱攻撃ヒット遅延管理
+    float m_attackLightTimer = 0.0f;
+    bool  m_attackLightEffectFired = false;
+
+    int m_prevAnimFrame = -1;   // 前フレーム記録用
+
+    // 攻撃クールタイム
+    float m_attackCooldown = 0.0f;
+    const float m_attackCooldownTime = 0.35f; // 調整値
+
+    bool m_attackEffectRequest = false;
+
+
+    // 強攻撃制御
+    bool  m_heavyHolding = false;
+    bool  m_heavyReleased = false;
+
+    float m_dashSpeed = 900.0f;
+    float m_dashTime = 0.18f;
+    float m_dashTimer = 0.0f;
+
+    AttackDir m_heavyDir;
+
+    // 強攻撃エフェクト1回制御 
+    bool m_heavyEffectFired = false;
 
     Object* m_map = nullptr;
 };

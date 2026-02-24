@@ -239,14 +239,18 @@ void GamePlay::UpdateScene(float deltaTime)
 
     m_player->Update(deltaTime);
 
-    if (m_player->IsAttackInputTriggered())
+
+    // 弱攻撃エフェクト
+    if (m_player->ConsumeAttackEffectRequest())
     {
         m_attackEffects.push_back(
-            new AttackSlashEffect(this,
+            new AttackSlashEffect(
+                this,
                 m_player->GetObject(),
-                m_player->IsFacingRight())
-        );
+                m_player->GetAttackDir()
+            ));
     }
+
 
     /* ================================
    ★ 攻撃エフェクトの更新＆破棄

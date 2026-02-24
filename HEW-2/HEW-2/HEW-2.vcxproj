@@ -189,6 +189,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="AttackDir.h" />
     <ClInclude Include="AttackSlashEffect.h" />
     <ClInclude Include="Boss.h" />
     <ClInclude Include="Camera2D.h" />
