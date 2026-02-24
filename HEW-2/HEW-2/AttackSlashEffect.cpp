@@ -110,7 +110,7 @@ void AttackSlashEffect::Update(float dt)
     }
 
     float scale = 0.6f + t * 0.6f;
-    m_object->SetSize(120.0f * scale, 120.0f * scale, 0.0f);
+    m_object->SetSize(250.0f * scale, 90.0f * scale, 0.0f);
 
     float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
     m_object->SetColor(1, 1, 1, alpha);
