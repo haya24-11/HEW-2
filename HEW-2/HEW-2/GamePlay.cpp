@@ -219,7 +219,7 @@ void GamePlay::InitScene()
     ExpBarFrame->Init("asset/UI/expbar_frame.png"); // ここは実際のパスに合わせて
     ExpBarFrame->SetUI(true);
 
-
+   
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -467,7 +467,7 @@ void GamePlay::UpdateScene(float deltaTime)
 
 void GamePlay::DrawScene()
 {
-    for (auto& obj : objects)
+    /*for (auto& obj : objects)
     {
         int frame = -1;
 
@@ -490,7 +490,55 @@ void GamePlay::DrawScene()
 
         if (frame >= 0) obj->Draw(frame);
         else            obj->Draw();
-    }
+    }*/
+
+
+
+    
+        // =============================
+        // ① ワールド描画（UI以外）
+        // =============================
+        for (auto& obj : objects)
+        {
+            if (obj->IsUI()) continue;
+
+            int frame = -1;
+
+            if (obj.get() == m_player->GetObject())
+            {
+                frame = m_player->GetAnimFrame();
+            }
+            else
+            {
+                for (const auto& e : m_spawner.GetEnemies())
+                {
+                    if (!e) continue;
+                    if (e->GetObject() == obj.get())
+                    {
+                        frame = e->GetAnimFrame();
+                        break;
+                    }
+                }
+            }
+
+            if (frame >= 0) obj->Draw(frame);
+            else            obj->Draw();
+        }
+
+        // =============================
+        // ② UI描画（常に最前面）
+        // =============================
+        for (auto& obj : objects)
+        {
+            if (!obj->IsUI()) continue;
+
+            obj->Draw();
+        }
+    
+
+
+
+
 
 }
 
