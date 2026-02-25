@@ -84,8 +84,8 @@ void Player::Update(float deltaTime)
     if (m_state == State::AttackHeavyCharge)
     {
         // ======================
-// ★チャージ中方向入力取得
-// ======================
+        // ★チャージ中方向入力取得
+        // ======================
         SM::Vector2 inputDir = GetMoveInput();
 
         const float dead = 0.3f;
@@ -404,10 +404,11 @@ void Player::AddExp(int value)
     m_currentExp += value;
 
     // レベルアップ可能な限りループ
-    while (m_currentExp >= m_nextLevelExp)
+    while (m_currentExp >= GetNextLevelExp())
     {
-        m_currentExp -= m_nextLevelExp;
+        m_currentExp -= GetNextLevelExp();
         LevelUp();
+
         OutputDebugStringA("Level Up!\n");
     }
 }
@@ -418,9 +419,7 @@ void Player::AddExp(int value)
 void Player::LevelUp()
 {
     m_level++;
-
     // 次レベル必要EXP増加（基本式）
-    m_nextLevelExp = static_cast<int>(m_nextLevelExp * 1.5f);
 
     // ===== 今は確認用 =====
     printf("LEVEL UP! -> Lv %d\n", m_level);
@@ -559,3 +558,10 @@ bool Player::ConsumeAttackEffectRequest()
     return true;
 }
 
+int Player::GetNextLevelExp() const
+{
+    const float baseExp = 100.0f;
+    const float growth = 1.35f; // ★調整ポイント
+
+    return (int)(baseExp * powf((float)m_level, growth));
+}

@@ -107,7 +107,7 @@ public:
 
     int GetLevel() const { return m_level; }
     int GetCurrentExp() const { return m_currentExp; }
-    int GetNextLevelExp() const { return m_nextLevelExp; }
+    int GetNextLevelExp() const;
 
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
@@ -235,5 +235,4 @@ private:
     // レベルシステム
     int m_level = 1;
     int m_currentExp = 0;
-    int m_nextLevelExp = 10; // Lv2必要EXP（仮）
 };

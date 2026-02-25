@@ -210,7 +210,7 @@ void GamePlay::InitScene()
     // 経験値バー ゲージ ※todo
     ExpBarGauge = AddObject()
         ->SetPos(0.0f, 1000.0f, 0.0f)
-        ->SetSize(20.0f, 30.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
+        ->SetSize(0.0f, 40.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
         ->SetAngle(0.0f);
     ExpBarGauge->Init("asset/UI/expbar_gauge.png"); // ここは実際のパスに合わせて
     ExpBarGauge->SetUI(true);
@@ -627,6 +627,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
+   
     const float halfW = SCREEN_WIDTH * 0.5f;
     const float halfH = SCREEN_HEIGHT * 0.5f;
     const float pad = 30.0f;
@@ -681,13 +682,25 @@ void GamePlay::UpdateUIFollowCamera()
     {
         const float gapY = -855.0f;
         ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
-        // 経験値バー ゲージ 
+        // ==========================
+        // EXPバー左端固定
+        // ==========================
+        /*
+        hpBarX            // カメラ基準位置
+        + 665.0f          // ← UI横オフセット（これが位置調整）
+        - (1600 * 0.5f)   // 画面中央補正
+        */
+        const float expBarLeft =
+            hpBarX + 610.0f - (1600.0f * 0.5f);
+
         float gaugeWidth = ExpBarGauge->GetSize().x;
+
+        // 中心座標 = 左端 + 半分
         ExpBarGauge->SetPos(
-            hpBarX - 180.0f - (1600.0f * 0.5f) + (gaugeWidth * 0.5f),
+            expBarLeft + gaugeWidth * 0.5f,
             hpBarY + gapY,
             0.0f
-        ); 
+        );
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }
