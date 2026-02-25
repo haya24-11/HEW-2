@@ -129,7 +129,11 @@ void GamePlay::InitScene()
     }
 
     // ===== Enemy Spawner =====
-    m_spawner.Init(this, m_player->GetObject());
+    m_spawner.Init(
+        this,
+        m_player->GetObject(),
+        m_player.get()      // Player本体を渡す
+    );
     m_spawner.RegisterType<NormalEnemy>(1.0f);
 
     std::cout << "(Debug) GamePlayScene!" << std::endl;
@@ -459,7 +463,30 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    // =======================================
+    // EXPバー更新
+    // =======================================
+    if (m_player && ExpBarGauge)
+    {
+        float current = (float)m_player->GetCurrentExp();
+        float next = (float)m_player->GetNextLevelExp();
 
+        float rate = 0.0f;
+        if (next > 0.0f)
+            rate = current / next;
+
+        rate = std::clamp(rate, 0.0f, 1.0f);
+
+        // -----------------------------
+        // 最大幅（UI画像に合わせる）
+        // -----------------------------
+        const float maxWidth = 1600.0f;
+
+        float width = maxWidth * rate;
+
+        // 横だけ変える
+        ExpBarGauge->SetSize(width, 40.0f, 0.0f);
+    }
 
     prevButtons = buttons;
     UpdateUIFollowCamera();
@@ -654,7 +681,13 @@ void GamePlay::UpdateUIFollowCamera()
     {
         const float gapY = -855.0f;
         ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
-        ExpBarGauge->SetPos(hpBarX + -180.0f, hpBarY + gapY, 0.0f); // 経験値バー ゲージ ※todo
+        // 経験値バー ゲージ 
+        float gaugeWidth = ExpBarGauge->GetSize().x;
+        ExpBarGauge->SetPos(
+            hpBarX - 180.0f - (1600.0f * 0.5f) + (gaugeWidth * 0.5f),
+            hpBarY + gapY,
+            0.0f
+        ); 
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }

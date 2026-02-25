@@ -396,6 +396,36 @@ int Player::GetAnimFrame() const
     return m_animator.GetCurrentFrame();
 }
 
+// =====================================================
+// 経験値加算
+// =====================================================
+void Player::AddExp(int value)
+{
+    m_currentExp += value;
+
+    // レベルアップ可能な限りループ
+    while (m_currentExp >= m_nextLevelExp)
+    {
+        m_currentExp -= m_nextLevelExp;
+        LevelUp();
+        OutputDebugStringA("Level Up!\n");
+    }
+}
+
+// =====================================================
+// レベルアップ
+// =====================================================
+void Player::LevelUp()
+{
+    m_level++;
+
+    // 次レベル必要EXP増加（基本式）
+    m_nextLevelExp = static_cast<int>(m_nextLevelExp * 1.5f);
+
+    // ===== 今は確認用 =====
+    printf("LEVEL UP! -> Lv %d\n", m_level);
+}
+
 SM::Vector2 Player::GetMoveInput() const
 {
     SM::Vector2 dir(0.0f, 0.0f);

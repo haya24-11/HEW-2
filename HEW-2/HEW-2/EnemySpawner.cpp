@@ -6,6 +6,7 @@
 #include <algorithm> // std::erase_if
 #include <unordered_map>
 #include "Boss.h" 
+#include "Player.h" 
 
 EnemySpawner::EnemySpawner()
 {
@@ -13,11 +14,12 @@ EnemySpawner::EnemySpawner()
     m_rng = std::mt19937(rd());
 }
 
-void EnemySpawner::Init(Scene* ownerScene, Object* playerObj)
+void EnemySpawner::Init(Scene* ownerScene, Object* playerObj, Player* player)
 {
     // シーン（AddObject を使うため）とプレイヤーObjectを保持
     m_scene = ownerScene;
     m_player = playerObj;
+    m_playerLogic = player;
 
     // 管理している敵ロジック/登録タイプ/タイマーを初期化
     m_enemies.clear();
@@ -26,6 +28,7 @@ void EnemySpawner::Init(Scene* ownerScene, Object* playerObj)
 
     m_killCount = 0;        // ✅ 初期化：キル数
     m_bossSpawned = false;  // ✅ 初期化：ボス出現フラグ
+
 }
 
 
@@ -277,6 +280,15 @@ void EnemySpawner::CleanupDeadEnemies()
 
         if (!e->IsAlive())
         {
+            if (!e->IsRewardGiven())
+            {
+                if (m_playerLogic)
+                {
+                    m_playerLogic->AddExp(e->GetExpValue());
+                }
+
+                e->MarkRewardGiven();
+            }
             // ✅ 雑魚だけ討伐数を加算（ボスはカウントしない）
             if (!e->IsBoss())
             {

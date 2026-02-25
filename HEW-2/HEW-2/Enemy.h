@@ -133,6 +133,12 @@ public:
 
     bool IsBoss() const { return isBoss; }
 
+    // EXP用
+    int GetExpValue() const { return m_expValue; }
+
+    bool IsRewardGiven() const { return m_rewardGiven; }
+    void MarkRewardGiven() { m_rewardGiven = true; }
+
 protected:
     bool isBoss = false;
 
@@ -186,6 +192,8 @@ protected:
     void BeginDeath();
     void DieNow();
 
+    int m_expValue = 10; // デフォルト経験値
+
 private:
     // ヒットフラッシュ
     float m_hitFlashTimer = 0.0f;
@@ -206,4 +214,6 @@ private:
 
     int   m_impactDamage = 0;      // 飛んでいる敵が衝突で与えるダメージ
     float m_impactCooldown = 0.0f; // 連続ヒット防止用のクールタイム
+
+    bool m_rewardGiven = false;
 };

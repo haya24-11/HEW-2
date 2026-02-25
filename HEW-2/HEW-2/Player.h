@@ -102,6 +102,13 @@ public:
 
     AttackDir GetHeavyDir() const { return m_attackDir; }
 
+    void AddExp(int value);
+    void LevelUp();
+
+    int GetLevel() const { return m_level; }
+    int GetCurrentExp() const { return m_currentExp; }
+    int GetNextLevelExp() const { return m_nextLevelExp; }
+
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
@@ -138,7 +145,6 @@ private:
     };
     State m_state = State::Idle;
 
-   
     AttackDir m_attackDir = AttackDir::Right;
 
     // 向き
@@ -210,7 +216,6 @@ private:
 
     bool m_attackEffectRequest = false;
 
-
     // 強攻撃制御
     bool  m_heavyHolding = false;
     bool  m_heavyReleased = false;
@@ -225,4 +230,10 @@ private:
     bool m_heavyEffectFired = false;
 
     Object* m_map = nullptr;
+
+
+    // レベルシステム
+    int m_level = 1;
+    int m_currentExp = 0;
+    int m_nextLevelExp = 10; // Lv2必要EXP（仮）
 };
