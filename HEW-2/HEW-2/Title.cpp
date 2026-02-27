@@ -20,7 +20,7 @@ void Title::InitScene()
 		->SetPos(0.0f, 0.0f, 0.0f)
 		->SetSize(1670.0f, 940.0f, 0.0f)
 		->SetAngle(0.0f);
-	TitleBackground->Init("asset/titlebackground .png");
+	TitleBackground->Init("asset/titlebackground.png");
 	TitleBackground->SetUI(true);
 	// =========================
 	// タイトルロゴ
