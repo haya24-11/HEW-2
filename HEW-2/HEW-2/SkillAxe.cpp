@@ -1,5 +1,6 @@
 #include "SkillAxe.h"
-
+#include "AMode.h"
+#include "Player.h"
 SkillAxe::SkillAxe():WeaponSkills("Aex", 2)
 {
 	basePower = 1.5f;

@@ -1,8 +1,6 @@
 #pragma once
 #include <string>
 #include <SimpleMath.h>
-#include "AMode.h"
-#include "Player.h"
 
 class Player;
 

@@ -23,6 +23,12 @@ Player::Player()
     m_heavyStartAnim = { 8, 19, 0.20f, false };
 }
 
+Player::~Player()
+{
+    for (auto* s : skills)
+        delete s;
+}
+
 void Player::Update(float deltaTime)
 {
     // ===== XInput：ボタン取得（トリガー判定用） =====
@@ -329,6 +335,7 @@ void Player::ApplyAbility(Skill* skill)
     // スキルを保持（適用）
     if (!skill) return;
     skills.push_back(skill);
+    skill->Apply(this);
 }
 
 const std::vector<Skill*>& Player::GetLearnedSkills() const
