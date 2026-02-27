@@ -6,6 +6,7 @@
 #define SCREEN_WIDTH  (1670)	// ウインドウの幅
 #define SCREEN_HEIGHT (940)	// ウインドウの高さ
 
+
 // 関数のプロトタイプ宣言
 HRESULT RendererInit(HWND hwnd);
 void    RendererDrawStart();

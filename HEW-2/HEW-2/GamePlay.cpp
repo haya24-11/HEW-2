@@ -143,7 +143,7 @@ void GamePlay::InitScene()
     /////////////////////////////////////////////////////////////////////////////
 
     // ===== 弱攻撃ボタンUI =====
-    LightAttackButton = AddObject()
+    /*LightAttackButton = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)     // ★初期値は適当でOK（後でUpdateUIFollowCameraが上書き）
         ->SetSize(45.0f, 35.0f, 0.0f)
         ->SetAngle(0.0f);
@@ -157,7 +157,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     HeavyAttackButton->Init("asset/UI/heavyattackbutton.png");
     HeavyAttackButton->SetUI(true);
-
+    */
     // ===== プレイヤーHPバー UI =====
     PlayerHeartPointBar = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
@@ -173,6 +173,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerIcon->Init("asset/UI/playericon.png");
     PlayerIcon->SetUI(true);
+    
 
     // ===== バフアイコン =====
     BuffIcons.clear(); // ★2回目開始時に前回のポインタが残らないように一応クリア
