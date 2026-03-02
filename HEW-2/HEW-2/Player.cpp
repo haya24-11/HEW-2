@@ -1,22 +1,21 @@
 ﻿#include "Player.h"
 #include "Skill.h"
 
-#include <Windows.h>   // GetAsyncKeyState（キーボード入力取得）
-#include <Xinput.h>    // XInput（ゲームパッド入力）
+#include <Windows.h>   // GetAsyncKeyState
+#include <Xinput.h>    // XInput
 #include <cmath>       // fabsf
 #include "sound.h"
+#include<iostream>
 #pragma comment(lib, "Xinput.lib")
 
 namespace SM = DirectX::SimpleMath;
 
 Player::Player()
 {
-    hp = 100;
+    hp = 10;
     power = 10;
-    //powerの2倍のダメージ   
 
     moveSpeed = 30.0f;
-
 
     // アニメーション（開始フレーム / フレーム数 / 1フレーム時間 / ループ）
     m_idleAnim = { 0, 30, 0.15f, true };
@@ -24,10 +23,25 @@ Player::Player()
     m_attackLightAnim = { 0, 15, 0.17f, false };
     m_heavyChargeAnim = { 0,  8, 0.20f, false };
     m_heavyStartAnim = { 8, 19, 0.20f, false };
+
+    // 被ダメは m_damagedAnim(横5枚) を使用
 }
 
 void Player::Update(float deltaTime)
 {
+    // 強攻撃後の「被弾アニメ禁止」タイマー更新（GamePlay から参照）
+    if (m_noHitAnimTimer > 0.0f)
+    {
+        m_noHitAnimTimer -= deltaTime;
+        if (m_noHitAnimTimer < 0.0f) m_noHitAnimTimer = 0.0f;
+    }
+
+    if (m_hitInvTimer > 0.0f)
+    {
+        m_hitInvTimer -= deltaTime;
+        if (m_hitInvTimer < 0.0f) m_hitInvTimer = 0.0f;
+    }
+
     m_attackInputTriggered = false;
 
     if (Input::GetKeyTrigger(VK_RETURN))
@@ -47,18 +61,90 @@ void Player::Update(float deltaTime)
             return (buttons & mask) && !(m_prevPadButtons & mask);
         };
 
-    //  強攻撃：A
+    // 強攻撃：A / 弱攻撃：B
     const bool attackHeavyPad = PadTrigger(XINPUT_GAMEPAD_A);
-    //  弱攻撃：B
     const bool attackLightPad = PadTrigger(XINPUT_GAMEPAD_B);
 
     // ===== キーボード攻撃 =====
     const bool attackLightKey = Input::GetKeyTrigger(VK_RETURN);
-    const bool attackHeavyKey = (GetAsyncKeyState(VK_SHIFT) & 0x8000) &&Input::GetKeyTrigger(VK_RETURN);
+    const bool attackHeavyKey = (GetAsyncKeyState(VK_SHIFT) & 0x8000) && Input::GetKeyTrigger(VK_RETURN);
 
     // 攻撃入力（キーボード or パッド）
     const bool attackLightInput = attackLightKey || attackLightPad;
     const bool attackHeavyInput = attackHeavyKey || attackHeavyPad;
+
+    // 早期returnが多いので、return直前に必ず前フレームボタンを更新する
+    auto CommitPad = [&]()
+        {
+            m_prevPadButtons = buttons;
+        };
+
+    // =========================
+    // ✅ 無敵タイマー更新（連続ヒット防止）
+    // =========================
+    // =========================
+// ✅ 無敵タイマー更新（連続ヒット防止）
+// ※ どの return よりも前に必ず置く
+// =========================
+    if (m_invincibleTimer > 0.0f)
+    {
+        m_invincibleTimer -= deltaTime;
+        if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
+
+        std::cout << "[INV] " << m_invincibleTimer << "\n";
+    }
+    /* if (m_hitReactCD > 0.0f)
+     {
+         m_hitReactCD -= deltaTime;
+         if (m_hitReactCD < 0.0f) m_hitReactCD = 0.0f;
+     }*/
+     // =========================
+     // ✅ 被ダメージ中：入力無視、アニメ終了でIdleへ戻す
+     // =========================
+    if (m_state == State::Damaged)
+    {
+        // エフェクト更新（残っていたら掃除）
+        for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
+        {
+            (*it)->Update(deltaTime);
+            if ((*it)->IsDead())
+            {
+                delete* it;
+                it = m_attackEffects.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // 反転（dmg原画は右向き想定）
+        if (m_object)
+        {
+            const bool textureIsRightFacing = true;
+            m_object->SetFlipX(textureIsRightFacing != m_facingRight);
+        }
+
+        m_animator.Update(deltaTime);
+        Chara::Update(deltaTime);
+
+        // アニメ終了で待機へ
+        if (m_animator.IsFinished())
+        {
+            m_state = State::Idle;
+            m_heavyDashTimer = 0.0f;
+
+            m_lockFacing = false;
+
+            m_object->SetTexture("asset/Texture/player_idle.png");
+            m_object->SetSpriteSheet(6, 6);
+            ApplyVisualSize(m_scaleIdle);
+            m_animator.Play(m_idleAnim);
+        }
+
+        CommitPad();
+        return;
+    }
 
     // ===== 移動入力 =====
     SM::Vector2 moveDir = GetMoveInput();
@@ -71,37 +157,26 @@ void Player::Update(float deltaTime)
     if (!isAttacking && isMoving)
         UpdateFacingFromMove(moveDir);
 
-    // 早期 return が多いので、return直前に必ず前フレームボタンを更新する
-    auto CommitPad = [&]()
-        {
-            m_prevPadButtons = buttons;
-        };
-
     // =========================
     // 強攻撃：チャージ中
     // =========================
     if (m_state == State::AttackHeavyCharge)
     {
-        // チャージ中は移動入力で向きを変えない（ロックした向きを維持）
+        // チャージ中はロックした向きを維持
         const bool textureIsRightFacing = true;
         m_object->SetFlipX(textureIsRightFacing != m_lockedFacingRight);
 
-        // ボタンを離したら（Release）攻撃開始
-        // ※ attackHeavyPad は「押した瞬間」判定なので、ホールド/リリース判定は別途行う
+        // ボタンを離したら攻撃開始
         const bool aHeld = (buttons & XINPUT_GAMEPAD_A) != 0;
         const bool aUp = (!aHeld) && ((m_prevPadButtons & XINPUT_GAMEPAD_A) != 0);
 
         if (aUp || Input::GetKeyRelease(VK_RETURN))
         {
-            // 実際の攻撃モーションへ遷移
             m_state = State::AttackHeavy;
-
             m_attackSEPlayed = false;
 
-            // 攻撃アニメ（ループなし）
             m_animator.Play(m_heavyStartAnim);
 
-            // 攻撃開始と同時にダッシュ開始
             StartHeavyDash(moveDir);
 
             CommitPad();
@@ -123,9 +198,6 @@ void Player::Update(float deltaTime)
             }
         }
 
-       
-
-        // チャージアニメを継続更新
         m_animator.Update(deltaTime);
         Chara::Update(deltaTime);
 
@@ -138,23 +210,16 @@ void Player::Update(float deltaTime)
     // =========================
     if (m_state == State::AttackLight || m_state == State::AttackHeavy)
     {
-        // 強攻撃中はダッシュ移動
         if (m_state == State::AttackHeavy)
             UpdateHeavyDash(deltaTime);
 
-        // ===== ★ 攻撃SE再生ここ ★ =====
+        // 攻撃SE
         if (!m_attackSEPlayed)
         {
             int hitFrame = 0;
 
-            if (m_state == State::AttackLight)
-            {
-                hitFrame = 6;   // 弱攻撃の当たりフレーム
-            }
-            else if (m_state == State::AttackHeavy)
-            {
-                hitFrame = 10;  // 強攻撃の当たりフレーム
-            }
+            if (m_state == State::AttackLight) hitFrame = 6;
+            else if (m_state == State::AttackHeavy) hitFrame = 10;
 
             if (m_animator.GetCurrentFrame() >= hitFrame)
             {
@@ -167,9 +232,11 @@ void Player::Update(float deltaTime)
             }
         }
 
-        // アニメ終了で待機に戻す
+        // アニメ終了で待機へ
         if (m_animator.IsFinished())
         {
+            const bool wasHeavy = (m_state == State::AttackHeavy);
+
             m_state = State::Idle;
             m_heavyDashTimer = 0.0f;
 
@@ -179,9 +246,15 @@ void Player::Update(float deltaTime)
             m_object->SetSpriteSheet(6, 6);
             ApplyVisualSize(m_scaleIdle);
             m_animator.Play(m_idleAnim);
+
+            // ✅ 強攻撃終了後：1秒間は接触で被弾アニメを出さない
+            if (wasHeavy)
+            {
+                StartNoHitAnim(1.0f);
+                if (m_hitInvTimer < 1.0f) m_hitInvTimer = 1.0f;
+            }
         }
 
-        // 攻撃/idle の原画は右向き想定 → 現在の向きと比較して反転
         const bool textureIsRightFacing = true;
         const bool flipX = (textureIsRightFacing != (m_lockFacing ? m_lockedFacingRight : m_facingRight));
         m_object->SetFlipX(flipX);
@@ -198,24 +271,19 @@ void Player::Update(float deltaTime)
     // =========================
     if (attackHeavyInput)
     {
-        // 攻撃開始瞬間の向きを決める（入力があればそちら、なければ現在の向き）
         if (isMoving) UpdateFacingFromMove(moveDir);
 
-        // 攻撃中は向きを固定するためのロック
         m_lockFacing = true;
         m_lockedFacingRight = m_facingRight;
 
-        // 強攻撃はまず「チャージ状態」に入る
         m_state = State::AttackHeavyCharge;
 
         m_object->SetTexture("asset/Texture/player_attack_heavy.png");
         m_object->SetSpriteSheet(6, 5);
         ApplyVisualSize(m_scaleHeavy);
 
-        // チャージアニメ（ループ）
         m_animator.Play(m_heavyChargeAnim);
 
-        // チャージ中も向き固定で反転
         const bool textureIsRightFacing = true;
         m_object->SetFlipX(textureIsRightFacing != m_lockedFacingRight);
 
@@ -225,10 +293,8 @@ void Player::Update(float deltaTime)
 
     if (attackLightInput)
     {
-        // 攻撃開始瞬間の向きを決める
         if (isMoving) UpdateFacingFromMove(moveDir);
 
-        // 攻撃中は向きを固定
         m_lockFacing = true;
         m_lockedFacingRight = m_facingRight;
 
@@ -241,7 +307,6 @@ void Player::Update(float deltaTime)
         ApplyVisualSize(m_scaleLight);
         m_animator.Play(m_attackLightAnim);
 
-        // 攻撃開始フレームでも反転を適用
         const bool textureIsRightFacing = true;
         m_object->SetFlipX(textureIsRightFacing != m_facingRight);
 
@@ -254,7 +319,6 @@ void Player::Update(float deltaTime)
     // =========================
     Move(moveDir, deltaTime);
 
-    // 移動/待機でテクスチャ＆シートを切り替え
     if (isMoving && m_state != State::Walk)
     {
         m_state = State::Walk;
@@ -272,9 +336,7 @@ void Player::Update(float deltaTime)
         m_animator.Play(m_idleAnim);
     }
 
-    // 毎フレーム反転を適用（向きが変わると見た目も反転）
-    // ※ walk シートの原画向きが idle と違う場合は、この判定を調整する
-    const bool textureIsRightFacing = (m_state == State::Idle); // 必要に応じて変更
+    const bool textureIsRightFacing = (m_state == State::Idle);
     m_object->SetFlipX(textureIsRightFacing != m_facingRight);
 
     m_animator.Update(deltaTime);
@@ -285,7 +347,6 @@ void Player::Update(float deltaTime)
 
 int Player::GetAnimFrame() const
 {
-    // 現在のアニメフレーム番号を返す（Draw(frame) 用）
     return m_animator.GetCurrentFrame();
 }
 
@@ -302,13 +363,11 @@ SM::Vector2 Player::GetMoveInput() const
         float lx = (float)state.Gamepad.sThumbLX;
         float ly = (float)state.Gamepad.sThumbLY;
 
-        // デッドゾーン（小さな入力を無視）
         const float dead = (float)XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
 
         if (fabsf(lx) < dead) lx = 0.0f;
         if (fabsf(ly) < dead) ly = 0.0f;
 
-        // -32768～32767 を -1～1 に正規化
         const float maxv = 32767.0f;
         dir.x = lx / maxv;
         dir.y = ly / maxv;
@@ -320,7 +379,6 @@ SM::Vector2 Player::GetMoveInput() const
     if (GetAsyncKeyState('A') & 0x8000) dir.x -= 1.0f;
     if (GetAsyncKeyState('D') & 0x8000) dir.x += 1.0f;
 
-    // 斜め移動で速度が速くならないように正規化
     if (dir.LengthSquared() > 1.0f)
         dir.Normalize();
 
@@ -329,7 +387,6 @@ SM::Vector2 Player::GetMoveInput() const
 
 void Player::UpdateFacingFromMove(const SM::Vector2& moveDir)
 {
-    // 移動入力から左右向きを更新（x成分だけを見る）
     if (moveDir.x > 0.0f)      m_facingRight = true;
     else if (moveDir.x < 0.0f) m_facingRight = false;
 }
@@ -338,13 +395,11 @@ void Player::StartHeavyDash(const SM::Vector2& moveDir)
 {
     SM::Vector2 dir = moveDir;
 
-    // 入力がない場合は現在の向きにダッシュ
     if (dir.LengthSquared() <= 0.01f)
         dir = m_facingRight ? SM::Vector2(1.0f, 0.0f) : SM::Vector2(-1.0f, 0.0f);
     else
         dir.Normalize();
 
-    // ダッシュ方向＆残り時間を設定
     m_heavyDashDir = dir;
     m_heavyDashTimer = m_heavyDashDuration;
 }
@@ -356,17 +411,21 @@ bool Player::UpdateHeavyDash(float deltaTime)
 
     float dt = deltaTime;
 
-    // 異常な deltaTime 対策（超大きい値が来た場合の保険）
     if (dt > 1.0f) dt *= 0.0001f;
-
-    // 1フレームの移動が大きくなりすぎないように上限をかける
     if (dt > 0.05f) dt = 0.05f;
 
-    // タイマー減算
+    const float prevDash = m_heavyDashTimer;
+
     m_heavyDashTimer -= dt;
     if (m_heavyDashTimer < 0.0f) m_heavyDashTimer = 0.0f;
 
-    // 方向×速度×時間で移動
+    // ✅ 強攻撃ダッシュが終わった瞬間から1秒は接触被弾アニメを禁止
+    if (prevDash > 0.0f && m_heavyDashTimer == 0.0f)
+    {
+        StartNoHitAnim(1.0f);
+        if (m_hitInvTimer < 1.0f) m_hitInvTimer = 1.0f;
+    }
+
     auto p = m_object->GetPos();
     p.x += m_heavyDashDir.x * m_heavyDashSpeed * dt;
     p.y += m_heavyDashDir.y * m_heavyDashSpeed * dt;
@@ -382,7 +441,6 @@ void Player::Attack()
 
 void Player::ApplyAbility(Skill* skill)
 {
-    // スキルを保持（適用）
     if (!skill) return;
     skills.push_back(skill);
 }
@@ -406,21 +464,93 @@ void Player::ApplyVisualSize(const SizeScale& s)
 {
     if (!m_object) return;
 
-    // 見た目サイズを更新
     m_object->SetSize(m_baseW * s.sx, m_baseH * s.sy, 0.0f);
 
-    // 当たり判定半径を固定値にする（スプライトサイズ変更でも判定が変わらない）
+    // 当たり判定半径を固定値にする
     m_object->SetCollisionRadius(m_fixedRadius);
 }
-
-/*
-int Player::GetPower() const
+void Player::TakeDamage(int dmg)
 {
-    return power;
+    if (dmg <= 0) return;
+
+    if (IsHeavyCharging() || IsHeavyDashing())
+        return;
+
+    if (m_invincibleTimer > 0.0f)
+    {
+        if (m_hitReactCD <= 0.0f)
+        {
+            m_state = State::Damaged;
+
+            m_lockFacing = false;
+            m_heavyDashTimer = 0.0f;
+
+            if (m_object)
+            {
+                m_object->SetTexture("asset/Texture/player_damaged.png");
+                m_object->SetSpriteSheet(5, 1);
+                ApplyVisualSize(m_scaleDamaged);
+
+                const bool textureIsRightFacing = true;
+                m_object->SetFlipX(textureIsRightFacing != m_facingRight);
+            }
+
+            // Animatorが同一Play無視でも確実にリスタート
+            m_animator.Play(m_idleAnim);
+            m_animator.Play(m_damagedAnim);
+
+            m_hitReactCD = m_hitReactCooldown;
+        }
+        return;
+    }
+
+    Chara::TakeDamage(dmg);
+    if (hp <= 0) return;
+
+    m_state = State::Damaged;
+
+    m_lockFacing = false;
+    m_heavyDashTimer = 0.0f;
+
+    if (m_object)
+    {
+        m_object->SetTexture("asset/Texture/player_damaged.png");
+        m_object->SetSpriteSheet(5, 1);
+        ApplyVisualSize(m_scaleDamaged);
+
+        const bool textureIsRightFacing = true;
+        m_object->SetFlipX(textureIsRightFacing != m_facingRight);
+    }
+
+    m_animator.Play(m_idleAnim);
+    m_animator.Play(m_damagedAnim);
+
+    m_invincibleTimer = m_invincibleDuration;
+
+    m_hitReactCD = m_hitReactCooldown;
 }
 
-void Player::Setpower(int value)
+
+void Player::PlayHitReaction()
 {
-    power = value;
+    if (m_hitInvTimer > 0.0f) return;
+
+    m_state = State::Damaged;
+    m_lockFacing = false;
+    m_heavyDashTimer = 0.0f;
+
+    if (m_object)
+    {
+        m_object->SetTexture("asset/Texture/player_damaged.png");
+        m_object->SetSpriteSheet(5, 1);
+        ApplyVisualSize(m_scaleDamaged);
+
+        const bool textureIsRightFacing = true;
+        m_object->SetFlipX(textureIsRightFacing != m_facingRight);
+    }
+
+    m_animator.Play(m_idleAnim);
+    m_animator.Play(m_damagedAnim);
+
+    m_hitInvTimer = m_hitInvDuration;
 }
-*/
