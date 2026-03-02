@@ -24,8 +24,10 @@ void ComboManager::Init(GamePlay* scene)
 
 void ComboManager::BeginAttack()
 {
-    m_comboCount = 0;
     m_attackActive = true;
+    m_comboCount = 0; // 攻撃開始でコンボリセット
+    m_visible = true; // 攻撃開始時は表示
+    m_timer = 0.0f;  // タイマーリセット
 }
 
 void ComboManager::AddHit()
@@ -33,14 +35,12 @@ void ComboManager::AddHit()
     if (!m_attackActive) return;
 
     m_comboCount++;
-
-    std::cout << "Combo = "
-        << m_comboCount
-        << std::endl;
+    std::cout << "Combo = "<< m_comboCount<< std::endl; // デバッグ表示
 
     m_visible = true;
-    m_timer = COMBO_VISIBLE_TIME;
-    m_attackActive = true;
+    m_timer = 0.0f;
+    //m_timer = COMBO_VISIBLE_TIME;
+    //m_attackActive = true;
 
     // =====================
     // ★跳ね開始
@@ -93,6 +93,12 @@ void ComboManager::UpdateDraw()
     } while (value > 0);
 }
 
+void ComboManager::EndAttack()
+{
+    m_attackActive = false;
+    m_timer = COMBO_DISPLAY_TIME; // 3秒表示
+}
+
 void ComboManager::Update(float deltaTime)
 {
     UpdateDraw();
@@ -106,9 +112,7 @@ void ComboManager::Update(float deltaTime)
     if (m_popTimer > 0.0f)
     {
         m_popTimer -= deltaTime;
-
         float t = m_popTimer / POP_TIME;
-
         // 1.5倍 → 1倍
         m_popScale = 1.0f + t * 0.5f;
     }
@@ -119,10 +123,14 @@ void ComboManager::Update(float deltaTime)
 
     UpdateDraw();
 
-    if (m_timer <= 0.0f)
+    // タイマー処理
+    if (!m_attackActive && m_visible)
     {
-        m_visible = false;
-        m_attackActive = false;
-        m_comboCount = 0;
+        m_timer -= deltaTime;
+        if (m_timer <= 0.0f)
+        {
+            m_visible = false;
+            m_comboCount = 0; // 表示消えると同時にカウントもリセット
+        }
     }
 }

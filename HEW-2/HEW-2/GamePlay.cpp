@@ -506,31 +506,6 @@ void GamePlay::UpdateScene(float deltaTime)
 
 void GamePlay::DrawScene()
 {
-    /*for (auto& obj : objects)
-    {
-        int frame = -1;
-
-        if (obj.get() == m_player->GetObject())
-        {
-            frame = m_player->GetAnimFrame();
-        }
-        else
-        {
-            for (const auto& e : m_spawner.GetEnemies())
-            {
-                if (!e) continue;
-                if (e->GetObject() == obj.get())
-                {
-                    frame = e->GetAnimFrame();
-                    break;
-                }
-            }
-        }
-
-        if (frame >= 0) obj->Draw(frame);
-        else            obj->Draw();
-    }*/
-
     // =============================
     // ① ワールド描画（UI以外）
     // =============================
@@ -562,29 +537,15 @@ void GamePlay::DrawScene()
     }
 
     // =============================
-    // UI描画
-    // =============================
-    // UI位置更新は描画前に1回だけ
-
-    for (auto& obj : objects)
-    {
-        if (!obj->IsUI()) continue;
-        obj->Draw();
-    }
-    /*
-    // =============================
-    // ② UI描画（常に最前面）
+    // UI描画（常に最前面）UI位置更新は描画前に1回だけ
     // =============================
     for (auto& obj : objects)
     {
         if (!obj->IsUI()) continue;
         obj->Draw();
     }
-    */
 
 }
-
-
 
 void GamePlay::UninitScene()
 {

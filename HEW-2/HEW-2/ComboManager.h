@@ -15,7 +15,7 @@ public:
     void BeginAttack();   // 攻撃開始でリセット
     void AddHit();        // ヒット加算
     void UpdateDraw();
- 
+    void EndAttack(); // 攻撃終了時に呼ぶ
 private:
     GamePlay* m_scene = nullptr;
     Object* m_debugText = nullptr;
@@ -32,6 +32,8 @@ private:
     float m_popScale = 1.0f;
     float m_popTimer = 0.0f;
     const float POP_TIME = 0.15f;
+
+    const float COMBO_DISPLAY_TIME = 3.0f; // 攻撃停止後表示する時間
 
     std::vector<Object*> m_digits;
 };
