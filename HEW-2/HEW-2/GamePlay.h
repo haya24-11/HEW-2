@@ -12,7 +12,7 @@ class GamePlay : public Scene
 {
 public:
     GamePlay();
-        
+
 
     //ゲームプレイUIオブジェクト一覧
     Object* LightAttackButton;      //弱攻撃ボタン
@@ -40,7 +40,7 @@ public:
 
     void UpdateUIFollowCamera();
 
-  
+
 
 private:
     std::unique_ptr<Player> m_player;

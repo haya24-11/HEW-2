@@ -18,7 +18,7 @@ public:
         cfg.texture = "asset/Texture/BossWalk.png";
         cfg.sizeX = 500.0f;
         cfg.sizeY = 500.0f;
-        cfg.collisionRadius = 250.0f;
+        cfg.collisionRadius = 80.0f;
 
         cfg.interval = 9999.0f; // 再スポーンさせない
         cfg.maxAlive = 1;

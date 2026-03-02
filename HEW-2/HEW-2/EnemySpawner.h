@@ -67,6 +67,11 @@ private:
 
 
     void SpawnBoss();            // ✅ ボスを強制スポーン
+
+    std::vector<unsigned char> m_stopLock; // ★このフレーム「外にいた敵」をロック
+
+    void BuildStopLock();   // ★追加：外にいた敵の印を付ける
+    void ClampStopLocked(); // ★追加：押し出しで内側に入ったら戻す
 };
 
 // =========================

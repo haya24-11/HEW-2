@@ -54,13 +54,13 @@ void SoundManager::Update(float deltaTime)
     float t = m_fadeTimer / m_fadeTime;
     if (t > 1.0f) t = 1.0f;
 
-    printf(
-        "[Sound] current=%d next=%d fadeOut=%d t=%.2f\n",
-        m_currentBGM,
-        m_nextBGM,
-        m_fadeOutBGM,
-        t
-    );
+    //printf(
+    //    "[Sound] current=%d next=%d fadeOut=%d t=%.2f\n",
+    //    m_currentBGM,
+    //    m_nextBGM,
+    //    m_fadeOutBGM,
+    //    t
+    //);
 
     // フェードアウト（旧BGM）
     if (m_fadeOutBGM != SOUND_LABEL_MAX)
