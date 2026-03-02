@@ -155,7 +155,7 @@ private:
         AttackLight,
         AttackHeavyCharge,
         AttackHeavy,
-        AttackHeavyDash      // 突進
+        AttackHeavyDash,    // 突進
         Damaged,
     };
     State m_state = State::Idle;
