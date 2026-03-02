@@ -84,6 +84,10 @@ private:
 
     float collisionRadius = 0.0f;
     bool m_isUI = false;
+
+    int m_animFrame = 0;
+    bool m_useAnimFrame = false;
+
 public:
 	float numU = 0;
 	float numV = 0;
@@ -148,4 +152,6 @@ public:
     //  - 共有頂点バッファ
     // =========================================================
     static void ReleaseTextureCache();
+
+    void SetAnimFrame(int frame);
 };

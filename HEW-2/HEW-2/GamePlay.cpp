@@ -107,6 +107,7 @@ void GamePlay::InitScene()
 
     // ===== Player Logic =====
     m_player = std::make_unique<Player>();
+    m_player->SetGamePlay(this);
 
     // ===== Player Object =====
     Object* player = AddObject();
@@ -224,6 +225,7 @@ void GamePlay::InitScene()
     ExpBarFrame->Init("asset/UI/expbar_frame.png"); // ここは実際のパスに合わせて
     ExpBarFrame->SetUI(true);
 
+    m_combo.Init(this);
    
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
@@ -244,9 +246,18 @@ void GamePlay::UpdateScene(float deltaTime)
 
     m_player->Update(deltaTime);
 
+    m_combo.Update(deltaTime);
 
     // 弱攻撃エフェクト
-    if (m_player->ConsumeAttackEffectRequest())
+    bool attackStart =
+        m_player->ConsumeAttackEffectRequest();
+
+    if (attackStart)
+    {
+        m_combo.BeginAttack(); // ★コンボ開始
+    }
+
+    if (attackStart)
     {
         m_attackEffects.push_back(
             new AttackSlashEffect(
@@ -521,52 +532,55 @@ void GamePlay::DrawScene()
     }*/
 
 
+    // =============================
+    // UI描画
+    // =============================
+    for (auto& obj : objects)
+    {
+        if (!obj->IsUI()) continue;
+        obj->Draw();
+        m_combo.UpdateUI();
+    }
 
-    
-        // =============================
-        // ① ワールド描画（UI以外）
-        // =============================
-        for (auto& obj : objects)
+    // =============================
+    // ① ワールド描画（UI以外）
+    // =============================
+    for (auto& obj : objects)
+    {
+        if (obj->IsUI()) continue;
+
+        int frame = -1;
+
+        if (obj.get() == m_player->GetObject())
         {
-            if (obj->IsUI()) continue;
-
-            int frame = -1;
-
-            if (obj.get() == m_player->GetObject())
+            frame = m_player->GetAnimFrame();
+        }
+        else
+        {
+            for (const auto& e : m_spawner.GetEnemies())
             {
-                frame = m_player->GetAnimFrame();
-            }
-            else
-            {
-                for (const auto& e : m_spawner.GetEnemies())
+                if (!e) continue;
+                if (e->GetObject() == obj.get())
                 {
-                    if (!e) continue;
-                    if (e->GetObject() == obj.get())
-                    {
-                        frame = e->GetAnimFrame();
-                        break;
-                    }
+                    frame = e->GetAnimFrame();
+                    break;
                 }
             }
-
-            if (frame >= 0) obj->Draw(frame);
-            else            obj->Draw();
         }
+
+        if (frame >= 0) obj->Draw(frame);
+        else            obj->Draw();
+    }
 
         // =============================
         // ② UI描画（常に最前面）
         // =============================
-        for (auto& obj : objects)
-        {
-            if (!obj->IsUI()) continue;
+    for (auto& obj : objects)
+    {
+        if (!obj->IsUI()) continue;
 
-            obj->Draw();
-        }
-    
-
-
-
-
+        obj->Draw();
+    }
 
 }
 
@@ -762,6 +776,7 @@ static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
 
     // ✅ ダメージは1回だけ
     enemyLogic->TakeDamage(dmg);
+    playerLogic->GetGamePlay()->GetCombo().AddHit();
 
     // ✅ 吹き飛ばす
     enemyLogic->KnockBack(n * kick);
@@ -991,6 +1006,7 @@ static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
             // 1) 相手に速度を渡してノックバックさせる
             float kick = ClampF(vn * transferRate, minKick, maxKick);
             other->KnockBack(normalFlyToOther * kick);
+            fly->GetGamePlay()->GetCombo().AddHit();
 
             // 2) 飛んでいる側は反射（鏡面反射: v - 2*(v·n)*n）して減衰
             DirectX::SimpleMath::Vector2 vRef = v - 2.0f * vn * normalFlyToOther;

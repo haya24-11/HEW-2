@@ -4,6 +4,7 @@
 #include "Animator.h"
 #include <SimpleMath.h>
 
+class GamePlay;
 /*
     Enemy
     =====
@@ -139,6 +140,9 @@ public:
     bool IsRewardGiven() const { return m_rewardGiven; }
     void MarkRewardGiven() { m_rewardGiven = true; }
 
+    void SetGamePlay(GamePlay* gp) { m_gamePlay = gp; }
+    GamePlay* GetGamePlay() const { return m_gamePlay; }
+
 protected:
     bool isBoss = false;
 
@@ -216,4 +220,6 @@ private:
     float m_impactCooldown = 0.0f; // 連続ヒット防止用のクールタイム
 
     bool m_rewardGiven = false;
+
+    GamePlay* m_gamePlay = nullptr;
 };

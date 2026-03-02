@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include "Boss.h" 
 #include "Player.h" 
+#include "GamePlay.h"
 
 EnemySpawner::EnemySpawner()
 {
@@ -133,6 +134,10 @@ void EnemySpawner::Update(float deltaTime)
         // =========================
         enemy->SetObject(obj);
         enemy->SetTarget(m_player);
+
+        enemy->SetGamePlay(
+            static_cast<GamePlay*>(m_scene)
+        );
 
         // ✅ 死亡演出時間（SpawnConfigを反映）
         enemy->SetDeathDelay(cfg.dieDelay);
@@ -359,6 +364,9 @@ void EnemySpawner::SpawnBoss()
     // ロジック接続
     boss->SetObject(obj);
     boss->SetTarget(m_player);
+    boss->SetGamePlay(
+        static_cast<GamePlay*>(m_scene)
+    );
 
     // ✅ 死亡演出時間（SpawnConfigの値を反映）
     boss->SetDeathDelay(cfg.dieDelay);

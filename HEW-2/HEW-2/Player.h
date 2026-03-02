@@ -12,6 +12,7 @@
 #include "AttackDir.h"
 
 class Skill;
+class GamePlay; 
 
 /*
     Player
@@ -108,6 +109,9 @@ public:
     int GetLevel() const { return m_level; }
     int GetCurrentExp() const { return m_currentExp; }
     int GetNextLevelExp() const;
+
+    void SetGamePlay(GamePlay* gp) { m_gamePlay = gp; }
+    GamePlay* GetGamePlay() const { return m_gamePlay; }
 
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
@@ -230,7 +234,7 @@ private:
     bool m_heavyEffectFired = false;
 
     Object* m_map = nullptr;
-
+    GamePlay* m_gamePlay = nullptr;
 
     // レベルシステム
     int m_level = 1;
