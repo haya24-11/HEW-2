@@ -270,7 +270,7 @@ private:
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;
-};
+
     GamePlay* m_gamePlay = nullptr;
 
     // レベルシステム
