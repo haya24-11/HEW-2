@@ -16,9 +16,10 @@ void ComboManager::Init(GamePlay* scene)
 
         m_digits.push_back(digit);
     }
-    m_digits[0]->SetPos(0, 0, 0);
-    m_digits[0]->SetSize(300, 300, 0);
-    m_digits[0]->SetColor(1, 0, 0, 1);
+    for (auto d : m_digits)
+    {
+        d->SetActive(false);
+    }
 }
 
 void ComboManager::BeginAttack()
@@ -40,14 +41,22 @@ void ComboManager::AddHit()
     m_visible = true;
     m_timer = COMBO_VISIBLE_TIME;
     m_attackActive = true;
+
+    // =====================
+    // ★跳ね開始
+    // =====================
+    m_popTimer = POP_TIME;
 }
 
-void ComboManager::UpdateUI()
+void ComboManager::UpdateDraw()
 {
+    for (auto d : m_digits)
+        d->SetActive(false);
+
     if (!m_visible) return;
 
-    float halfW = SCREEN_WIDTH * 0.5f;
-    float halfH = SCREEN_HEIGHT * 0.5f;
+    float baseX = SCREEN_WIDTH * 0.5f - 120.0f;
+    float baseY = SCREEN_HEIGHT * 0.5f - 60.0f;
 
     int value = m_comboCount;
 
@@ -60,12 +69,20 @@ void ComboManager::UpdateUI()
         if (index < m_digits.size())
         {
             auto obj = m_digits[index];
-
+            obj->SetActive(true);
             obj->SetAnimFrame(num);
 
+            // =====================
+            // ★跳ねサイズ適用
+            // =====================
+            obj->SetSize(
+                64.0f * m_popScale,
+                64.0f * m_popScale,
+                0.0f
+            );
             obj->SetPos(
-                halfW - 80.0f - index * 70.0f,
-                halfH - 80.0f,
+                baseX - index * 70.0f,
+                baseY,
                 0.0f
             );
         }
@@ -78,9 +95,29 @@ void ComboManager::UpdateUI()
 
 void ComboManager::Update(float deltaTime)
 {
+    UpdateDraw();
     if (!m_visible) return;
 
     m_timer -= deltaTime;
+
+    // =====================
+    // ポップアニメ
+    // =====================
+    if (m_popTimer > 0.0f)
+    {
+        m_popTimer -= deltaTime;
+
+        float t = m_popTimer / POP_TIME;
+
+        // 1.5倍 → 1倍
+        m_popScale = 1.0f + t * 0.5f;
+    }
+    else
+    {
+        m_popScale = 1.0f;
+    }
+
+    UpdateDraw();
 
     if (m_timer <= 0.0f)
     {
@@ -89,4 +126,3 @@ void ComboManager::Update(float deltaTime)
         m_comboCount = 0;
     }
 }
-

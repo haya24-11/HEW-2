@@ -88,6 +88,8 @@ private:
     int m_animFrame = 0;
     bool m_useAnimFrame = false;
 
+    bool m_active = true;
+
 public:
 	float numU = 0;
 	float numV = 0;
@@ -154,4 +156,7 @@ public:
     static void ReleaseTextureCache();
 
     void SetAnimFrame(int frame);
+
+    void SetActive(bool active);
+    bool IsActive() const;
 };

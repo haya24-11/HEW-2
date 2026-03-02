@@ -119,6 +119,8 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 
 void Object::Draw()
 {
+	if (!m_active) return;
+
 	// =========================
 	// 頂点バッファ設定
 	// =========================
@@ -201,6 +203,8 @@ void Object::Draw()
 // =====================================================
 void Object::Draw(int frameIndex)
 {
+	if (!m_active) return;
+
 	extern float g_cameraX;
 	extern float g_cameraY;
 
@@ -428,4 +432,14 @@ void Object::SetAnimFrame(int frame)
 {
 	m_animFrame = frame;
 	m_useAnimFrame = true;
+}
+
+void Object::SetActive(bool active)
+{
+	m_active = active;
+}
+
+bool Object::IsActive() const
+{
+	return m_active;
 }

@@ -14,8 +14,8 @@ public:
 
     void BeginAttack();   // 攻撃開始でリセット
     void AddHit();        // ヒット加算
-    void UpdateUI();
-
+    void UpdateDraw();
+ 
 private:
     GamePlay* m_scene = nullptr;
     Object* m_debugText = nullptr;
@@ -26,6 +26,12 @@ private:
 
     float m_timer = 0.0f;
     const float COMBO_VISIBLE_TIME = 1.0f;
+    // =====================
+    // コンボポップ演出用
+    // =====================
+    float m_popScale = 1.0f;
+    float m_popTimer = 0.0f;
+    const float POP_TIME = 0.15f;
 
     std::vector<Object*> m_digits;
 };
