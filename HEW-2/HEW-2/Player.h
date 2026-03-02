@@ -12,6 +12,7 @@
 #include "AttackDir.h"
 
 class Skill;
+class GamePlay; 
 
 /*
     Player
@@ -117,6 +118,16 @@ public:
     void StartNoHitAnim(float sec) { m_noHitAnimTimer = sec; }
     bool IsNoHitAnim() const { return m_noHitAnimTimer > 0.0f; }
 
+    void AddExp(int value);
+    void LevelUp();
+
+    int GetLevel() const { return m_level; }
+    int GetCurrentExp() const { return m_currentExp; }
+    int GetNextLevelExp() const;
+
+    void SetGamePlay(GamePlay* gp) { m_gamePlay = gp; }
+    GamePlay* GetGamePlay() const { return m_gamePlay; }
+
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
     DirectX::SimpleMath::Vector2 GetMoveInput() const;
@@ -160,7 +171,6 @@ private:
     };
     State m_state = State::Idle;
 
-   
     AttackDir m_attackDir = AttackDir::Right;
 
     // 向き
@@ -238,7 +248,6 @@ private:
 
     bool m_attackEffectRequest = false;
 
-
     // 強攻撃制御
     bool  m_heavyHolding = false;
     bool  m_heavyReleased = false;
@@ -261,4 +270,10 @@ private:
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;
+};
+    GamePlay* m_gamePlay = nullptr;
+
+    // レベルシステム
+    int m_level = 1;
+    int m_currentExp = 0;
 };

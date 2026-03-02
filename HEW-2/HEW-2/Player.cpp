@@ -164,8 +164,8 @@ void Player::Update(float deltaTime)
     if (m_state == State::AttackHeavyCharge)
     {
         // ======================
-// ★チャージ中方向入力取得
-// ======================
+        // ★チャージ中方向入力取得
+        // ======================
         SM::Vector2 inputDir = GetMoveInput();
 
         const float dead = 0.3f;
@@ -465,6 +465,35 @@ int Player::GetAnimFrame() const
     return m_animator.GetCurrentFrame();
 }
 
+// =====================================================
+// 経験値加算
+// =====================================================
+void Player::AddExp(int value)
+{
+    m_currentExp += value;
+
+    // レベルアップ可能な限りループ
+    while (m_currentExp >= GetNextLevelExp())
+    {
+        m_currentExp -= GetNextLevelExp();
+        LevelUp();
+
+        OutputDebugStringA("Level Up!\n");
+    }
+}
+
+// =====================================================
+// レベルアップ
+// =====================================================
+void Player::LevelUp()
+{
+    m_level++;
+    // 次レベル必要EXP増加（基本式）
+
+    // ===== 今は確認用 =====
+    printf("LEVEL UP! -> Lv %d\n", m_level);
+}
+
 SM::Vector2 Player::GetMoveInput() const
 {
     SM::Vector2 dir(0.0f, 0.0f);
@@ -680,4 +709,11 @@ void Player::PlayHitReaction()
     m_animator.Play(m_damagedAnim);
 
     m_hitInvTimer = m_hitInvDuration;
+}
+int Player::GetNextLevelExp() const
+{
+    const float baseExp = 100.0f;
+    const float growth = 1.35f; // ★調整ポイント
+
+    return (int)(baseExp * powf((float)m_level, growth));
 }

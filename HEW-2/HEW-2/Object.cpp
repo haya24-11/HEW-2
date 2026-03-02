@@ -59,10 +59,18 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 	m_splitX = sx;
 	m_splitY = sy;
 
-	m_vertexList[1].u = 1.0f / m_splitX;
-	m_vertexList[2].v = 1.0f / m_splitY;
-	m_vertexList[3].u = 1.0f / m_splitX;
-	m_vertexList[3].v = 1.0f / m_splitY;
+	// UVは常にフルテクスチャ
+	m_vertexList[0].u = 0.0f;
+	m_vertexList[0].v = 0.0f;
+
+	m_vertexList[1].u = 1.0f;
+	m_vertexList[1].v = 0.0f;
+
+	m_vertexList[2].u = 0.0f;
+	m_vertexList[2].v = 1.0f;
+
+	m_vertexList[3].u = 1.0f;
+	m_vertexList[3].v = 1.0f;
 
 	// =========================
 	// 頂点バッファ作成（共有）
@@ -111,6 +119,8 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 
 void Object::Draw()
 {
+	if (!m_active) return;
+
 	// =========================
 	// 頂点バッファ設定
 	// =========================
@@ -152,9 +162,12 @@ void Object::Draw()
 	// =========================
 	// UV変換行列（アニメーション：numU/numV）
 	// =========================
-	float u = (float)numU / m_splitX;
-	float v = (float)numV / m_splitY;
-	DirectX::XMMATRIX matrixTex = DirectX::XMMatrixTranslation(u, v, 0.0f);
+	float u = (float)numU * m_frameU;
+	float v = (float)numV * m_frameV;
+
+	DirectX::XMMATRIX matrixTex =
+		DirectX::XMMatrixScaling(m_frameU, m_frameV, 1.0f) *
+		DirectX::XMMatrixTranslation(u, v, 0.0f);
 
 	// =========================
 	// 定数バッファ更新
@@ -170,6 +183,12 @@ void Object::Draw()
 	// =========================
 	// 描画
 	// =========================
+	if (m_useAnimFrame)
+	{
+		Draw(m_animFrame);
+		return;
+	}
+
 	g_pDeviceContext->Draw(4, 0);
 }
 
@@ -178,51 +197,38 @@ void Object::Draw()
 	----------------
 	frameIndex : 0,1,2,3...
 	左上 → 右 → 下 の順で並ぶスプライトを想定
-*/void Object::Draw(int frameIndex)
+*/
+// =====================================================
+// スプライトシート描画
+// =====================================================
+void Object::Draw(int frameIndex)
 {
-	// カメラ座標（どこかで毎フレーム更新しておく）
+	if (!m_active) return;
+
 	extern float g_cameraX;
 	extern float g_cameraY;
 
-	// frameIndex から (frameX, frameY) を計算
-	// 例：横に m_splitX 枚並んでいるスプライトシートを想定
 	int frameX = frameIndex % m_splitX;
 	int frameY = frameIndex / m_splitX;
 
-	// 1フレーム分のUVサイズ(m_frameU/m_frameV)を使って、開始UVを求める
 	float u = frameX * m_frameU;
 	float v = frameY * m_frameV;
 
-	// =========================
-	// 頂点バッファ設定
-	// =========================
 	UINT strides = sizeof(Vertex);
 	UINT offsets = 0;
 	g_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &strides, &offsets);
 
-	// =========================
-	// テクスチャ設定
-	// =========================
 	g_pDeviceContext->PSSetShaderResources(0, 1, &m_pTextureView);
 
-	// =========================
-	// プロジェクション行列（2D：正射影）
-	// =========================
 	DirectX::XMMATRIX matrixProj =
 		DirectX::XMMatrixOrthographicLH(SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, 3.0f);
 
-	// =========================
-	// ワールド行列（拡大・回転・移動）
-	// =========================
 	DirectX::XMMATRIX matrixScale =
 		DirectX::XMMatrixScaling(m_size.x, m_size.y, m_size.z);
 
 	DirectX::XMMATRIX matrixAngle =
 		DirectX::XMMatrixRotationZ(m_angle * 3.141592f / 180.0f);
 
-	// 位置行列
-	// ・通常（ワールドオブジェクト）は「カメラ分だけ座標を引く」ことでカメラ追従表示
-	// ・UI（m_isUI==true）は「カメラを引かず」画面に固定したように表示
 	DirectX::XMMATRIX matrixPos =
 		DirectX::XMMatrixTranslation(
 			m_isUI ? m_pos.x : (m_pos.x - g_cameraX),
@@ -233,41 +239,30 @@ void Object::Draw()
 	DirectX::XMMATRIX matrixWorld =
 		matrixScale * matrixAngle * matrixPos;
 
-	// =========================
-	// UV変換行列（スプライトシート + 左右反転）
-	// =========================
 	DirectX::XMMATRIX matrixTex;
+
 	if (m_flipX)
 	{
-		// 左右反転：
-		// ・U方向を反転（-m_frameU）
-		// ・そのままだと位置がずれるので (u + m_frameU) へ補正
 		matrixTex =
 			DirectX::XMMatrixScaling(-m_frameU, m_frameV, 1.0f) *
 			DirectX::XMMatrixTranslation(u + m_frameU, v, 0.0f);
 	}
 	else
 	{
-		// 通常（反転なし）
 		matrixTex =
 			DirectX::XMMatrixScaling(m_frameU, m_frameV, 1.0f) *
 			DirectX::XMMatrixTranslation(u, v, 0.0f);
 	}
 
-	// =========================
-	// 定数バッファ更新
-	// =========================
 	ConstBuffer cb;
 	cb.matrixProj = DirectX::XMMatrixTranspose(matrixProj);
 	cb.matrixWorld = DirectX::XMMatrixTranspose(matrixWorld);
 	cb.matrixTex = DirectX::XMMatrixTranspose(matrixTex);
 	cb.color = m_color;
 
-	g_pDeviceContext->UpdateSubresource(g_pConstantBuffer, 0, nullptr, &cb, 0, 0);
+	g_pDeviceContext->UpdateSubresource(
+		g_pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-	// =========================
-	// 描画（Quad：4頂点）
-	// =========================
 	g_pDeviceContext->Draw(4, 0);
 }
 
@@ -286,6 +281,9 @@ void Object::SetSpriteSheet(int splitX, int splitY)
 	// 1フレームのUVサイズ
 	m_frameU = 1.0f / m_splitX;
 	m_frameV = 1.0f / m_splitY;
+
+	m_frameU = 1.0f / splitX;
+	m_frameV = 1.0f / splitY;
 }
 
 void Object::Uninit()
@@ -321,7 +319,7 @@ Object* Object::SetSize(float x, float y, float z)
 	// 位置も念のため更新
 	m_collider.SetPosition({ m_pos.x, m_pos.y });
 	return this;
-	// ��size�f�[�^�����������֐�
+
 }
 
 Object* Object::SetAngle(float a)
@@ -329,7 +327,7 @@ Object* Object::SetAngle(float a)
 	// 角度を設定
 	m_angle = a;
 	return this;
-	// ��angle�f�[�^�����������֐�
+
 }
 
 Object* Object::SetColor(float r, float g, float b, float a)
@@ -428,4 +426,20 @@ void Object::ReleaseTextureCache()
 		s_pSharedVB = nullptr;
 		s_sharedVBReady = false;
 	}
+}
+
+void Object::SetAnimFrame(int frame)
+{
+	m_animFrame = frame;
+	m_useAnimFrame = true;
+}
+
+void Object::SetActive(bool active)
+{
+	m_active = active;
+}
+
+bool Object::IsActive() const
+{
+	return m_active;
 }
