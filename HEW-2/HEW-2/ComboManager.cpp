@@ -35,7 +35,7 @@ void ComboManager::AddHit()
     if (!m_attackActive) return;
 
     m_comboCount++;
-    std::cout << "Combo = "<< m_comboCount<< std::endl; // デバッグ表示
+    std::cout << "Combo = " << m_comboCount << std::endl; // デバッグ表示
 
     m_visible = true;
     m_timer = 0.0f;

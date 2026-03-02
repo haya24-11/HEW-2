@@ -13,7 +13,7 @@ class GamePlay : public Scene
 {
 public:
     GamePlay();
-        
+
 
     //ゲームプレイUIオブジェクト一覧
     Object* LightAttackButton;      //弱攻撃ボタン
