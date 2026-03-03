@@ -27,6 +27,14 @@ Player::Player()
     // 被ダメは m_damagedAnim(横5枚) を使用
 }
 
+Player::~Player()
+{
+
+    for (auto* s : skills)
+        delete s;
+
+}
+
 void Player::Update(float deltaTime)
 {
     // 強攻撃後の「被弾アニメ禁止」タイマー更新（GamePlay から参照）

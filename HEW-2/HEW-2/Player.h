@@ -35,7 +35,7 @@ class Player : public Chara
 {
 public:
     Player();
-    virtual ~Player() = default;
+    virtual ~Player();
 
     // 描画用 Object を取得（m_object は Chara 側にある前提）
     Object* GetObject() const { return m_object; }
