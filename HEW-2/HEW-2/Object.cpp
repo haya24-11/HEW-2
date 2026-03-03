@@ -111,6 +111,9 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 
 void Object::Draw()
 {
+
+	if (!m_visible) return;
+
 	// =========================
 	// 頂点バッファ設定
 	// =========================

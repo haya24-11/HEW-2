@@ -108,7 +108,14 @@ public:
 
     void PlayHitReaction();
 
-    void StartNoHitAnim(float sec) { m_noHitAnimTimer = sec; }
+    void StartNoHitAnim(float sec)
+    {
+        if (sec <= 0.0f) return;
+
+        // 既存より長い場合だけ更新（短い値で上書きしない）
+        if (m_noHitAnimTimer < sec) m_noHitAnimTimer = sec;
+        if (m_invincibleTimer < sec) m_invincibleTimer = sec; // ✅ 無敵（HPダメージ無効）も付与
+    }
     bool IsNoHitAnim() const { return m_noHitAnimTimer > 0.0f; }
 
 private:
@@ -178,7 +185,7 @@ private:
 
     // ✅ 被ダメ後の短い無敵（連続ヒット防止）
     float m_invincibleTimer = 0.0f;
-    float m_invincibleDuration = 1.0f;
+    float m_invincibleDuration = 5.0f;
 
     // ===== HeavyAttack ダッシュ =====
     float m_heavyDashSpeed = 700.0f;
@@ -226,4 +233,9 @@ private:
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;
+
+
+    float m_blinkTimer = 0.0f;        // 点滅用タイマー
+    float m_blinkInterval = 3.0f;    // 点滅間隔（秒
+    bool  m_blinkVisible = true;      // 今見えているか
 };

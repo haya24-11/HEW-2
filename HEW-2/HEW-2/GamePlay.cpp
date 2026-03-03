@@ -56,6 +56,7 @@ static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 
 static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj);
 
+static float s_touchHitCD_All = 0.0f; // 全モンスター共通の接触被弾CT
 
 // 強攻撃の同一敵ヒット連打防止用クールダウン
 static std::unordered_map<Enemy*, float> s_heavyHitCD;
@@ -98,6 +99,8 @@ GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 
 void GamePlay::InitScene()
 {
+    m_bossHasSpawned = false;
+
     // ===== プレイヤー関連テクスチャを事前ロード =====
     PreloadTexture(g_pDevice, "asset/Texture/player_idle.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_walk.png");
@@ -248,17 +251,29 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
-    //std::cout << "objects: " << objects.size() << std::endl;
+
+    if (deltaTime > 0.1f) deltaTime = 0.1f;
+
+    const bool wasHeavyDashing = m_player->IsHeavyDashing();
+
+    // プレイヤー更新
+    m_player->Update(deltaTime);
+
+    // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
+    const bool isHeavyDashing = m_player->IsHeavyDashing();
+    if (wasHeavyDashing && !isHeavyDashing)
+    {
+        // ✅ 強攻撃ダッシュ終了後 1秒：無敵＋被撃アニメ禁止
+        m_player->StartNoHitAnim(3.0f);
+    }
 
     if (!m_player) return;
-    if (deltaTime > 0.1f) deltaTime = 0.1f;
 
     Object* playerObj = m_player->GetObject();
     if (!playerObj) return;
 
     const auto oldPos = playerObj->GetPos();
 
-    m_player->Update(deltaTime);
 
     if (m_player->IsAttackInputTriggered())
     {
@@ -269,6 +284,11 @@ void GamePlay::UpdateScene(float deltaTime)
         );
     }
 
+    if (s_touchHitCD_All > 0.0f)
+    {
+        s_touchHitCD_All -= deltaTime;
+        if (s_touchHitCD_All < 0.0f) s_touchHitCD_All = 0.0f;
+    }
     /* ================================
    ★ 攻撃エフェクトの更新＆破棄
    ================================ */
@@ -345,9 +365,8 @@ void GamePlay::UpdateScene(float deltaTime)
 
             Object* enemyObj = e->GetObject();
             if (!enemyObj) continue;
-
-            // ====== (플레이어 vs 적) 접촉/연출/강공격 처리 ======
-            const float kTouchMargin = 5.0f; // 필요하면 15~30까지 올려서 테스트
+            // ====== （プレイヤー対敵） 接触／演出／強攻撃処理 ======
+            const float kTouchMargin = 10.0f; // 必要に応じて15〜30まで上げてテスト
 
             const bool chk = playerObj->CheckCollision(*enemyObj);
             const bool touch = IsTouching(playerObj, enemyObj, kTouchMargin);
@@ -356,17 +375,13 @@ void GamePlay::UpdateScene(float deltaTime)
 
             if (!contact) continue;
 
-            // 강공격 대시 중이면 피격 연출 대신 핀볼 히트
+            // 強攻撃ダッシュ中は被撃演出の代わりにピンボールヒット
             if (m_player->IsHeavyDashing())
             {
                 HeavyPinballHit(m_player.get(), playerObj, e.get(), enemyObj);
-
-                // ✅ 強攻撃ヒット直後は1秒間、接触被弾アニメを禁止
-                m_player->StartNoHitAnim(1.0f);
-
                 pushed = true;
             }
-            // 강공격 차지 중이면 피격 연출 금지(밀어내기만)
+            // 強攻撃を占有中の場合は被撃演出禁止（押し出すだけ）
             else if (m_player->IsHeavyCharging())
             {
                 PushOutCircle(playerObj, enemyObj);
@@ -374,13 +389,18 @@ void GamePlay::UpdateScene(float deltaTime)
             }
             else
             {
-                // ✅ 強攻撃直後は接触被弾アニメを出さない（Player側のタイマーで制御）
                 if (!m_player->IsNoHitAnim())
                 {
-                    m_player->PlayHitReaction();
-                }
+                    const float touchCooldown = 10.0f; // ✅ 全モンスター共通CT（秒）
 
-                // ✅ 밀어내기는 기존처럼 처리
+                    // ✅ 全モンスター共通：一度当たったら一定時間は誰に触れても追加被弾なし
+                    if (s_touchHitCD_All <= 0.0f)
+                    {
+                        m_player->TakeDamage(e->GetPower());
+                        s_touchHitCD_All = touchCooldown;
+                    }
+                }
+                // ✅ 押し出しは従来どおり
                 if (!e->IsKnockBacking())
                 {
                     PushOutCircle(playerObj, enemyObj);
@@ -479,7 +499,6 @@ void GamePlay::UpdateScene(float deltaTime)
     }*/
 
     {
-        static bool s_bossHasSpawned = false; // ✅ ボスが一度でも出現したか
         bool bossFound = false;
         bool bossAlive = false;
 
@@ -490,7 +509,7 @@ void GamePlay::UpdateScene(float deltaTime)
             if (e->IsBoss())
             {
                 bossFound = true;
-                s_bossHasSpawned = true;
+                m_bossHasSpawned = true;
 
                 if (e->IsAlive())
                     bossAlive = true;
@@ -499,15 +518,19 @@ void GamePlay::UpdateScene(float deltaTime)
             }
         }
 
-        // ✅ 出現済みなのに、今フレームはボスがいない/死んでいる → Resultへ
-        // bossFound==false は「死んで Cleanup で消えた後」も含む
-        if (s_bossHasSpawned && (!bossFound || !bossAlive))
+        // ✅ 今プレイで出現済みなのに、今は居ない/死んでいる → Resultへ
+        if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
             SetNextScene(SceneType::Result);
             return;
         }
     }
 
+    if (m_player->GetHp() <= 0)
+    {
+        SetNextScene(SceneType::GameOver);
+        return;
+    }
     if (m_map)
     {
         ClampObjectToMap(playerObj, m_map);

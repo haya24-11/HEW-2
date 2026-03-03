@@ -56,4 +56,6 @@ private:
     float m_bossTimer = 0.0f;
     bool  m_bossPhase = false;
     std::vector<AttackSlashEffect*> m_attackEffects;
+
+    bool m_bossHasSpawned = false;
 };

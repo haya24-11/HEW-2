@@ -16,9 +16,9 @@ public:
         SpawnConfig cfg;
 
         cfg.texture = "asset/Texture/BossWalk.png";
-        cfg.sizeX = 500.0f;
-        cfg.sizeY = 500.0f;
-        cfg.collisionRadius = 80.0f;
+        cfg.sizeX = 400.0f;
+        cfg.sizeY = 400.0f;
+        cfg.collisionRadius = 70.0f;
 
         cfg.interval = 9999.0f; // 再スポーンさせない
         cfg.maxAlive = 1;
@@ -27,7 +27,7 @@ public:
         cfg.maxDist = 800.0f;
 
         cfg.stopDist = 200.0f;  // 近づいたら止まる距離（任意）
-        cfg.hp = 50;
+        cfg.hp = 2000;
         cfg.power = 5;
 
         // 死亡演出（必要なら）

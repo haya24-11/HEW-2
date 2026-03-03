@@ -12,7 +12,7 @@ namespace SM = DirectX::SimpleMath;
 
 Player::Player()
 {
-    hp = 10;
+    hp = 50;
     power = 10;
 
     moveSpeed = 30.0f;
@@ -36,6 +36,26 @@ void Player::Update(float deltaTime)
         if (m_noHitAnimTimer < 0.0f) m_noHitAnimTimer = 0.0f;
     }
 
+    if (m_invincibleTimer > 0.0f)
+    {
+        m_invincibleTimer -= deltaTime;
+        if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
+    }
+    if (m_object)
+    {
+        if (m_invincibleTimer > 0.0f)
+        {
+            const float kBlink = 0.08f;               // 点滅の速さ（小さいほど速い）
+            const float t = fmodf(m_invincibleTimer, kBlink * 2.0f);
+            const float a = (t < kBlink) ? 0.25f : 1.0f;
+
+            m_object->SetColor(1.0f, 1.0f, 1.0f, a); // ✅ キラキラ（透明度）
+        }
+        else
+        {
+            m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // ✅ 無敵が終わったら元に戻す
+        }
+    }
     if (m_hitInvTimer > 0.0f)
     {
         m_hitInvTimer -= deltaTime;
@@ -86,13 +106,7 @@ void Player::Update(float deltaTime)
 // ✅ 無敵タイマー更新（連続ヒット防止）
 // ※ どの return よりも前に必ず置く
 // =========================
-    if (m_invincibleTimer > 0.0f)
-    {
-        m_invincibleTimer -= deltaTime;
-        if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
 
-        std::cout << "[INV] " << m_invincibleTimer << "\n";
-    }
     /* if (m_hitReactCD > 0.0f)
      {
          m_hitReactCD -= deltaTime;
@@ -554,3 +568,4 @@ void Player::PlayHitReaction()
 
     m_hitInvTimer = m_hitInvDuration;
 }
+

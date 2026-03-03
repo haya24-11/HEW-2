@@ -148,4 +148,11 @@ public:
     //  - 共有頂点バッファ
     // =========================================================
     static void ReleaseTextureCache();
+
+private:
+    bool m_visible = true;
+
+public:
+    void SetVisible(bool v) { m_visible = v; }
+    bool IsVisible() const { return m_visible; }
 };
