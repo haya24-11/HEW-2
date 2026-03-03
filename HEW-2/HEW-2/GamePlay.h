@@ -57,4 +57,8 @@ private:
     float m_bossTimer = 0.0f;
     bool  m_bossPhase = false;
     std::vector<AttackSlashEffect*> m_attackEffects;
+
+    // レベル表示用
+    std::vector<Object*> m_levelDigits;
+
 };
