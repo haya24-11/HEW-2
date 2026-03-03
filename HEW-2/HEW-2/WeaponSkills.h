@@ -1,5 +1,6 @@
 #pragma once
 #include "Skill.h"
+#include "AMode.h"
 class WeaponSkills : public Skill
 {
 protected:

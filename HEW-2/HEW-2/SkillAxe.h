@@ -1,5 +1,6 @@
 #pragma once
 #include"WeaponSkills.h"
+#include "AMode.h"
 
 class SkillAxe:public WeaponSkills
 {

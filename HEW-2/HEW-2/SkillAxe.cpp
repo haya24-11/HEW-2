@@ -1,4 +1,5 @@
 #include "SkillAxe.h"
+#include "AMode.h"
 
 SkillAxe::SkillAxe():WeaponSkills("Aex", 2)
 {
