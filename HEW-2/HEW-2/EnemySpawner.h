@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <SimpleMath.h>
 
+
 class Scene;
 class Object;
 class Enemy;
+class Player;
 
 class EnemySpawner
 {
@@ -15,7 +17,7 @@ public:
     EnemySpawner();
 
     // Scene（AddObject を使うため）と Player（Object*）を受け取って初期化
-    void Init(Scene* ownerScene, Object* playerObj);
+    void Init(Scene* ownerScene, Object* playerObj, Player* player);
 
     // 敵タイプ登録（複数タイプ登録可能）
     template<typename T>
@@ -30,6 +32,8 @@ public:
     // ★ デバッグ / 即スポーン用
    // Enemy* SpawnOneImmediate();
 
+   
+
 private:
  //   Enemy* SpawnOne(); // 1体スポーン
 
@@ -42,6 +46,7 @@ private:
 private:
     Scene* m_scene = nullptr;
     Object* m_player = nullptr;
+    Player* m_playerLogic = nullptr;
 
     // 登録された敵タイプ（ファクトリ）
     struct Entry
@@ -67,6 +72,11 @@ private:
 
 
     void SpawnBoss();            // ✅ ボスを強制スポーン
+
+    std::vector<unsigned char> m_stopLock; // ★このフレーム「外にいた敵」をロック
+
+    void BuildStopLock();   // ★追加：外にいた敵の印を付ける
+    void ClampStopLocked(); // ★追加：押し出しで内側に入ったら戻す
 };
 
 // =========================

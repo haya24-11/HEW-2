@@ -5,7 +5,7 @@
 #ifdef GetObject
 #undef GetObject
 #endif
-
+#include <iostream>
 #include "GamePlay.h"
 #include "Player.h"
 #include "Enemy.h"
@@ -13,9 +13,29 @@
 #include "Texture.h"
 #include "CameraGlobals.h"
 #include <cmath>
-#include <cmath>
 #include <algorithm> // std::clamp
 #include <unordered_map>
+#include <cmath> // sqrtf
+#include <unordered_map>
+
+static std::unordered_map<Enemy*, float> s_touchHitCD;
+// 「接触」判定（CheckCollisionが厳しい時の保険）
+static bool IsTouching(Object* a, Object* b, float margin = 10.0f)
+{
+    if (!a || !b) return false;
+
+    auto pa = a->GetPos();
+    auto pb = b->GetPos();
+
+    float dx = pb.x - pa.x;
+    float dy = pb.y - pa.y;
+
+    float r = a->GetCollisionRadius() + b->GetCollisionRadius() + margin;
+    return (dx * dx + dy * dy) <= (r * r);
+}
+
+// 接触デバッグ表示（毎フレーム出ると重いので「たまに」出す）
+
 
 static DirectX::SimpleMath::Vector2 ReflectVec(
     const DirectX::SimpleMath::Vector2& v,
@@ -84,6 +104,7 @@ void GamePlay::InitScene()
     PreloadTexture(g_pDevice, "asset/Texture/player_attack_light.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_attack_heavy.png");
     PreloadTexture(g_pDevice, "asset/Texture/slash_effect.png");
+    PreloadTexture(g_pDevice, "asset/Texture/player_damaged.png");
 
     Object dummy;
     dummy.Init("asset/Texture/player_attack_heavy.png", 1, 1);
@@ -102,11 +123,12 @@ void GamePlay::InitScene()
     map->SetPos(0.0f, 0.0f, 0.0f);
     map->SetSize(3000.0f, 3000.0f, 0.0f);
 
-    m_map = map; 
+    m_map = map;
 
 
     // ===== Player Logic =====
     m_player = std::make_unique<Player>();
+    m_player->SetGamePlay(this);
 
     // ===== Player Object =====
     Object* player = AddObject();
@@ -114,7 +136,7 @@ void GamePlay::InitScene()
     player->SetSpriteSheet(6, 6);
     player->SetSize(150.0f, 170.0f, 0.0f);  // ★2回入ってたので1つに整理
     player->SetPos(0.0f, 0.0f, 0.0f);
-    player->SetCollisionRadius(100.0f);
+    player->SetCollisionRadius(70.0f);
 
     m_player->SetObject(player);
 
@@ -129,7 +151,11 @@ void GamePlay::InitScene()
     }
 
     // ===== Enemy Spawner =====
-    m_spawner.Init(this, m_player->GetObject());
+    m_spawner.Init(
+        this,
+        m_player->GetObject(),
+        m_player.get()      // Player本体を渡す
+    );
     m_spawner.RegisterType<NormalEnemy>(1.0f);
 
     std::cout << "(Debug) GamePlayScene!" << std::endl;
@@ -139,7 +165,7 @@ void GamePlay::InitScene()
     /////////////////////////////////////////////////////////////////////////////
 
     // ===== 弱攻撃ボタンUI =====
-    LightAttackButton = AddObject()
+    /*LightAttackButton = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)     // ★初期値は適当でOK（後でUpdateUIFollowCameraが上書き）
         ->SetSize(45.0f, 35.0f, 0.0f)
         ->SetAngle(0.0f);
@@ -153,7 +179,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     HeavyAttackButton->Init("asset/UI/heavyattackbutton.png");
     HeavyAttackButton->SetUI(true);
-
+    */
     // ===== プレイヤーHPバー UI =====
     PlayerHeartPointBar = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
@@ -161,7 +187,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerHeartPointBar->Init("asset/UI/playerheartpointbar.png");
     PlayerHeartPointBar->SetUI(true);
-    
+
     // ===== プレイヤーアイコン UI =====
     PlayerIcon = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
@@ -169,6 +195,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerIcon->Init("asset/UI/playericon.png");
     PlayerIcon->SetUI(true);
+    
 
     // ===== バフアイコン =====
     BuffIcons.clear(); // ★2回目開始時に前回のポインタが残らないように一応クリア
@@ -206,7 +233,7 @@ void GamePlay::InitScene()
     // 経験値バー ゲージ ※todo
     ExpBarGauge = AddObject()
         ->SetPos(0.0f, 1000.0f, 0.0f)
-        ->SetSize(20.0f, 30.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
+        ->SetSize(0.0f, 40.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
         ->SetAngle(0.0f);
     ExpBarGauge->Init("asset/UI/expbar_gauge.png"); // ここは実際のパスに合わせて
     ExpBarGauge->SetUI(true);
@@ -219,7 +246,8 @@ void GamePlay::InitScene()
     ExpBarFrame->Init("asset/UI/expbar_frame.png"); // ここは実際のパスに合わせて
     ExpBarFrame->SetUI(true);
 
-
+    m_combo.Init(this);
+   
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -227,7 +255,7 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
-    std::cout << "objects: " << objects.size() << std::endl;
+    //std::cout << "objects: " << objects.size() << std::endl;
 
     if (!m_player) return;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
@@ -239,14 +267,27 @@ void GamePlay::UpdateScene(float deltaTime)
 
     m_player->Update(deltaTime);
 
-    if (m_player->IsAttackInputTriggered())
+    m_combo.Update(deltaTime);
+
+    // 弱攻撃エフェクト
+    bool attackStart =
+        m_player->ConsumeAttackEffectRequest();
+
+    if (attackStart)
+    {
+        m_combo.BeginAttack(); // ★コンボ開始
+    }
+
+    if (attackStart)
     {
         m_attackEffects.push_back(
-            new AttackSlashEffect(this,
+            new AttackSlashEffect(
+                this,
                 m_player->GetObject(),
-                m_player->IsFacingRight())
-        );
+                m_player->GetAttackDir()
+            ));
     }
+
 
     /* ================================
    ★ 攻撃エフェクトの更新＆破棄
@@ -284,13 +325,35 @@ void GamePlay::UpdateScene(float deltaTime)
         if (it->second <= 0.0f) it = s_heavyHitCD.erase(it);
         else ++it;
     }
-
+    // 接触ヒットCD更新（敵ごと）
+    for (auto it = s_touchHitCD.begin(); it != s_touchHitCD.end(); )
+    {
+        it->second -= deltaTime;
+        if (it->second <= 0.0f) it = s_touchHitCD.erase(it);
+        else ++it;
+    }
     m_rotation += m_rotationSpeed * deltaTime;
     MagicCircle->SetAngle(m_rotation);
 
     // 360度超えたら戻す（任意だけどおすすめ）
     if (m_rotation >= 360.0f)
         m_rotation -= 360.0f;
+
+    // =========================
+ // ★ プレイヤー vs 敵：接触判定・押し出し（3回反復）
+ // 目的：
+ //  - 1回目で押し出して「めり込み0」になっても、接触中なら2回目以降も判定できるようにする
+ //  - 強攻撃入力直後（チャージ中）に被ダメでモーションが上書きされるのを防ぐ
+ //  - 敵がノックバック中でも「被ダメ判定」は試す（無敵判定は Player::TakeDamage 内）
+ // =========================
+    // =========================
+// ★ プレイヤー vs 敵：接触判定・押し出し（3回反復）
+// 目的：
+//  - 1回目で押し出して「めり込み0」になっても、接触中なら2回目以降も判定できるようにする
+//  - 強攻撃入力直後（チャージ中）に被ダメでモーションが上書きされるのを防ぐ
+//  - 敵がノックバック中でも「被ダメ判定」は試す（無敵判定は Player::TakeDamage 内）
+// =========================
+    // ✅ 強攻撃直後：一定時間「接触被弾アニメ」を禁止する（Player側タイマー）
 
     for (int iter = 0; iter < 3; ++iter)
     {
@@ -303,43 +366,65 @@ void GamePlay::UpdateScene(float deltaTime)
             Object* enemyObj = e->GetObject();
             if (!enemyObj) continue;
 
-            if (playerObj->CheckCollision(*enemyObj))
+            // ====== (플레이어 vs 적) 접촉/연출/강공격 처리 ======
+            const float kTouchMargin = 5.0f; // 필요하면 15~30까지 올려서 테스트
+
+            const bool chk = playerObj->CheckCollision(*enemyObj);
+            const bool touch = IsTouching(playerObj, enemyObj, kTouchMargin);
+            const bool contact = chk || touch;
+
+
+            if (!contact) continue;
+
+            // 강공격 대시 중이면 피격 연출 대신 핀볼 히트
+            if (m_player->IsHeavyDashing())
             {
-                if (m_player->IsHeavyDashing())
+                HeavyPinballHit(m_player.get(), playerObj, e.get(), enemyObj);
+
+                // ✅ 強攻撃ヒット直後は1秒間、接触被弾アニメを禁止
+                m_player->StartNoHitAnim(1.0f);
+
+                pushed = true;
+            }
+            // 강공격 차지 중이면 피격 연출 금지(밀어내기만)
+            else if (m_player->IsHeavyCharging())
+            {
+                PushOutCircle(playerObj, enemyObj);
+                pushed = true;
+            }
+            else
+            {
+                // ✅ 強攻撃直後は接触被弾アニメを出さない（Player側のタイマーで制御）
+                if (!m_player->IsNoHitAnim())
                 {
-                    HeavyPinballHit(m_player.get(), playerObj, e.get(), enemyObj);
+                    m_player->PlayHitReaction();
+                }
+
+                // ✅ 밀어내기는 기존처럼 처리
+                if (!e->IsKnockBacking())
+                {
+                    PushOutCircle(playerObj, enemyObj);
+                    pushed = true;
                 }
                 else
                 {
-                    // ✅ 敵が吹き飛び中ならプレイヤーを押し返さない
-                    if (!e->IsKnockBacking())
+                    auto p = playerObj->GetPos();
+                    auto q = enemyObj->GetPos();
+                    float dx = q.x - p.x;
+                    float dy = q.y - p.y;
+                    float d2 = dx * dx + dy * dy;
+                    if (d2 > 0.0001f)
                     {
-                        PushOutCircle(playerObj, enemyObj);
+                        float d = sqrtf(d2);
+                        dx /= d; dy /= d;
+                        enemyObj->SetPos(q.x + dx * 3.0f, q.y + dy * 3.0f, q.z);
                         pushed = true;
-                    }
-                    else
-                    {
-                        //（任意）めり込みだけ軽く解消：敵の速度は維持
-                        auto p = playerObj->GetPos();
-                        auto q = enemyObj->GetPos();
-                        float dx = q.x - p.x;
-                        float dy = q.y - p.y;
-                        float d2 = dx * dx + dy * dy;
-                        if (d2 > 0.0001f)
-                        {
-                            float d = sqrtf(d2);
-                            dx /= d; dy /= d;
-                            enemyObj->SetPos(q.x + dx * 3.0f, q.y + dy * 3.0f, q.z);
-                            pushed = true;
-                        }
                     }
                 }
             }
         }
-
         if (!pushed) break;
     }
-
     //PAD処理シ－ン切り替え
     static WORD prevButtons = 0;
 
@@ -455,7 +540,30 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    // =======================================
+    // EXPバー更新
+    // =======================================
+    if (m_player && ExpBarGauge)
+    {
+        float current = (float)m_player->GetCurrentExp();
+        float next = (float)m_player->GetNextLevelExp();
 
+        float rate = 0.0f;
+        if (next > 0.0f)
+            rate = current / next;
+
+        rate = std::clamp(rate, 0.0f, 1.0f);
+
+        // -----------------------------
+        // 最大幅（UI画像に合わせる）
+        // -----------------------------
+        const float maxWidth = 1600.0f;
+
+        float width = maxWidth * rate;
+
+        // 横だけ変える
+        ExpBarGauge->SetSize(width, 40.0f, 0.0f);
+    }
 
     prevButtons = buttons;
     UpdateUIFollowCamera();
@@ -463,8 +571,13 @@ void GamePlay::UpdateScene(float deltaTime)
 
 void GamePlay::DrawScene()
 {
+    // =============================
+    // ① ワールド描画（UI以外）
+    // =============================
     for (auto& obj : objects)
     {
+        if (obj->IsUI()) continue;
+
         int frame = -1;
 
         if (obj.get() == m_player->GetObject())
@@ -488,9 +601,16 @@ void GamePlay::DrawScene()
         else            obj->Draw();
     }
 
+    // =============================
+    // UI描画（常に最前面）UI位置更新は描画前に1回だけ
+    // =============================
+    for (auto& obj : objects)
+    {
+        if (!obj->IsUI()) continue;
+        obj->Draw();
+    }
+
 }
-
-
 
 void GamePlay::UninitScene()
 {
@@ -538,7 +658,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
     float ny = dy / dist;
 
     // 1フレームで押し出す最大量を制限（大きく飛ぶ＝瞬間移動を防ぐ）
-    const float maxPushPerFrame = 10.0f; 
+    const float maxPushPerFrame = 10.0f;
     float push = overlap;
     if (push > maxPushPerFrame) push = maxPushPerFrame;
 
@@ -548,6 +668,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
+   
     const float halfW = SCREEN_WIDTH * 0.5f;
     const float halfH = SCREEN_HEIGHT * 0.5f;
     const float pad = 30.0f;
@@ -557,7 +678,7 @@ void GamePlay::UpdateUIFollowCamera()
     const float hpBarY = halfH - pad - 44.0f;
 
     if (PlayerHeartPointBar)
-        PlayerHeartPointBar->SetPos(hpBarX, hpBarY-20, 0.0f);
+        PlayerHeartPointBar->SetPos(hpBarX, hpBarY - 20, 0.0f);
 
     // アイコン
     const float hpW = 360.0f;
@@ -570,7 +691,7 @@ void GamePlay::UpdateUIFollowCamera()
 
     if (PlayerIcon)
     {
-        PlayerIcon->SetPos(circleCenterX+0, circleCenterY-10, 0.0f);
+        PlayerIcon->SetPos(circleCenterX + 0, circleCenterY - 10, 0.0f);
         PlayerIcon->SetSize(iconSize, iconSize, 0.0f);
     }
 
@@ -602,7 +723,25 @@ void GamePlay::UpdateUIFollowCamera()
     {
         const float gapY = -855.0f;
         ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
-        ExpBarGauge->SetPos(hpBarX + -180.0f, hpBarY + gapY, 0.0f); // 経験値バー ゲージ ※todo
+        // ==========================
+        // EXPバー左端固定
+        // ==========================
+        /*
+        hpBarX            // カメラ基準位置
+        + 665.0f          // ← UI横オフセット（これが位置調整）
+        - (1600 * 0.5f)   // 画面中央補正
+        */
+        const float expBarLeft =
+            hpBarX + 610.0f - (1600.0f * 0.5f);
+
+        float gaugeWidth = ExpBarGauge->GetSize().x;
+
+        // 中心座標 = 左端 + 半分
+        ExpBarGauge->SetPos(
+            expBarLeft + gaugeWidth * 0.5f,
+            hpBarY + gapY,
+            0.0f
+        );
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }
@@ -663,6 +802,7 @@ static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
 
     // ✅ ダメージは1回だけ
     enemyLogic->TakeDamage(dmg);
+    playerLogic->GetGamePlay()->GetCombo().AddHit();
 
     // ✅ 吹き飛ばす
     enemyLogic->KnockBack(n * kick);
@@ -823,6 +963,7 @@ static float ClampF(float x, float a, float b)
     if (x > b) return b;
     return x;
 }
+
 static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 {
     // nullチェック
@@ -892,6 +1033,7 @@ static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
             // 1) 相手に速度を渡してノックバックさせる
             float kick = ClampF(vn * transferRate, minKick, maxKick);
             other->KnockBack(normalFlyToOther * kick);
+            fly->GetGamePlay()->GetCombo().AddHit();
 
             // 2) 飛んでいる側は反射（鏡面反射: v - 2*(v·n)*n）して減衰
             DirectX::SimpleMath::Vector2 vRef = v - 2.0f * vn * normalFlyToOther;

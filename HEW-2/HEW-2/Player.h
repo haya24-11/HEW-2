@@ -9,9 +9,10 @@
 #include "Animator.h"
 #include "Input.h"
 #include "AttackSlashEffect.h"
-
+#include "AttackDir.h"
 
 class Skill;
+class GamePlay; 
 
 /*
     Player
@@ -92,7 +93,6 @@ public:
 
 
     int GetPower() const;
-
     void SetPower(int value);
 
     float GetHeavyDamageMul() const { return m_heavyDamageMul; }
@@ -100,6 +100,38 @@ public:
     bool IsAttackInputTriggered() const;
 
     bool IsFacingRight() const { return m_facingRight; }
+
+    bool ConsumeAttackEffectRequest();
+
+    AttackDir GetAttackDir() const { return m_attackDir; }
+
+    AttackDir GetHeavyDir() const { return m_attackDir; }
+    // =========================
+    // ✅ 被ダメージ
+    // =========================
+    void TakeDamage(int dmg);
+
+    // ✅ 無敵判定（連続ヒット防止 + 強攻撃中無敵）
+    bool IsInvincible() const
+    {
+        return (m_invincibleTimer > 0.0f) || IsHeavyCharging() || IsHeavyDashing();
+    }
+
+
+    void PlayHitReaction();
+
+    void StartNoHitAnim(float sec) { m_noHitAnimTimer = sec; }
+    bool IsNoHitAnim() const { return m_noHitAnimTimer > 0.0f; }
+
+    void AddExp(int value);
+    void LevelUp();
+
+    int GetLevel() const { return m_level; }
+    int GetCurrentExp() const { return m_currentExp; }
+    int GetNextLevelExp() const;
+
+    void SetGamePlay(GamePlay* gp) { m_gamePlay = gp; }
+    GamePlay* GetGamePlay() const { return m_gamePlay; }
 
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
@@ -117,6 +149,9 @@ private:
     // 表示サイズを反映
     void ApplyVisualSize(const SizeScale& s);
 
+
+    bool IsDamaged() const { return m_state == State::Damaged; }
+
 private:
     // ===== アニメーション関連 =====
     Animator  m_animator;
@@ -126,6 +161,9 @@ private:
     Animation m_heavyChargeAnim;
     Animation m_heavyStartAnim;
 
+    // ✅ 被ダメージ（横5枚 5x1）
+    Animation m_damagedAnim = { 0, 5, 0.5f, false };
+
     enum class State
     {
         Idle,
@@ -133,8 +171,12 @@ private:
         AttackLight,
         AttackHeavyCharge,
         AttackHeavy,
+        AttackHeavyDash,    // 突進
+        Damaged,
     };
     State m_state = State::Idle;
+
+    AttackDir m_attackDir = AttackDir::Right;
 
     // 向き
     bool m_facingRight = true;
@@ -151,13 +193,18 @@ private:
     float m_baseH = 150.0f;
 
     // 衝突判定用の固定半径
-    float m_fixedRadius = 15.0f;
+    float m_fixedRadius = 60.0f;
 
     // 表示スケール補正
     SizeScale m_scaleIdle{ 1.0f, 1.0f };
     SizeScale m_scaleWalk{ 1.0f, 1.0f };
     SizeScale m_scaleLight{ 0.9f, 1.0f };
     SizeScale m_scaleHeavy{ 1.4f, 1.0f };
+    SizeScale m_scaleDamaged{ 1.0f, 1.0f }; // ✅ 被ダメ用
+
+    // ✅ 被ダメ後の短い無敵（連続ヒット防止）
+    float m_invincibleTimer = 0.0f;
+    float m_invincibleDuration = 1.0f;
 
     // ===== HeavyAttack ダッシュ =====
     float m_heavyDashSpeed = 700.0f;
@@ -182,10 +229,11 @@ private:
     // ===== 強攻撃ヒット（前方判定） =====
     float m_heavyHitOffset = 80.0f;
     float m_heavyHitRadius = 55.0f;
-    float m_heavyKnockBackPower = 900.0f; 
+    float m_heavyKnockBackPower = 900.0f;
 
-    //強攻撃調整
+    // 強攻撃調整
     float m_heavyDamageMul = 2.0f;
+
     // 攻撃エフェクト用
     std::vector<AttackSlashEffect*> m_attackEffects;
 
@@ -194,6 +242,44 @@ private:
     // ===== 攻撃SE制御 =====
     bool m_attackSEPlayed = false;
 
+    // 弱攻撃ヒット遅延管理
+    float m_attackLightTimer = 0.0f;
+    bool  m_attackLightEffectFired = false;
+
+    int m_prevAnimFrame = -1;   // 前フレーム記録用
+
+    // 攻撃クールタイム
+    float m_attackCooldown = 0.0f;
+    const float m_attackCooldownTime = 0.35f; // 調整値
+
+    bool m_attackEffectRequest = false;
+
+    // 強攻撃制御
+    bool  m_heavyHolding = false;
+    bool  m_heavyReleased = false;
+
+    float m_dashSpeed = 900.0f;
+    float m_dashTime = 0.18f;
+    float m_dashTimer = 0.0f;
+
+    AttackDir m_heavyDir;
+
+    // 強攻撃エフェクト1回制御 
+    bool m_heavyEffectFired = false;
 
     Object* m_map = nullptr;
+
+    float m_hitReactCD = 0.0f;
+    float m_hitReactCooldown = 3.0f;
+
+    float m_hitInvTimer = 2.0f;
+    float m_hitInvDuration = 3.0f;
+
+    float m_noHitAnimTimer = 0.0f;
+
+    GamePlay* m_gamePlay = nullptr;
+
+    // レベルシステム
+    int m_level = 1;
+    int m_currentExp = 0;
 };
