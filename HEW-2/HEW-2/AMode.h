@@ -11,8 +11,10 @@ private:
    int skillIdMax = 10;
 
 public:
-    bool CanLearnSkill(int skillId) const;
-    int WeakAttack(int BaseAtk);
-    int StrongAttakc(int BaseAtk,float pushTime);
+    bool CanLearnSkill(int skillId) const override;
+    bool CanUseSkill(const Skill& skill) const override;
     float CalculateComboMultiplier(int comboCount) const override;
+
+    int WeakAttack(int BaseAtk);
+    int StrongAttakc(int BaseAtk, float pushTime);
 };

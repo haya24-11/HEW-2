@@ -2,7 +2,13 @@
 
 bool AMode::CanLearnSkill(int skillId) const
 {
-	return (skillId >= 0 && skillId < 10);
+	return (skillId >= skillIdmin && skillId < skillIdMax);
+}
+
+bool AMode::CanUseSkill(const Skill& skill) const
+{
+	// ‚Æ‚è‚ ‚¦‚¸‘S•”Žg‚¦‚é
+	return true;
 }
 
 int AMode::WeakAttack(int BaseAtk)

@@ -587,8 +587,10 @@ void Player::Attack()
 
 void Player::ApplyAbility(Skill* skill)
 {
+    // スキルを保持（適用）
     if (!skill) return;
     skills.push_back(skill);
+    skill->Apply(this);
 }
 
 const std::vector<Skill*>& Player::GetLearnedSkills() const
