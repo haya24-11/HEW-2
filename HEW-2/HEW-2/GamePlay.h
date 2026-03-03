@@ -40,6 +40,7 @@ public:
 
     void UpdateUIFollowCamera();
     ComboManager& GetCombo() { return m_combo; }
+    Player* GetPlayer() const { return m_player.get(); }
 private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
