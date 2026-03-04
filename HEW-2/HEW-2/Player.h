@@ -283,7 +283,6 @@ private:
     // レベルシステム
     int m_level = 1;
     int m_currentExp = 0;
-};
 
 
     float m_blinkTimer = 0.0f;        // 点滅用タイマー

@@ -39,7 +39,9 @@ public:
     void UninitScene() override;
 
     void UpdateUIFollowCamera();
-
+    //combo
+    ComboManager& GetCombo() { return m_combo; }
+    Player* GetPlayer() const { return m_player.get(); }
     //通常攻撃
     EnemySpawner& GetSpawner() { return m_spawner; }
     const EnemySpawner& GetSpawner() const { return m_spawner; }
