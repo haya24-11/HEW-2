@@ -46,8 +46,6 @@ public:
     EnemySpawner& GetSpawner() { return m_spawner; }
     const EnemySpawner& GetSpawner() const { return m_spawner; }
 
-    ComboManager& GetCombo() { return m_combo; }
-    Player* GetPlayer() const { return m_player.get(); }
 private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
@@ -66,7 +64,4 @@ private:
     std::vector<AttackSlashEffect*> m_attackEffects;
 
     bool m_bossHasSpawned = false;
-    // レベル表示用
-    std::vector<Object*> m_levelDigits;
-
 };
