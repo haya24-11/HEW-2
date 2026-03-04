@@ -1,5 +1,5 @@
 ﻿#include "Player.h"
-#include "Skill.h"
+#include "Skills.h"
 
 #include <Windows.h>   // GetAsyncKeyState
 #include <Xinput.h>    // XInput
@@ -500,6 +500,7 @@ void Player::LevelUp()
 
     // ===== 今は確認用 =====
     printf("LEVEL UP! -> Lv %d\n", m_level);
+    //スキル取得
 }
 
 SM::Vector2 Player::GetMoveInput() const

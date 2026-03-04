@@ -233,6 +233,7 @@
     <ClInclude Include="Skill.h" />
     <ClInclude Include="SkillAxe.h" />
     <ClInclude Include="Skillpowerbuff.h" />
+    <ClInclude Include="Skills.h" />
     <ClInclude Include="SkillSword.h" />
     <ClInclude Include="SkillWhip.h" />
     <ClInclude Include="SlimeEnemy.h" />

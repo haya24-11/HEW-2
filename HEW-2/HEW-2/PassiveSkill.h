@@ -1,5 +1,9 @@
 #pragma once
 #include "Skill.h"
+#include "Player.h"
+
+class Player;
+
 class PassiveSkill :
     public Skill
 {
