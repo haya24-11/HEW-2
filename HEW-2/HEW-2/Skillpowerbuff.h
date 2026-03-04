@@ -7,7 +7,7 @@ private:
 
 	int m_buffValue;//UŒ‚—Íã¸—Ê
 	
-
+	int m_skilllLevel;
 public:
 
 	Skillpowerbuff(int value);
