@@ -7,7 +7,8 @@
 #include "Enemy.h"
 
 #include <cmath>
-#include <Windows.h> // OutputDebugStringA
+#include <Windows.h>
+#include <iostream> // ✅ std::cout
 
 using namespace DirectX::SimpleMath;
 
@@ -19,7 +20,7 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir)
 
 AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool facingRight, int damage)
 {
-    OutputDebugStringA("SlashEffect Create\n");
+    std::cout << "[SlashEffect] Create dmg=" << damage << "\n";
 
     m_scene = scene;
     m_owner = owner;
@@ -39,10 +40,9 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
     // =========================
     // 見た目（斬撃）
     // =========================
-     // ▼ 確実に見える設定（デバッグ用）
     m_object->Init("asset/Texture/slash_effect.png", 1, 1);
     m_object->SetSize(300.0f, 300.0f, 0.0f);
-    m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // 真っ赤
+    m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_object->SetUI(false);
 
     // =========================
@@ -51,9 +51,10 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
     Vector3 p = owner ? owner->GetPos() : Vector3(0, 0, 0);
     Vector2 dirVec = AttackDirToVector(m_dir);
 
-    p.x += dirVec.x * 120.0f;
-    p.y += dirVec.y * 120.0f;
-    p.y += -20.0f; // 下に少し
+    const float kSlashOffset = 70.0f;
+    p.x += dirVec.x * kSlashOffset;
+    p.y += dirVec.y * kSlashOffset;
+    p.y += -20.0f;
 
     m_object->SetPos(p.x, p.y, p.z);
 
@@ -73,6 +74,13 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
 
     // 当たり判定（開始時OFF）
     m_object->SetCollisionRadius(0.0f);
+
+    // ✅ パラメータ確認
+    std::cout << "[SlashEffect] life=" << m_lifeTime
+        << " delay=" << m_delay
+        << " hitTime=" << m_hitActiveTime
+        << " hitRadius=" << m_hitRadius
+        << " dmg=" << m_damage << "\n";
 }
 
 AttackSlashEffect::~AttackSlashEffect()
@@ -91,8 +99,9 @@ void AttackSlashEffect::Update(float dt)
         Vector3 p = m_owner->GetPos();
         Vector2 dirVec = AttackDirToVector(m_dir);
 
-        p.x += dirVec.x * 120.0f;
-        p.y += dirVec.y * 120.0f;
+        const float kSlashOffset = 70.0f;
+        p.x += dirVec.x * kSlashOffset;
+        p.y += dirVec.y * kSlashOffset;
         p.y += -20.0f;
 
         m_object->SetPos(p.x, p.y, p.z);
@@ -100,24 +109,6 @@ void AttackSlashEffect::Update(float dt)
 
     // 進行率
     const float t = (m_lifeTime > 0.0f) ? (m_timer / m_lifeTime) : 1.0f;
-
-    if (t >= 1.0f)
-    {
-        m_object->SetCollisionRadius(0.0f);
-        m_dead = true;
-        return;
-    }
-
-    // =========================
-    // 表示（フェード）
-    // =========================
-    float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
-    if (m_timer < m_delay) alpha = 0.0f; // 遅延中は見せない
-    m_object->SetColor(1, 1, 1, alpha);
-
-    // 拡大
-    float scale = 0.6f + t * 0.6f;
-    m_object->SetSize(250.0f * scale, 90.0f * scale, 0.0f);
 
     // =========================
     // 当たり判定が有効な時間
@@ -128,12 +119,47 @@ void AttackSlashEffect::Update(float dt)
 
     m_object->SetCollisionRadius(hitActive ? m_hitRadius : 0.0f);
 
+    // ✅ 0.2秒마다 상태 로그 (안 뜨면 Update 자체가 안 도는 거)
+    {
+        static float s_dbg = 0.0f;
+        s_dbg += dt;
+        if (s_dbg > 0.2f)
+        {
+            s_dbg = 0.0f;
+            std::cout << "[SlashTick] time=" << m_timer
+                << " active=" << (hitActive ? 1 : 0)
+                << " rad=" << (hitActive ? m_hitRadius : 0.0f)
+                << " dmg=" << m_damage << "\n";
+        }
+    }
+
+    if (t >= 1.0f)
+    {
+        m_object->SetCollisionRadius(0.0f);
+        m_dead = true;
+        return;
+    }
+
+    // 表示（フェード）
+    float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
+    if (m_timer < m_delay) alpha = 0.0f;
+    m_object->SetColor(1, 1, 1, alpha);
+
+    // 拡大
+    float scale = 0.6f + t * 0.6f;
+    m_object->SetSize(250.0f * scale, 90.0f * scale, 0.0f);
+
     // =========================
-    // 敵に当たったらダメージ（攻撃力そのまま）
+    // 敵に当たったらダメージ
     // =========================
     if (hitActive && m_gameplay && m_damage > 0)
     {
         const auto& enemies = m_gameplay->GetSpawner().GetEnemies();
+
+        // ✅ 自前の円判定（CheckCollision を信用しない）
+        const auto ap3 = m_object->GetPos();
+        const Vector2 aPos(ap3.x, ap3.y);
+        const float aR = m_object->GetCollisionRadius(); // = m_hitRadius (hitActive中)
 
         for (const auto& e : enemies)
         {
@@ -143,11 +169,19 @@ void AttackSlashEffect::Update(float dt)
             Object* enemyObj = e->GetObject();
             if (!enemyObj) continue;
 
-            // 同じ敵はこの攻撃で1回だけ
             if (m_hitOnce.find(e.get()) != m_hitOnce.end()) continue;
 
-            if (m_object->CheckCollision(*enemyObj))
+            const auto ep3 = enemyObj->GetPos();
+            const Vector2 ePos(ep3.x, ep3.y);
+            const float eR = enemyObj->GetCollisionRadius();
+
+            const Vector2 d = (ePos - aPos);
+            const float rr = (aR + eR);
+            const bool hit = (d.LengthSquared() <= rr * rr);
+
+            if (hit)
             {
+                std::cout << "[SlashHit] hit! dmg=" << m_damage << " eR=" << eR << "\n";
                 e->TakeDamage(m_damage);
                 m_hitOnce.insert(e.get());
             }

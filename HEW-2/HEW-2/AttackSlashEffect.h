@@ -12,10 +12,8 @@ class GamePlay;
 class AttackSlashEffect : public Effect
 {
 public:
-    //   new AttackSlashEffect(this, playerObj, attackDir, facingRight, power);
     AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool facingRight, int damage);
 
-    // 旧呼び出し互換（必要なら）
     AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir);
     ~AttackSlashEffect(); 
 
@@ -36,7 +34,7 @@ private:
 
     // ダメージ/当たり判定
     int   m_damage = 10;           // ✅ プレイヤー攻撃力
-    float m_hitRadius = 45.0f;    // ✅ 判定の広さ（調整ポイント）
+    float m_hitRadius = 85.0f;    // ✅ 判定の広さ（調整ポイント）
     float m_hitActiveTime = 1.0f;// ✅ 判定が有効な時間（調整ポイント）
 
 

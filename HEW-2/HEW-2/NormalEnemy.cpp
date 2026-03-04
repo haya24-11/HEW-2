@@ -6,7 +6,7 @@ NormalEnemy::NormalEnemy()
     const auto cfg = GetSpawnConfig();
     hp = cfg.hp;
     power = cfg.power;
-	moveSpeed = 10.0f;
+	moveSpeed = 7.0f;
 
 	SetupAnimation();
 }

@@ -45,15 +45,22 @@ void Player::Update(float deltaTime)
     {
         if (m_invincibleTimer > 0.0f)
         {
-            const float kBlink = 0.08f;               // 点滅の速さ（小さいほど速い）
-            const float t = fmodf(m_invincibleTimer, kBlink * 2.0f);
-            const float a = (t < kBlink) ? 0.25f : 1.0f;
-
-            m_object->SetColor(1.0f, 1.0f, 1.0f, a); // ✅ キラキラ（透明度）
+            if (m_invincibleBlink)
+            {
+                const float kBlink = 0.08f;               // 点滅の速さ
+                const float t = fmodf(m_invincibleTimer, kBlink * 2.0f);
+                const float a = (t < kBlink) ? 0.25f : 1.0f;
+                m_object->SetColor(1.0f, 1.0f, 1.0f, a);  // ✅ 点滅あり
+            }
+            else
+            {
+                m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // ✅ 点滅なし（常に表示）
+            }
         }
         else
         {
-            m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // ✅ 無敵が終わったら元に戻す
+            m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+            m_invincibleBlink = true; // ✅ 次の無敵（被ダメ無敵）は点滅ありに戻す
         }
     }
     if (m_hitInvTimer > 0.0f)
@@ -334,8 +341,11 @@ void Player::Update(float deltaTime)
             // ✅ 強攻撃終了後：1秒間は接触で被弾アニメを出さない
             if (wasHeavy)
             {
-                StartNoHitAnim(1.0f);
-                if (m_hitInvTimer < 1.0f) m_hitInvTimer = 1.0f;
+                if (m_hitInvTimer < 1.5f) m_hitInvTimer = 1.5f;
+
+                if (m_invincibleTimer < 1.5f) m_invincibleTimer = 1.5f;
+
+                m_invincibleBlink = false;
             }
         }
 
@@ -582,8 +592,8 @@ bool Player::UpdateHeavyDash(float deltaTime)
     // ✅ 強攻撃ダッシュが終わった瞬間から1秒は接触被弾アニメを禁止
     if (prevDash > 0.0f && m_heavyDashTimer == 0.0f)
     {
-        StartNoHitAnim(1.0f);
-        if (m_hitInvTimer < 1.0f) m_hitInvTimer = 1.0f;
+        StartNoHitAnim(2.0f);
+        if (m_hitInvTimer < 2.0f) m_hitInvTimer = 2.0f;
     }
 
     auto p = m_object->GetPos();
@@ -676,6 +686,7 @@ void Player::TakeDamage(int dmg)
 
     // ✅ ここで無敵開始
     m_invincibleTimer = m_invincibleDuration;
+    m_invincibleBlink = true;   // ✅ 被ダメ無敵は点滅あり（強攻撃後と区別）
 
     m_hitReactCD = m_hitReactCooldown;
 }

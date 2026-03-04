@@ -111,6 +111,7 @@ void GamePlay::InitScene()
 
     Object dummy;
     dummy.Init("asset/Texture/player_attack_heavy.png", 1, 1);
+    //dummy.Init("asset / Texture / BossWalk.png" , 1, 1);
     dummy.SetSize(1.0f, 1.0f, 0.0f);
     dummy.SetPos(100000.0f, 100000.0f, 0.0f); // 画面の外
     dummy.Draw();
@@ -282,7 +283,7 @@ void GamePlay::UpdateScene(float deltaTime)
     const bool isHeavyDashing = m_player->IsHeavyDashing();
     if (wasHeavyDashing && !isHeavyDashing)
     {
-      //  m_player->StartNoHitAnim(3.0f);
+       m_player->StartNoHitAnim(1.0f);
     }
 
     if (!m_player) return;
@@ -305,6 +306,7 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (attackStart)
     {
+        std::cout << "[GamePlay] attackStart TRUE -> create slash\n";
         m_attackEffects.push_back(
             new AttackSlashEffect(
                 this,
@@ -314,6 +316,12 @@ void GamePlay::UpdateScene(float deltaTime)
                 m_player->GetPower()
             )
         );
+    }
+    else
+    {
+        static float s_t = 0.0f;
+        s_t += deltaTime;
+        if (s_t > 1.0f) { s_t = 0.0f; std::cout << "[GamePlay] attackStart FALSE\n"; }
     }
 
     if (s_touchHitCD_All > 0.0f)
