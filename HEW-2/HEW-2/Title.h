@@ -23,6 +23,6 @@ public:
     void UpdateScene(float deltaTime) override;
     void DrawScene() override;
     void UninitScene() override;
-
+    WORD m_prevButtons = 0;
 };
 

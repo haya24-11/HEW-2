@@ -1,4 +1,4 @@
-#include "ComboManager.h"
+﻿#include "ComboManager.h"
 #include "GamePlay.h"
 
 static constexpr float COMBO_DISPLAY_TIME = 3.0f;
@@ -7,20 +7,36 @@ void ComboManager::Init(GamePlay* scene)
 {
     m_scene = scene;
 
-    // �ő�4��
+    // ✅ リプレイ対策：前回のポインタを必ず破棄（ClearObject 後に触ると危険）
+    m_digits.clear();
+    m_debugText = nullptr;
+
+    // 状態を初期化
+    m_comboCount = 0;
+    m_attackActive = false;
+    m_visible = false;
+    m_timer = 0.0f;
+    m_popScale = 1.0f;
+    m_popTimer = 0.0f;
+
+    if (!m_scene) return;
+
+    // 4桁分のUIを生成
+    m_digits.reserve(4);
     for (int i = 0; i < 4; i++)
     {
         Object* digit = m_scene->AddObject();
+        if (!digit) continue;
+
         digit->Init("asset/UI/combo_number.png", 10, 1);
         digit->SetSpriteSheet(10, 1);
         digit->SetUI(true);
         digit->SetSize(64, 64, 0);
 
+        // 最初は非表示
+        digit->SetActive(false);
+
         m_digits.push_back(digit);
-    }
-    for (auto d : m_digits)
-    {
-        d->SetActive(false);
     }
 }
 
@@ -47,7 +63,7 @@ void ComboManager::AddHit()
 void ComboManager::UpdateDraw()
 {
     for (auto d : m_digits)
-        d->SetActive(false);
+        if (d) d->SetActive(false);
 
     if (!m_visible) return;
 
