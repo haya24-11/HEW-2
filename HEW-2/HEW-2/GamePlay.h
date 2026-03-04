@@ -64,4 +64,6 @@ private:
     std::vector<AttackSlashEffect*> m_attackEffects;
 
     bool m_bossHasSpawned = false;
+
+    std::vector<Object*> m_levelDigits;
 };
