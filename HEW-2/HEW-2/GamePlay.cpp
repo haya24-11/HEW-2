@@ -387,7 +387,6 @@ void GamePlay::UpdateScene(float deltaTime)
 
             if (!contact) continue;
 
-            // 강공격 대시 중이면 피격 연출 대신 핀볼 히트
             if (m_player->IsHeavyDashing())
             {
                 HeavyPinballHit(m_player.get(), playerObj, e.get(), enemyObj);
@@ -397,7 +396,6 @@ void GamePlay::UpdateScene(float deltaTime)
 
                 pushed = true;
             }
-            // 강공격 차지 중이면 피격 연출 금지(밀어내기만)
             else if (m_player->IsHeavyCharging())
             {
                 PushOutCircle(playerObj, enemyObj);
@@ -410,8 +408,6 @@ void GamePlay::UpdateScene(float deltaTime)
                 {
                     m_player->PlayHitReaction();
                 }
-
-                // ✅ 밀어내기는 기존처럼 처리
                 if (!e->IsKnockBacking())
                 {
                     PushOutCircle(playerObj, enemyObj);
