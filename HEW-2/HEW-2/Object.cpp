@@ -119,7 +119,7 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 
 void Object::Draw()
 {
-	//if (!m_active) return;
+	if (!m_active) return;
 	if (!m_visible) return;
 
 	// =========================

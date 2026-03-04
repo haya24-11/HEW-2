@@ -258,14 +258,15 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
-
+    float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
 
     const bool wasHeavyDashing = m_player->IsHeavyDashing();
 
     // プレイヤー更新
     m_player->Update(deltaTime);
-
+    //combo
+    m_combo.Update(deltaTime);
     // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
     const bool isHeavyDashing = m_player->IsHeavyDashing();
     if (wasHeavyDashing && !isHeavyDashing)
@@ -281,7 +282,6 @@ void GamePlay::UpdateScene(float deltaTime)
     const auto oldPos = playerObj->GetPos();
 
 
-    m_combo.Update(deltaTime);
 
     // 弱攻撃エフェクト
     bool attackStart =
