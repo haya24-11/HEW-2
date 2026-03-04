@@ -1,17 +1,61 @@
-#include "Skillpowerbuff.h"
-#include"Player.h"
+//#include "Skillpowerbuff.h"
+//#include"Player.h"
+//
+//Skillpowerbuff::Skillpowerbuff(int value):BuffSkill("Buff",4),m_buffValue(value)
+//{
+//}
+//
+//Player playerExp;
+//
+//
+//static void Apply(Player* player)
+//{
+//	if (!player)return;
+//	int exp = playerExp.GetLevel();
+//	switch (exp)
+//	{
+//	case 2:
+//		int atk = player->GetPower();
+//		atk = static_cast<int>(atk * 1.2);
+//		player->SetPower(atk);
+//		break;
+//
+//	case 3:
+//		 atk = player->GetPower();
+//		atk = static_cast<int>(atk * 1.2);
+//		player->SetPower(atk);
+//		break;
+//	default:
+//		break;
+//	}
+//	
+//}
 
-Skillpowerbuff::Skillpowerbuff(int value):BuffSkill("Buff",4),m_buffValue(value)
+#include "Skillpowerbuff.h"
+#include "Player.h"
+
+Skillpowerbuff::Skillpowerbuff(int value) : BuffSkill("Buff", 4), m_buffValue(value)
 {
 }
 
-
-
-static void Apply(Player* player)
+ void Skillpowerbuff::Apply(Player* player)
 {
-	if (!player)return;
+    if (!player) return;
 
-	int atk = player->GetPower();
-	atk = static_cast<int>(atk *0.2);
-	player->SetPower(atk);
+    int level = player->GetLevel(); // 同じplayerからレベルを取得
+
+    int atk = player->GetPower();   // case外で宣言してスコープ問題を回避
+
+    switch (level)
+    {
+    case 2:
+        atk = static_cast<int>(atk * 1.2);
+        player->SetPower(atk);
+    case 3:
+        atk = static_cast<int>(atk * 1.5);
+        player->SetPower(atk);
+        break;
+    default:
+        break;
+    }
 }

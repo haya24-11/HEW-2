@@ -1,5 +1,6 @@
 #pragma once
 #include "BuffSkill.h"
+#include"Player.h"
 class Skillpowerbuff :public BuffSkill
 {
 private:
@@ -9,5 +10,7 @@ private:
 public:
 
 	Skillpowerbuff(int value);
+
+	void Apply(Player* player);
 
 };
