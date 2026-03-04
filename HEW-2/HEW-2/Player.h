@@ -184,7 +184,7 @@ private:
     SizeScale m_scaleDamaged{ 1.0f, 1.0f }; // ✅ 被ダメ用
 
     // ✅ 被ダメ後の短い無敵（連続ヒット防止）
-    float m_invincibleTimer = 0.0f;
+    float m_invincibleTimer = 2.0f;
     float m_invincibleDuration = 5.0f;
 
     // ===== HeavyAttack ダッシュ =====
@@ -229,7 +229,7 @@ private:
     float m_hitReactCD = 0.0f;
     float m_hitReactCooldown = 3.0f;
 
-    float m_hitInvTimer = 2.0f;
+    float m_hitInvTimer = 0.0f;
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;

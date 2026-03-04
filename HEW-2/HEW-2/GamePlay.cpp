@@ -280,7 +280,8 @@ void GamePlay::UpdateScene(float deltaTime)
         m_attackEffects.push_back(
             new AttackSlashEffect(this,
                 m_player->GetObject(),
-                m_player->IsFacingRight())
+                m_player->IsFacingRight(),
+                m_player->GetPower())
         );
     }
 

@@ -1,12 +1,22 @@
-#include "AttackSlashEffect.h"
+ï»¿#include "AttackSlashEffect.h"
 #include "Scene.h"
 #include "Object.h"
 
+#include "GamePlay.h"       // âœ… å¿…è¦
+#include "EnemySpawner.h"   // âœ… å¿…è¦
+#include "Enemy.h"          // âœ… å¿…è¦
+
+#include <cmath>
+
 using namespace DirectX::SimpleMath;
 
-AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, bool facingRight)
+AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, bool facingRight, int damage)
 {
     m_scene = scene;
+    m_damage = damage;
+
+    // âœ… GamePlayå–å¾—ï¼ˆæ•µãƒªã‚¹ãƒˆã«ã‚¢ã‚¯ã‚»ã‚¹ã™ã‚‹ãŸã‚ï¼‰
+    m_gameplay = dynamic_cast<GamePlay*>(scene);
 
     m_object = scene->AddObject();
     if (!m_object)
@@ -15,20 +25,24 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, bool facingRig
         return;
     }
 
-    // ¥ ŠmÀ‚ÉŒ©‚¦‚éİ’èiƒfƒoƒbƒO—pj
+    // =========================
+    // è¦‹ãŸç›®ï¼ˆæ–¬æ’ƒï¼‰
+    // =========================
     m_object->Init("asset/Texture/slash_effect.png", 1, 1);
-    m_object->SetSize(300.0f, 300.0f, 0.0f);
-    m_object->SetPos(0.0f, 0.0f, 0.0f);     // ‰æ–Ê’†‰›ŒÅ’è
-    m_object->SetColor(1.0f, 0.0f, 0.0f, 1.0f); // ^‚ÁÔ
-    m_object->SetUI(false);                 // UIˆµ‚¢‚ğ–¾¦“I‚ÉƒIƒt
+    m_object->SetUI(false);
 
+    // åˆæœŸã‚µã‚¤ã‚ºï¼ˆUpdateã§æ‹¡å¤§ã—ã¦ã„ãï¼‰
+    m_object->SetSize(120.0f, 120.0f, 0.0f);
 
+    // åˆæœŸã¯é€æ˜
+    m_object->SetColor(1, 1, 1, 0);
+
+    // =========================
+    // ä½ç½®ï¼šãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å‰æ–¹ã«å‡ºã™
+    // =========================
     auto p = owner->GetPos();
-    // =========================
-    // •`‰æˆÊ’ui­‚µ‰º‚É‚¸‚ç‚·j
-    // =========================
     const float offsetX = 80.0f;
-    const float offsetY = -20.0f;   //  ‰º‚É•`‰æiƒ}ƒCƒiƒX‚Å‰ºj
+    const float offsetY = -20.0f;
 
     m_object->SetPos(
         p.x + (facingRight ? offsetX : -offsetX),
@@ -36,24 +50,15 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, bool facingRig
         p.z
     );
 
-    // =========================
-    // š Œü‚«‚É‚æ‚éŠp“x”½“]
-    // =========================
-    // ‰EŒü‚«‰æ‘œ‚ğŠî€‚É‚·‚é
-    // ¶Œü‚«‚È‚ç180“x‰ñ“]
-    if (!facingRight)
-    {
-        m_object->SetAngle(180.0f);
-    }
-    else
-    {
-        m_object->SetAngle(0.0f);
-    }
+    // å‘ãï¼ˆå·¦ãªã‚‰å›è»¢ï¼‰
+    m_object->SetAngle(facingRight ? 0.0f : 180.0f);
+
+    // âœ… å½“ãŸã‚Šåˆ¤å®šï¼ˆé–‹å§‹æ™‚ã¯OFFã«ã—ã¦ã€åˆ¤å®šæ™‚é–“ã ã‘ONï¼‰
+    m_object->SetCollisionRadius(0.0f);
 }
 
 AttackSlashEffect::~AttackSlashEffect()
 {
-
 }
 
 void AttackSlashEffect::Update(float dt)
@@ -63,22 +68,63 @@ void AttackSlashEffect::Update(float dt)
 
     m_timer += dt;
 
-
-    float t = m_timer / m_lifeTime;
+    // é€²è¡Œç‡
+    const float t = (m_lifeTime > 0.0f) ? (m_timer / m_lifeTime) : 1.0f;
 
     if (t >= 1.0f)
     {
+        // çµ‚äº†ï¼šåˆ¤å®šOFFâ†’æ¶ˆæ»…
+        m_object->SetCollisionRadius(0.0f);
         m_dead = true;
         return;
     }
 
+    // =========================
+    // è¡¨ç¤ºï¼ˆãƒ•ã‚§ãƒ¼ãƒ‰ï¼‰
+    // =========================
+    float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
+    if (m_timer < m_delay) alpha = 0.0f; // é…å»¶ä¸­ã¯è¦‹ã›ãªã„
+    m_object->SetColor(1, 1, 1, alpha);
+
+    // æ‹¡å¤§
     float scale = 0.6f + t * 0.6f;
     m_object->SetSize(120.0f * scale, 120.0f * scale, 0.0f);
 
-    float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
-    m_object->SetColor(1, 1, 1, alpha);
-}
+    // =========================
+    // âœ… å½“ãŸã‚Šåˆ¤å®šã®æœ‰åŠ¹æ™‚é–“
+    // =========================
+    const float hitStart = m_delay;
+    const float hitEnd = m_delay + m_hitActiveTime;
+    const bool hitActive = (m_timer >= hitStart && m_timer <= hitEnd);
 
+    m_object->SetCollisionRadius(hitActive ? m_hitRadius : 0.0f);
+
+    // =========================
+    // âœ… æ•µã«å½“ãŸã£ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ”»æ’ƒåŠ›ãã®ã¾ã¾ï¼‰
+    // =========================
+    if (hitActive && m_gameplay && m_damage > 0)
+    {
+        const auto& enemies = m_gameplay->GetSpawner().GetEnemies();
+
+        for (const auto& e : enemies)
+        {
+            if (!e) continue;
+            if (!e->IsAlive()) continue;
+
+            Object* enemyObj = e->GetObject();
+            if (!enemyObj) continue;
+
+            // åŒã˜æ•µã¯ã“ã®æ”»æ’ƒã§1å›ã ã‘
+            if (m_hitOnce.find(e.get()) != m_hitOnce.end()) continue;
+
+            if (m_object->CheckCollision(*enemyObj))
+            {
+                e->TakeDamage(m_damage);
+                m_hitOnce.insert(e.get());
+            }
+        }
+    }
+}
 
 void AttackSlashEffect::Uninit()
 {

@@ -28,7 +28,7 @@ public:
 
         cfg.stopDist = 200.0f;  // 近づいたら止まる距離（任意）
         cfg.hp = 2000;
-        cfg.power = 5;
+        cfg.power = 10;
 
         // 死亡演出（必要なら）
         cfg.dieDelay = 1.0f;        // 死亡モーション表示時間

@@ -486,37 +486,16 @@ void Player::ApplyVisualSize(const SizeScale& s)
 void Player::TakeDamage(int dmg)
 {
     if (dmg <= 0) return;
-
+    //damaged debug
+    std::cout << "[TakeDamage] inv=" << m_invincibleTimer
+        << " hp=" << hp
+        << " dmg=" << dmg << "\n";
     if (IsHeavyCharging() || IsHeavyDashing())
         return;
 
+    // ✅ 無敵中は「ダメージも演出も」完全無視
     if (m_invincibleTimer > 0.0f)
-    {
-        if (m_hitReactCD <= 0.0f)
-        {
-            m_state = State::Damaged;
-
-            m_lockFacing = false;
-            m_heavyDashTimer = 0.0f;
-
-            if (m_object)
-            {
-                m_object->SetTexture("asset/Texture/player_damaged.png");
-                m_object->SetSpriteSheet(5, 1);
-                ApplyVisualSize(m_scaleDamaged);
-
-                const bool textureIsRightFacing = true;
-                m_object->SetFlipX(textureIsRightFacing != m_facingRight);
-            }
-
-            // Animatorが同一Play無視でも確実にリスタート
-            m_animator.Play(m_idleAnim);
-            m_animator.Play(m_damagedAnim);
-
-            m_hitReactCD = m_hitReactCooldown;
-        }
         return;
-    }
 
     Chara::TakeDamage(dmg);
     if (hp <= 0) return;
@@ -539,15 +518,17 @@ void Player::TakeDamage(int dmg)
     m_animator.Play(m_idleAnim);
     m_animator.Play(m_damagedAnim);
 
+    // ✅ ここで無敵開始
     m_invincibleTimer = m_invincibleDuration;
 
     m_hitReactCD = m_hitReactCooldown;
 }
 
-
 void Player::PlayHitReaction()
 {
+    if (m_invincibleTimer > 0.0f) return;
     if (m_hitInvTimer > 0.0f) return;
+    if (IsHeavyCharging() || IsHeavyDashing()) return;
 
     m_state = State::Damaged;
     m_lockFacing = false;

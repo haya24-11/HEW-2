@@ -40,7 +40,9 @@ public:
 
     void UpdateUIFollowCamera();
 
-
+    //通常攻撃
+    EnemySpawner& GetSpawner() { return m_spawner; }
+    const EnemySpawner& GetSpawner() const { return m_spawner; }
 
 private:
     std::unique_ptr<Player> m_player;

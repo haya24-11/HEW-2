@@ -15,7 +15,7 @@ public:
         cfg.sizeY = 100.0f;
         cfg.collisionRadius = 30.0f;
         cfg.stopDist = 200.0f;//敵が近づいたら止まる
-        cfg.hp = 75;
+        cfg.hp = 5;
         cfg.power = 3;
         return cfg;
     }
