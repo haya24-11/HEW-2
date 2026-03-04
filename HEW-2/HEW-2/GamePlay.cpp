@@ -257,10 +257,18 @@ void GamePlay::InitScene()
         digit->Init("asset/UI/LevelNumber.png", 5, 2);
         digit->SetSpriteSheet(5, 2);
         digit->SetUI(true);
-        digit->SetSize(48.0f, 64.0f, 0.0f);  // ←縦長なので少し縦強め
+        digit->SetSize(72.0f, 96.0f, 0.0f);  // ←縦長なので少し縦強め
 
         m_levelDigits.push_back(digit);
     }
+
+    // ============================
+    // LEVEL. ラベル
+    // ============================
+    m_levelLabel = AddObject();
+    m_levelLabel->Init("asset/UI/level_text.png");  // ← LEVEL. 画像パス
+    m_levelLabel->SetUI(true);
+    m_levelLabel->SetSize(160.0f, 40.0f, 0.0f);  // ★ここ調整ポイント①
 
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
@@ -621,8 +629,10 @@ void GamePlay::UpdateScene(float deltaTime)
     float halfW = SCREEN_WIDTH * 0.5f;
     float halfH = SCREEN_HEIGHT * 0.5f;
 
-    float startX = -halfW + 40.0f;      // ←左から40px
-    float startY = halfH - 80.0f;      // ←上から80px
+
+    // レベルUI関連の描画位置
+    float startX = -halfW + 380.0f;   // ★右にずらす
+    float startY = halfH - 70.0f;     // ★上に少し寄せる
 
     // 左→右に並べる
     for (int i = digitCount - 1; i >= 0; --i)
@@ -643,6 +653,17 @@ void GamePlay::UpdateScene(float deltaTime)
         }
 
         level /= 10;
+    }
+    // ============================
+    // LEVEL. の位置
+    // ============================
+    if (m_levelLabel)
+    {
+        m_levelLabel->SetPos(
+            startX - 140.0f,   // ★調整ポイント②（数字との距離）
+            startY,
+            0.0f
+        );
     }
 
     // レベルアップ時の演出（未実装）
