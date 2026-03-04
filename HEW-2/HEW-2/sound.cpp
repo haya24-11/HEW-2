@@ -148,21 +148,38 @@ void Sound::Play(SOUND_LABEL label)
 		return;
 	}
 
-	IXAudio2SourceVoice*& pSV = m_pSourceVoice[(int)label];
+	if (label < 0 || label >= SOUND_LABEL_MAX)
+		return;
+	
 
-	if (pSV != nullptr)
-	{
-		pSV->DestroyVoice();
-		pSV = nullptr;
-	}
+	IXAudio2SourceVoice*& pSV = m_pSourceVoice[(int)label];
+	if (!pSV) return;
+
+	pSV->Stop();
+	pSV->FlushSourceBuffers();
 
 	// ソースボイス作成
-	m_pXAudio2->CreateSourceVoice(&pSV, &(m_wfx[(int)label].Format));
-	pSV->SubmitSourceBuffer(&(m_buffer[(int)label]));	// ボイスキューに新しいオーディオバッファーを追加
+	//m_pXAudio2->CreateSourceVoice(&pSV, &(m_wfx[(int)label].Format));
+	//pSV->SubmitSourceBuffer(&(m_buffer[(int)label]));	// ボイスキューに新しいオーディオバッファーを追加
+
+	HRESULT hr = pSV->SubmitSourceBuffer(&m_buffer[(int)label]);
+	if (FAILED(hr)) return;
 
 	// 再生
 	pSV->Start(0);
 
+}
+
+Sound::Sound()
+{
+	m_pXAudio2 = nullptr;
+	m_pMasteringVoice = nullptr;
+
+	for (int i = 0; i < SOUND_LABEL_MAX; i++)
+	{
+		m_pSourceVoice[i] = nullptr;
+		m_DataBuffer[i] = nullptr;
+	}
 }
 
 Sound* Sound::GetInstance()
