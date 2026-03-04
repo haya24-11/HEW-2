@@ -251,6 +251,17 @@ void GamePlay::InitScene()
 
     m_combo.Init(this);
    
+    for (int i = 0; i < 2; i++)
+    {
+        Object* digit = AddObject();
+        digit->Init("asset/UI/LevelNumber.png", 5, 2);
+        digit->SetSpriteSheet(5, 2);
+        digit->SetUI(true);
+        digit->SetSize(48.0f, 64.0f, 0.0f);  // ←縦長なので少し縦強め
+
+        m_levelDigits.push_back(digit);
+    }
+
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -258,14 +269,15 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
-
+    float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
 
     const bool wasHeavyDashing = m_player->IsHeavyDashing();
 
     // プレイヤー更新
     m_player->Update(deltaTime);
-
+    //combo
+    m_combo.Update(deltaTime);
     // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
     const bool isHeavyDashing = m_player->IsHeavyDashing();
     if (wasHeavyDashing && !isHeavyDashing)
@@ -281,7 +293,6 @@ void GamePlay::UpdateScene(float deltaTime)
     const auto oldPos = playerObj->GetPos();
 
 
-    m_combo.Update(deltaTime);
 
     // 弱攻撃エフェクト
     bool attackStart =
@@ -588,7 +599,65 @@ void GamePlay::UpdateScene(float deltaTime)
         // 横だけ変える
         ExpBarGauge->SetSize(width, 40.0f, 0.0f);
     }
+    // =======================================
+   // レベル数字 左上固定表示
+   // =======================================
+    int level = m_player->GetLevel();
 
+    // いったん全部非表示
+    for (auto d : m_levelDigits)
+        d->SetActive(false);
+
+    // 桁数を数える
+    int temp = level;
+    int digitCount = 0;
+    do
+    {
+        digitCount++;
+        temp /= 10;
+    } while (temp > 0);
+
+    // 左上基準位置（画面基準）
+    float halfW = SCREEN_WIDTH * 0.5f;
+    float halfH = SCREEN_HEIGHT * 0.5f;
+
+    float startX = -halfW + 40.0f;      // ←左から40px
+    float startY = halfH - 80.0f;      // ←上から80px
+
+    // 左→右に並べる
+    for (int i = digitCount - 1; i >= 0; --i)
+    {
+        int num = level % 10;
+
+        if (i < m_levelDigits.size())
+        {
+            auto obj = m_levelDigits[i];
+            obj->SetActive(true);
+            obj->SetAnimFrame(num);
+
+            obj->SetPos(
+                startX + (digitCount - 1 - i) * 50.0f,  // ←横間隔50
+                startY,
+                0.0f
+            );
+        }
+
+        level /= 10;
+    }
+
+    // レベルアップ時の演出（未実装）
+    /*
+    if (m_player->IsJustLeveledUp())
+{
+    // エフェクト生成
+    auto effect = AddObject();
+    effect->Init("asset/UI/levelup.png");
+    effect->SetUI(true);
+    effect->SetPos(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0);
+
+    m_player->ResetLevelUpFlag();
+}
+    */
     prevButtons = buttons;
     UpdateUIFollowCamera();
 }

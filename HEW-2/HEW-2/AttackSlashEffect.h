@@ -30,12 +30,12 @@ private:
 
     // 表示/寿命
     float m_timer = 0.0f;
-    float m_lifeTime = 0.18f;     // ✅ 斬撃の表示時間（短めが自然）
+    float m_lifeTime = 1.5f;     // ✅ 斬撃の表示時間（短めが自然）
     float m_delay = 0.08f;        // ✅ 遅延（必要なら 0.05〜0.1）
     bool  m_dead = false;
 
     // ダメージ/当たり判定
-    int   m_damage = 0;           // ✅ プレイヤー攻撃力
+    int   m_damage = 10;           // ✅ プレイヤー攻撃力
     float m_hitRadius = 45.0f;    // ✅ 判定の広さ（調整ポイント）
     float m_hitActiveTime = 1.0f;// ✅ 判定が有効な時間（調整ポイント）
 
