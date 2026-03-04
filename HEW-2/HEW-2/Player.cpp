@@ -251,6 +251,8 @@ void Player::Update(float deltaTime)
             }
         }
 
+
+
         // チャージアニメを継続更新
         m_animator.Update(deltaTime);
         Chara::Update(deltaTime);
@@ -258,6 +260,15 @@ void Player::Update(float deltaTime)
         CommitPad();
         return;
     }
+
+    // 押した瞬間に経験値が入る（デバッグ）
+#ifdef _DEBUG
+
+    if (GetAsyncKeyState(VK_F1) & 0x0001) AddExp(10);
+    if (GetAsyncKeyState(VK_F2) & 0x0001) AddExp(100);
+    if (GetAsyncKeyState(VK_F3) & 0x0001) AddExp(1000);
+
+#endif
 
     // =========================
     // 攻撃中
