@@ -49,6 +49,10 @@ private:
 
     Object* m_map = nullptr;
 
+    int m_playtime = 0; //ゲームプレイ時間(Result掲載用)
+    //int minutes = m_playtime / 60; // 分
+    //int seconds = m_playtime % 60; // 秒
+
     float m_rotation = 0.0f;        // 現在の角度（ラジアン or 度）
     float m_rotationSpeed = 7.5f; // 回転速度（度/秒）
 
@@ -57,3 +61,5 @@ private:
     bool  m_bossPhase = false;
     std::vector<AttackSlashEffect*> m_attackEffects;
 };
+
+

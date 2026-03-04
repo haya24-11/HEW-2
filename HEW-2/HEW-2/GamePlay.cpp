@@ -195,7 +195,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerIcon->Init("asset/UI/playericon.png");
     PlayerIcon->SetUI(true);
-    
+
 
     // ===== バフアイコン =====
     BuffIcons.clear(); // ★2回目開始時に前回のポインタが残らないように一応クリア
@@ -247,7 +247,7 @@ void GamePlay::InitScene()
     ExpBarFrame->SetUI(true);
 
     m_combo.Init(this);
-   
+
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -523,6 +523,11 @@ void GamePlay::UpdateScene(float deltaTime)
         // bossFound==false は「死んで Cleanup で消えた後」も含む
         if (s_bossHasSpawned && (!bossFound || !bossAlive))
         {
+            ResultData data;
+            data.monsterKills = m_spawner.GetKillCount();
+            data.maxCombo = m_combo.GetMaxCombo();
+            data.playTime = m_playtime;
+
             SetNextScene(SceneType::Result);
             return;
         }
@@ -565,6 +570,7 @@ void GamePlay::UpdateScene(float deltaTime)
         ExpBarGauge->SetSize(width, 40.0f, 0.0f);
     }
 
+    m_playtime++; //時間更新
     prevButtons = buttons;
     UpdateUIFollowCamera();
 }
@@ -599,6 +605,11 @@ void GamePlay::DrawScene()
 
         if (frame >= 0) obj->Draw(frame);
         else            obj->Draw();
+
+        ExpBarFrame->Draw();
+        ExpBarGauge->Draw();
+        ExpBarBack->Draw();
+
     }
 
     // =============================
@@ -668,7 +679,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
-   
+
     const float halfW = SCREEN_WIDTH * 0.5f;
     const float halfH = SCREEN_HEIGHT * 0.5f;
     const float pad = 30.0f;
@@ -722,7 +733,7 @@ void GamePlay::UpdateUIFollowCamera()
     if (ExpBarFrame)
     {
         const float gapY = -855.0f;
-        ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
+        ExpBarBack->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
         // ==========================
         // EXPバー左端固定
         // ==========================

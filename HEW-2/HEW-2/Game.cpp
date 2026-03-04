@@ -19,6 +19,7 @@ void Game::Init()
     scenes[static_cast<int>(SceneType::Title)] = std::make_unique<Title>();
     scenes[static_cast<int>(SceneType::GamePlay)] = std::make_unique<GamePlay>();
     scenes[static_cast<int>(SceneType::Result)] = std::make_unique<Result>();
+    scenes[static_cast<int>(SceneType::SaveScore)] = std::make_unique<SaveScore>();
     scenes[static_cast<int>(SceneType::GameOver)] = std::make_unique<GameOver>();
 
     Input::Create();

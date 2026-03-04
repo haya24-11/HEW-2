@@ -171,6 +171,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Result.cpp" />
+    <ClCompile Include="SaveScore.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="SlimeEnemy.cpp" />
@@ -209,6 +210,8 @@
     <ClInclude Include="input.h" />
     <ClInclude Include="GamePlay.h" />
     <ClInclude Include="Result.h" />
+    <ClInclude Include="ResultData.h" />
+    <ClInclude Include="SaveScore.h" />
     <ClInclude Include="SceneTypes.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MathTypes.h" />

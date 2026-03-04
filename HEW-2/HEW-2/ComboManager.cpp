@@ -130,7 +130,12 @@ void ComboManager::Update(float deltaTime)
         if (m_timer <= 0.0f)
         {
             m_visible = false;
-            m_comboCount = 0; // 表示消えると同時にカウントもリセット
+
+            if (m_comboCount > m_maxCombo) {
+                m_maxCombo = m_comboCount;
+            }
         }
+        m_comboCount = 0; // 表示消えると同時にカウントもリセット
+
     }
 }
