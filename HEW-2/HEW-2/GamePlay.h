@@ -54,6 +54,7 @@ private:
     ComboManager m_combo;
 
     Object* m_map = nullptr;
+   
 
     float m_rotation = 0.0f;        // 現在の角度（ラジアン or 度）
     float m_rotationSpeed = 7.5f; // 回転速度（度/秒）
@@ -66,4 +67,5 @@ private:
     bool m_bossHasSpawned = false;
 
     std::vector<Object*> m_levelDigits;
+    Object* m_levelLabel = nullptr;   // "LEVEL." 表示用
 };
