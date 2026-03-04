@@ -53,6 +53,7 @@ private:
 
     Object* m_map = nullptr;
 
+    int m_playtime = 0; //ゲームプレイ時間(Result掲載用)
     float m_rotation = 0.0f;
     float m_rotationSpeed = 7.5f;
 
