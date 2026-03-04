@@ -599,7 +599,7 @@ void Player::Attack()
     // Mode / Skill 側で実装（ここでは未使用）
 }
 
-void Player::ApplyAbility(Skill* skill)
+void Player::ApplyAbility(auto* skill)
 {
     if (!skill) return;
     skills.push_back(skill);

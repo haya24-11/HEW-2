@@ -85,6 +85,13 @@ public:
     void Attack() override;
 
     // スキル取得時の共通処理
+    void ApplyAbility(auto* skill);
+   
+    //取得したスキル一覧
+    const std::vector<Skill*>& GetLearnedSkills() const;
+
+
+
     void ApplyAbility(Skill* skill);
 
     int GetPower() const;
