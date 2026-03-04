@@ -5,7 +5,6 @@
 #include <iostream>
 
 class GamePlay;
-class Player;
 
 class ComboManager
 {
@@ -20,7 +19,6 @@ public:
 private:
     GamePlay* m_scene = nullptr;
     Object* m_debugText = nullptr;
-    Player* m_player = nullptr;
 
     int   m_comboCount = 0;
     bool  m_attackActive = false;
@@ -36,12 +34,6 @@ private:
     const float POP_TIME = 0.15f;
 
     const float COMBO_DISPLAY_TIME = 3.0f; // 攻撃停止後表示する時間
-
-    // =====================
-    // 倍率調整値（触るのはここだけでOK）
-    // =====================
-    const float COMBO_EXP_RATE = 0.1f;  // 1コンボごとに+0.1倍
-    const int   BASE_EXP = 10;          // 基本経験値
 
     std::vector<Object*> m_digits;
 };

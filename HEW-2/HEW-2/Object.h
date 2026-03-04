@@ -159,10 +159,10 @@ private:
     bool m_visible = true;
 
 public:
-   /* void SetVisible(bool v) { m_visible = v; }
+    void SetVisible(bool v) { m_visible = v; }
     bool IsVisible() const { return m_visible; }
 
-    void SetAnimFrame(int frame);*/
+    void SetAnimFrame(int frame);
 
     void SetActive(bool active);
     bool IsActive() const;
