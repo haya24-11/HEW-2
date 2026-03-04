@@ -56,6 +56,7 @@ static void EnemyReboundTransfer(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
 
 static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj);
 
+static float s_touchHitCD_All = 0.0f; // 全モンスター共通の接触被弾CT
 
 // 強攻撃の同一敵ヒット連打防止用クールダウン
 static std::unordered_map<Enemy*, float> s_heavyHitCD;
@@ -98,6 +99,8 @@ GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 
 void GamePlay::InitScene()
 {
+    m_bossHasSpawned = false;
+
     // ===== プレイヤー関連テクスチャを事前ロード =====
     PreloadTexture(g_pDevice, "asset/Texture/player_idle.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_walk.png");
@@ -105,9 +108,12 @@ void GamePlay::InitScene()
     PreloadTexture(g_pDevice, "asset/Texture/player_attack_heavy.png");
     PreloadTexture(g_pDevice, "asset/Texture/slash_effect.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_damaged.png");
+    PreloadTexture(g_pDevice, "asset/UI/LevelNumber.png");
+    PreloadTexture(g_pDevice, "asset/UI/level_text.png");
 
     Object dummy;
     dummy.Init("asset/Texture/player_attack_heavy.png", 1, 1);
+    //dummy.Init("asset / Texture / BossWalk.png" , 1, 1);
     dummy.SetSize(1.0f, 1.0f, 0.0f);
     dummy.SetPos(100000.0f, 100000.0f, 0.0f); // 画面の外
     dummy.Draw();
@@ -247,6 +253,25 @@ void GamePlay::InitScene()
     ExpBarFrame->SetUI(true);
 
     m_combo.Init(this);
+   
+    for (int i = 0; i < 2; i++)
+    {
+        Object* digit = AddObject();
+        digit->Init("asset/UI/LevelNumber.png", 5, 2);
+        digit->SetSpriteSheet(5, 2);
+        digit->SetUI(true);
+        digit->SetSize(96.0f, 96.0f, 0.0f);  // ←縦長なので少し縦強め
+
+        m_levelDigits.push_back(digit);
+    }
+
+    // ============================
+    // LEVEL. ラベル
+    // ============================
+    m_levelLabel = AddObject();
+    m_levelLabel->Init("asset/UI/level_text.png");  // ← LEVEL. 画像パス
+    m_levelLabel->SetUI(true);
+    m_levelLabel->SetSize(120.0f, 30.0f, 0.0f);  // ★ここ調整ポイント①
 
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
@@ -255,19 +280,30 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
-    //std::cout << "objects: " << objects.size() << std::endl;
+    //float realDT = deltaTime;
+    if (deltaTime > 0.1f) deltaTime = 0.1f;
+
+    const bool wasHeavyDashing = m_player->IsHeavyDashing();
+
+    // プレイヤー更新
+    m_player->Update(deltaTime);
+    //combo
+    m_combo.Update(deltaTime);
+    // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
+    const bool isHeavyDashing = m_player->IsHeavyDashing();
+    if (wasHeavyDashing && !isHeavyDashing)
+    {
+       m_player->StartNoHitAnim(1.0f);
+    }
 
     if (!m_player) return;
-    if (deltaTime > 0.1f) deltaTime = 0.1f;
 
     Object* playerObj = m_player->GetObject();
     if (!playerObj) return;
 
     const auto oldPos = playerObj->GetPos();
 
-    m_player->Update(deltaTime);
 
-    m_combo.Update(deltaTime);
 
     // 弱攻撃エフェクト
     bool attackStart =
@@ -280,15 +316,29 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (attackStart)
     {
+        std::cout << "[GamePlay] attackStart TRUE -> create slash\n";
         m_attackEffects.push_back(
             new AttackSlashEffect(
                 this,
                 m_player->GetObject(),
-                m_player->GetAttackDir()
-            ));
+                m_player->GetAttackDir(),
+                m_player->IsFacingRight(),
+                m_player->GetPower()
+            )
+        );
+    }
+    else
+    {
+        static float s_t = 0.0f;
+        s_t += deltaTime;
+        if (s_t > 1.0f) { s_t = 0.0f; std::cout << "[GamePlay] attackStart FALSE\n"; }
     }
 
-
+    if (s_touchHitCD_All > 0.0f)
+    {
+        s_touchHitCD_All -= deltaTime;
+        if (s_touchHitCD_All < 0.0f) s_touchHitCD_All = 0.0f;
+    }
     /* ================================
    ★ 攻撃エフェクトの更新＆破棄
    ================================ */
@@ -365,9 +415,8 @@ void GamePlay::UpdateScene(float deltaTime)
 
             Object* enemyObj = e->GetObject();
             if (!enemyObj) continue;
-
-            // ====== (플레이어 vs 적) 접촉/연출/강공격 처리 ======
-            const float kTouchMargin = 5.0f; // 필요하면 15~30까지 올려서 테스트
+            // ====== （プレイヤー対敵） 接触／演出／強攻撃処理 ======
+            const float kTouchMargin = 10.0f; // 必要に応じて15〜30まで上げてテスト
 
             const bool chk = playerObj->CheckCollision(*enemyObj);
             const bool touch = IsTouching(playerObj, enemyObj, kTouchMargin);
@@ -376,17 +425,13 @@ void GamePlay::UpdateScene(float deltaTime)
 
             if (!contact) continue;
 
-            // 강공격 대시 중이면 피격 연출 대신 핀볼 히트
+            // 強攻撃ダッシュ中は被撃演出の代わりにピンボールヒット
             if (m_player->IsHeavyDashing())
             {
                 HeavyPinballHit(m_player.get(), playerObj, e.get(), enemyObj);
-
-                // ✅ 強攻撃ヒット直後は1秒間、接触被弾アニメを禁止
-                m_player->StartNoHitAnim(1.0f);
-
                 pushed = true;
             }
-            // 강공격 차지 중이면 피격 연출 금지(밀어내기만)
+            // 強攻撃を占有中の場合は被撃演出禁止（押し出すだけ）
             else if (m_player->IsHeavyCharging())
             {
                 PushOutCircle(playerObj, enemyObj);
@@ -394,13 +439,18 @@ void GamePlay::UpdateScene(float deltaTime)
             }
             else
             {
-                // ✅ 強攻撃直後は接触被弾アニメを出さない（Player側のタイマーで制御）
                 if (!m_player->IsNoHitAnim())
                 {
-                    m_player->PlayHitReaction();
-                }
+                    const float touchCooldown = 10.0f; // ✅ 全モンスター共通CT（秒）
 
-                // ✅ 밀어내기는 기존처럼 처리
+                    // ✅ 全モンスター共通：一度当たったら一定時間は誰に触れても追加被弾なし
+                    if (s_touchHitCD_All <= 0.0f)
+                    {
+                        m_player->TakeDamage(e->GetPower());
+                        s_touchHitCD_All = touchCooldown;
+                    }
+                }
+                // ✅ 押し出しは従来どおり
                 if (!e->IsKnockBacking())
                 {
                     PushOutCircle(playerObj, enemyObj);
@@ -499,7 +549,6 @@ void GamePlay::UpdateScene(float deltaTime)
     }*/
 
     {
-        static bool s_bossHasSpawned = false; // ✅ ボスが一度でも出現したか
         bool bossFound = false;
         bool bossAlive = false;
 
@@ -510,7 +559,7 @@ void GamePlay::UpdateScene(float deltaTime)
             if (e->IsBoss())
             {
                 bossFound = true;
-                s_bossHasSpawned = true;
+                m_bossHasSpawned = true;
 
                 if (e->IsAlive())
                     bossAlive = true;
@@ -519,9 +568,8 @@ void GamePlay::UpdateScene(float deltaTime)
             }
         }
 
-        // ✅ 出現済みなのに、今フレームはボスがいない/死んでいる → Resultへ
-        // bossFound==false は「死んで Cleanup で消えた後」も含む
-        if (s_bossHasSpawned && (!bossFound || !bossAlive))
+        // ✅ 今プレイで出現済みなのに、今は居ない/死んでいる → Resultへ
+        if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
             ResultData data;
             data.monsterKills = m_spawner.GetKillCount();
@@ -533,6 +581,11 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    if (m_player->GetHp() <= 0)
+    {
+        SetNextScene(SceneType::GameOver);
+        return;
+    }
     if (m_map)
     {
         ClampObjectToMap(playerObj, m_map);
@@ -569,8 +622,83 @@ void GamePlay::UpdateScene(float deltaTime)
         // 横だけ変える
         ExpBarGauge->SetSize(width, 40.0f, 0.0f);
     }
+    // =======================================
+   // レベル数字 左上固定表示
+   // =======================================
+    int level = m_player->GetLevel();
 
-    m_playtime++; //時間更新
+    // 全部非表示
+    for (auto d : m_levelDigits)
+        d->SetActive(false);
+
+    // 文字列に変換（←これが一番安全）
+    std::string levelStr = std::to_string(level);
+
+    float halfW = SCREEN_WIDTH * 0.5f;
+    float halfH = SCREEN_HEIGHT * 0.5f;
+
+    float startX = -halfW + 380.0f;
+    float startY = halfH - 70.0f;
+
+    // ★数字サイズから間隔を計算
+    float digitWidth = 96.0f;
+    float spacing = digitWidth - 67.0f;   // ← 数字間を詰める（ここ調整可）
+
+    for (int i = 0; i < levelStr.size(); i++)
+    {
+        if (i >= m_levelDigits.size()) break;
+
+        int num = levelStr[i] - '0';
+
+        auto obj = m_levelDigits[i];
+        obj->SetActive(true);
+        obj->SetAnimFrame(num);
+
+        obj->SetPos(
+            startX + i * spacing,
+            startY,
+            0.0f
+        );
+    }
+    // ============================
+    // LEVEL. の位置
+    // ============================
+    if (m_levelLabel)
+    {
+        m_levelLabel->SetPos(
+            startX - 90.0f,   // ★調整ポイント②（数字との距離）
+            startY,
+            0.0f
+        );
+    }
+
+    // レベル数字を強制初期表示
+    for (int i = 0; i < m_levelDigits.size(); i++)
+    {
+        if (i < levelStr.size())
+        {
+            m_levelDigits[i]->SetActive(true);
+            m_levelDigits[i]->SetAnimFrame(levelStr[i] - '0');
+        }
+        else
+        {
+            m_levelDigits[i]->SetActive(false);
+        }
+    }
+
+    // レベルアップ時の演出（未実装）
+    /*
+    if (m_player->IsJustLeveledUp())
+{
+    // エフェクト生成
+    auto effect = AddObject();
+    effect->Init("asset/UI/levelup.png");
+    effect->SetUI(true);
+    effect->SetPos(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0);
+
+    m_player->ResetLevelUpFlag();
+}
+    */
     prevButtons = buttons;
     UpdateUIFollowCamera();
 }
@@ -625,8 +753,10 @@ void GamePlay::DrawScene()
 
 void GamePlay::UninitScene()
 {
-    Object::ReleaseTextureCache();
+    // Object::ReleaseTextureCache(); ← これ消す
+
     std::cout << "UninitScene" << std::endl;
+
     for (auto e : m_attackEffects)
     {
         delete e;

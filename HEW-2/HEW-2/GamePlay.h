@@ -39,7 +39,13 @@ public:
     void UninitScene() override;
 
     void UpdateUIFollowCamera();
+    //combo
     ComboManager& GetCombo() { return m_combo; }
+    Player* GetPlayer() const { return m_player.get(); }
+    //通常攻撃
+    EnemySpawner& GetSpawner() { return m_spawner; }
+    const EnemySpawner& GetSpawner() const { return m_spawner; }
+
 private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
@@ -48,6 +54,7 @@ private:
     ComboManager m_combo;
 
     Object* m_map = nullptr;
+   
 
     int m_playtime = 0; //ゲームプレイ時間(Result掲載用)
     //int minutes = m_playtime / 60; // 分
@@ -60,6 +67,11 @@ private:
     float m_bossTimer = 0.0f;
     bool  m_bossPhase = false;
     std::vector<AttackSlashEffect*> m_attackEffects;
+
+    bool m_bossHasSpawned = false;
+
+    std::vector<Object*> m_levelDigits;
+    Object* m_levelLabel = nullptr;   // "LEVEL." 表示用
 };
 
 

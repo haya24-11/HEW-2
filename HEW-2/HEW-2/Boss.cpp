@@ -1,23 +1,22 @@
-
+ï»¿
 #include "Boss.h"
-
+#include<iostream>
+using namespace std;
 Boss::Boss()
 {
-    hp = 50;
-    power = 5;
-
     isBoss = true;
 
     moveSpeed = 5.0f;
-    // ƒ{ƒX‚ÍƒmƒbƒNƒoƒbƒNŒã‚É€‚È‚È‚¢
     EnableDeathAfterKnockback(false);
 
+    // âœ… å¿µã®ãŸã‚ï¼šãƒœã‚¹ã®hp/powerã‚’SpawnConfigã®å€¤ã§ç¢ºå®šã•ã›ã‚‹
+    const auto cfg = GetSpawnConfig();
+    hp = cfg.hp;
+    power = cfg.power;
 
     SetupAnimation();
-    // ƒCƒ“ƒpƒNƒgƒ_ƒ[ƒW‘å‚«‚ß
-    SetImpactDamage(30);
+    SetImpactDamage(5);
 }
-
 void Boss::SetupAnimation()
 {
     m_idleAnim = { 0, 4, 0.3f, true };
@@ -39,14 +38,14 @@ void Boss::ApplyIdleVisual()
 
 void Boss::ApplyHitVisual()
 {
-    // ”í’e‚ÉÔ‚­
+    // è¢«å¼¾æ™‚ã«èµ¤ã
     if (auto* obj = GetObject())
         obj->SetColor(1.0f, 0.5f, 0.5f, 1.0f);
 }
 
 void Boss::ApplyDieVisual()
 {
-    // €–S‚Í­‚µˆÃ‚­
+    // æ­»äº¡æ™‚ã¯å°‘ã—æš—ã
     if (auto* obj = GetObject())
         obj->SetColor(0.6f, 0.6f, 0.6f, 1.0f);
 }
@@ -57,8 +56,7 @@ void Boss::Attack()
 
 void Boss::OnDamaged(int damage)
 {
-    // ƒ{ƒXê—pFˆê’èˆÈ‰º‚Ìƒ_ƒ[ƒW–³Œø‚Æ‚©‚à‰Â”\
+    std::cout << "[BossDamaged] dmg=" << damage << " hp(before)=" << hp << "\n";
     Enemy::OnDamaged(damage);
+    std::cout << "[BossDamaged] hp(after)=" << hp << "\n";
 }
-
-
