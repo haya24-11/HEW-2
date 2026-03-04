@@ -107,11 +107,14 @@ public:
     void TakeDamage(int dmg);
 
     // ✅ 無敵判定（連続ヒット防止 + 強攻撃中無敵）
-    bool IsInvincible() const
+    void StartInvincible(float sec, bool blink)
     {
-        return (m_invincibleTimer > 0.0f) || IsHeavyCharging() || IsHeavyDashing();
+        if (sec <= 0.0f) return;
+        if (m_invincibleTimer < sec) m_invincibleTimer = sec;
+        m_invincibleBlink = blink;
     }
 
+    bool IsInvincible() const { return m_invincibleTimer > 0.0f; }
 
     void PlayHitReaction();
 
@@ -119,10 +122,12 @@ public:
     {
         if (sec <= 0.0f) return;
 
-        // 既存より長い場合だけ更新（短い値で上書きしない）
         if (m_noHitAnimTimer < sec) m_noHitAnimTimer = sec;
-        if (m_invincibleTimer < sec) m_invincibleTimer = sec; // ✅ 無敵（HPダメージ無効）も付与
+        if (m_invincibleTimer < sec) m_invincibleTimer = sec;
+
+        m_invincibleBlink = false; // ✅ 強攻撃後の無敵は点滅しない
     }
+
     bool IsNoHitAnim() const { return m_noHitAnimTimer > 0.0f; }
 
     void AddExp(int value);
@@ -204,7 +209,7 @@ private:
     SizeScale m_scaleDamaged{ 1.0f, 1.0f }; // ✅ 被ダメ用
 
     // ✅ 被ダメ後の短い無敵（連続ヒット防止）
-    float m_invincibleTimer = 2.0f;
+    float m_invincibleTimer = 0.0f;
     float m_invincibleDuration = 5.0f;
 
     // ===== HeavyAttack ダッシュ =====
@@ -277,6 +282,8 @@ private:
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;
+
+    bool m_invincibleBlink = true;
 
     GamePlay* m_gamePlay = nullptr;
 

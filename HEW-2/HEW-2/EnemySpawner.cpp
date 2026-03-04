@@ -147,9 +147,11 @@ void EnemySpawner::ResolveEnemyCollisions()
     if (m_enemies.size() < 2) return;
     if (!m_player) return;
 
+    using namespace DirectX::SimpleMath;
+
     // プレイヤー位置（stopDist 判定用）
     auto pp3 = m_player->GetPos();
-    DirectX::SimpleMath::Vector2 playerPos(pp3.x, pp3.y);
+    Vector2 playerPos(pp3.x, pp3.y);
 
     // stopDist に到達して止まっている敵は、押し出しで動かさない
     // ※ノックバック中は例外（飛んでいる敵は固定しない）
@@ -160,10 +162,11 @@ void EnemySpawner::ResolveEnemyCollisions()
             const float stop = e->GetChaseStopDistance();
             if (stop <= 0.0f) return false;
 
+            // ノックバック中は「止まっている扱いにしない」
             if (e->IsKnockBacking()) return false;
 
             auto p3 = eo->GetPos();
-            DirectX::SimpleMath::Vector2 pos(p3.x, p3.y);
+            Vector2 pos(p3.x, p3.y);
             float dist = (pos - playerPos).Length();
 
             // 境界でガタつかないよう少し余裕
@@ -186,6 +189,7 @@ void EnemySpawner::ResolveEnemyCollisions()
             Object* ob = b->GetObject();
             if (!ob) continue;
 
+            // まずは当たり判定（円コリジョン）
             if (!oa->CheckCollision(*ob)) continue;
 
             const bool aFly = a->IsKnockBacking();
@@ -200,10 +204,13 @@ void EnemySpawner::ResolveEnemyCollisions()
             float distSq = dx * dx + dy * dy;
             float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
+            // 法線（A -> B）
             float nx = dx / dist;
             float ny = dy / dist;
+            Vector2 n(nx, ny);
 
             // ---- impact damage（既存）----
+            // 飛んでいる敵が、飛んでいない敵に衝突した時だけダメージを渡す
             if (aFly && !bFly)
             {
                 int impact = 0;
@@ -221,7 +228,7 @@ void EnemySpawner::ResolveEnemyCollisions()
                 }
             }
 
-            // ---- pushout ----
+            // ---- pushout（既存）----
             float ra = oa->GetCollisionRadius();
             float rb = ob->GetCollisionRadius();
 
@@ -231,6 +238,84 @@ void EnemySpawner::ResolveEnemyCollisions()
             bool aStop = IsStoppedEnemy(a, oa);
             bool bStop = IsStoppedEnemy(b, ob);
 
+            // =========================================================
+            // ✅ ピンボール風：衝突反動（速度の反射 + 伝達）
+            //   - Aが飛んでBに突っ込む → Aは反射、Bは押し出されてノックバック
+            //   - “横にスッ…”と擦る感じを減らすため、接線成分も少し減衰
+            // =========================================================
+            {
+                // 飛行中の敵のノックバック速度（飛んでなければ0）
+                Vector2 va = aFly ? a->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
+                Vector2 vb = bFly ? b->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
+
+                // 相対速度の法線成分（AがBに向かっているなら +）
+                float vrelN = (va - vb).Dot(n);
+
+                // “めり込み方向”の時だけ反動を入れる（離れていく時は不要）
+                if (vrelN > 0.0f)
+                {
+                    // 反発係数（0~1）：大きいほど “팡!”
+                    const float e = 0.85f;
+
+                    // 伝達率：Bにどれだけ反動を与えるか
+                    const float transfer = 0.80f;
+
+                    // 接線（横滑り）減衰：大きいほど擦り抜けにくい
+                    const float dampTangent = 0.20f;
+
+                    // 反動の持続：短く（ピンボールっぽい）
+                   // 反動の持続：Bは少し長めに（確実に“飛ぶ”ようにする）
+                    const float kickTimeA = 0.18f;
+                    const float kickTimeB = 0.35f;
+
+                    // Bが弱くしか動かないのを防ぐための最小反動
+                    const float minKickB = 180.0f; // ← ゲームの単位に合わせて 120〜250 で調整
+
+                    auto KillTangent = [&](Vector2 v) -> Vector2
+                        {
+                            float vn = v.Dot(n);
+                            Vector2 vN = vn * n;
+                            Vector2 vT = v - vN;
+                            vT *= (1.0f - dampTangent);
+                            return vN + vT;
+                        };
+
+                    // A: 法線方向成分を反射（va' = va - (1+e)*vrelN*n）
+                    if (aFly)
+                    {
+                        // 完全反射速度
+                        Vector2 vReflect = va - (1.0f + e) * vrelN * n;
+
+                        // ✅ 反射を弱めて「180度じゃなくて120度くらい」にする
+                        // mix=1.0 -> 完全反射(180°寄り)
+                        // mix=0.0 -> 反射なし(直進)
+                        const float reflectMix = 0.55f; // ★まずは0.55（0.45~0.70で調整）
+
+                        Vector2 vaNew = va * (1.0f - reflectMix) + vReflect * reflectMix;
+
+                        a->SetKnockBackVelocity(KillTangent(vaNew));
+                    }
+
+                    // B: 反動を受けて飛ぶ（短時間ノックバック付与）
+                    //     ・最低速度を保証して「反動したのに飛ばない」を防ぐ
+                    Vector2 impulseB = (1.0f + e) * vrelN * n * transfer;
+                    Vector2 kickB = KillTangent(impulseB);
+
+                    // 最小反動保証（小さい衝突でもピンボールっぽく弾く）
+                    float len = kickB.Length();
+                    if (len < minKickB)
+                    {
+                        if (len > 0.0001f) kickB *= (minKickB / len);
+                        else               kickB = n * minKickB;
+                    }
+
+                    b->AddKnockBackImpulse(kickB, kickTimeB);
+                }
+            }
+
+            // =========================================================
+            // ✅ 位置の押し出し（既存）＋ stopDist 固定ロジック維持
+            // =========================================================
             float pushA = overlap * 0.5f;
             float pushB = overlap * 0.5f;
 
@@ -247,8 +332,8 @@ void EnemySpawner::ResolveEnemyCollisions()
             else if (aStop && bStop)
             {
                 // 両方止まっている場合：プレイヤー中心の円周接線方向へ逃がす（押し込みにくくする）
-                DirectX::SimpleMath::Vector2 posA(pa3.x, pa3.y);
-                DirectX::SimpleMath::Vector2 posB(pb3.x, pb3.y);
+                Vector2 posA(pa3.x, pa3.y);
+                Vector2 posB(pb3.x, pb3.y);
 
                 auto mid = (posA + posB) * 0.5f;
                 auto r = mid - playerPos;
@@ -257,7 +342,7 @@ void EnemySpawner::ResolveEnemyCollisions()
                 if (rlen < 0.0001f) r = { 1.0f, 0.0f };
                 else r /= rlen;
 
-                DirectX::SimpleMath::Vector2 t(-r.y, r.x);
+                Vector2 t(-r.y, r.x);
 
                 auto ab = (posB - posA);
                 if (ab.Dot(t) < 0.0f) t = -t;
@@ -272,6 +357,7 @@ void EnemySpawner::ResolveEnemyCollisions()
                 continue;
             }
 
+            // 通常の押し出し（Aは -n、Bは +n）
             oa->SetPos(pa3.x - nx * pushA, pa3.y - ny * pushA, pa3.z);
             ob->SetPos(pb3.x + nx * pushB, pb3.y + ny * pushB, pb3.z);
         }
@@ -305,7 +391,8 @@ void EnemySpawner::CleanupDeadEnemies()
             {
                 m_killCount++;
 
-                if (m_killCount >= 10 && !m_bossSpawned)
+                ///BOSS SPAWN COUNT
+                if (m_killCount >= 50 && !m_bossSpawned)
                 {
                     SpawnBoss();
                 }

@@ -37,7 +37,6 @@ public:
 
     bool IsKnockBacking() const { return knockBackTimer > 0.0f; }
 
-    DirectX::SimpleMath::Vector2 GetKnockBackVelocity() const { return knockBackVelocity; }
 
     void StopKnockBack()
     {
@@ -45,12 +44,12 @@ public:
         knockBackVelocity = { 0.0f, 0.0f };
     }
 
-    void SetKnockBackVelocity(const DirectX::SimpleMath::Vector2& v)
-    {
-        knockBackVelocity = v;
-        if (knockBackTimer <= 0.0f)
-            knockBackTimer = knockBackDuration;
-    }
+    //void SetKnockBackVelocity(const DirectX::SimpleMath::Vector2& v)
+    //{
+    //    knockBackVelocity = v;
+    //    if (knockBackTimer <= 0.0f)
+    //        knockBackTimer = knockBackDuration;
+    //}
 
     // ✅ 強攻撃など「吹き飛び終わってから死ぬ」をON/OFF
     void EnableDeathAfterKnockback(bool enable) { m_deathAfterKnockback = enable; }
@@ -142,6 +141,12 @@ public:
 
     void SetGamePlay(GamePlay* gp) { m_gamePlay = gp; }
     GamePlay* GetGamePlay() const { return m_gamePlay; }
+
+    DirectX::SimpleMath::Vector2 GetKnockBackVelocity() const { return knockBackVelocity; }
+    void SetKnockBackVelocity(const DirectX::SimpleMath::Vector2& v) { knockBackVelocity = v; }
+
+    // 衝突反動用：短いノックバックを付与（速度を加算）
+    void AddKnockBackImpulse(const DirectX::SimpleMath::Vector2& v, float sec);
 
 protected:
     bool isBoss = false;
