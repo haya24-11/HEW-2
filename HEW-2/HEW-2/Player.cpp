@@ -64,10 +64,11 @@ void Player::Update(float deltaTime)
 
     m_attackInputTriggered = false;
 
-    if (Input::GetKeyTrigger(VK_RETURN))
-    {
-        m_attackInputTriggered = true;
-    }
+    // 攻撃クールタイム更新
+    if (m_attackCooldown > 0.0f)
+        m_attackCooldown -= deltaTime;
+
+    m_attackInputTriggered = false;
 
     // ===== XInput：ボタン取得（トリガー判定用） =====
     XINPUT_STATE pad{};
@@ -176,7 +177,38 @@ void Player::Update(float deltaTime)
     // =========================
     if (m_state == State::AttackHeavyCharge)
     {
-        // チャージ中はロックした向きを維持
+        // ======================
+        // ★チャージ中方向入力取得
+        // ======================
+        SM::Vector2 inputDir = GetMoveInput();
+
+        const float dead = 0.3f;
+
+        bool up = inputDir.y > dead;
+        bool down = inputDir.y < -dead;
+        bool right = inputDir.x > dead;
+        bool left = inputDir.x < -dead;
+
+        // 8方向決定
+        if (up && right)
+            m_attackDir = AttackDir::UpRight;
+        else if (up && left)
+            m_attackDir = AttackDir::UpLeft;
+        else if (down && right)
+            m_attackDir = AttackDir::DownRight;
+        else if (down && left)
+            m_attackDir = AttackDir::DownLeft;
+        else if (up)
+            m_attackDir = AttackDir::Up;
+        else if (down)
+            m_attackDir = AttackDir::Down;
+        else
+            m_attackDir =
+            m_lockedFacingRight ?
+            AttackDir::Right :
+            AttackDir::Left;
+
+        // チャージ中は移動入力で向きを変えない（ロックした向きを維持）
         const bool textureIsRightFacing = true;
         m_object->SetFlipX(textureIsRightFacing != m_lockedFacingRight);
 
@@ -187,11 +219,18 @@ void Player::Update(float deltaTime)
         if (aUp || Input::GetKeyRelease(VK_RETURN))
         {
             m_state = State::AttackHeavy;
+            m_heavyEffectFired = false;
+
             m_attackSEPlayed = false;
 
             m_animator.Play(m_heavyStartAnim);
 
-            StartHeavyDash(moveDir);
+            // ======================
+            // 確定した攻撃方向で突進
+            // ======================
+            StartHeavyDash(
+                AttackDirToVector(m_attackDir)
+            );
 
             CommitPad();
             return;
@@ -212,6 +251,7 @@ void Player::Update(float deltaTime)
             }
         }
 
+        // チャージアニメを継続更新
         m_animator.Update(deltaTime);
         Chara::Update(deltaTime);
 
@@ -224,10 +264,40 @@ void Player::Update(float deltaTime)
     // =========================
     if (m_state == State::AttackLight || m_state == State::AttackHeavy)
     {
+
+        // ★ 弱攻撃エフェクト発生タイミング
+        if (m_state == State::AttackLight)
+        {
+            int currentFrame = m_animator.GetCurrentFrame();
+            // 攻撃エフェクトのフレーム調整
+            int effectFrame = 4;
+
+            // ★ フレームをまたいだ瞬間だけ発火
+            if (!m_attackLightEffectFired &&
+                m_prevAnimFrame < effectFrame &&
+                currentFrame >= effectFrame)
+            {
+                m_attackEffectRequest = true;
+                m_attackLightEffectFired = true;
+            }
+
+            // 最後に保存
+            m_prevAnimFrame = currentFrame;
+        }
+
+        // 強攻撃中はダッシュ移動
         if (m_state == State::AttackHeavy)
+        {
             UpdateHeavyDash(deltaTime);
 
-        // 攻撃SE
+            // ★強攻撃エフェクト1回生成
+            if (!m_heavyEffectFired)
+            {
+                m_attackEffectRequest = true;
+                m_heavyEffectFired = true;
+            }
+        }
+        // ===== ★ 攻撃SE再生ここ ★ =====
         if (!m_attackSEPlayed)
         {
             int hitFrame = 0;
@@ -283,7 +353,7 @@ void Player::Update(float deltaTime)
     // =========================
     // 攻撃開始（強攻撃優先）
     // =========================
-    if (attackHeavyInput)
+    if (attackHeavyInput && m_attackCooldown <= 0.0f)
     {
         if (isMoving) UpdateFacingFromMove(moveDir);
 
@@ -305,10 +375,55 @@ void Player::Update(float deltaTime)
         return;
     }
 
-    if (attackLightInput)
+    if (attackLightInput && m_attackCooldown <= 0.0f)
     {
+
+        // Player.cpp
+        // 攻撃方向決定（上下優先）
+        SM::Vector2 inputDir = GetMoveInput();
+
+        // 上下入力を優先
+        // ======================================
+        // Player.cpp
+        // 8方向攻撃判定
+        // WASD / Pad 両対応
+        // ======================================
+
+        const float dead = 0.3f;
+
+        bool up = inputDir.y > dead;
+        bool down = inputDir.y < -dead;
+        bool right = inputDir.x > dead;
+        bool left = inputDir.x < -dead;
+
+        if (up && right)
+            m_attackDir = AttackDir::UpRight;
+        else if (up && left)
+            m_attackDir = AttackDir::UpLeft;
+        else if (down && right)
+            m_attackDir = AttackDir::DownRight;
+        else if (down && left)
+            m_attackDir = AttackDir::DownLeft;
+        else if (up)
+            m_attackDir = AttackDir::Up;
+        else if (down)
+            m_attackDir = AttackDir::Down;
+        else
+            m_attackDir =
+            m_facingRight ?
+            AttackDir::Right :
+            AttackDir::Left;
+
+        m_attackCooldown = m_attackCooldownTime;
+
+        // 攻撃開始瞬間の向きを決める
         if (isMoving) UpdateFacingFromMove(moveDir);
 
+        m_attackLightTimer = 0.0f;
+        m_attackLightEffectFired = false;
+        m_prevAnimFrame = -1;
+
+        // 攻撃中は向きを固定
         m_lockFacing = true;
         m_lockedFacingRight = m_facingRight;
 
@@ -364,6 +479,35 @@ int Player::GetAnimFrame() const
     return m_animator.GetCurrentFrame();
 }
 
+// =====================================================
+// 経験値加算
+// =====================================================
+void Player::AddExp(int value)
+{
+    m_currentExp += value;
+
+    // レベルアップ可能な限りループ
+    while (m_currentExp >= GetNextLevelExp())
+    {
+        m_currentExp -= GetNextLevelExp();
+        LevelUp();
+
+        OutputDebugStringA("Level Up!\n");
+    }
+}
+
+// =====================================================
+// レベルアップ
+// =====================================================
+void Player::LevelUp()
+{
+    m_level++;
+    // 次レベル必要EXP増加（基本式）
+
+    // ===== 今は確認用 =====
+    printf("LEVEL UP! -> Lv %d\n", m_level);
+}
+
 SM::Vector2 Player::GetMoveInput() const
 {
     SM::Vector2 dir(0.0f, 0.0f);
@@ -416,6 +560,7 @@ void Player::StartHeavyDash(const SM::Vector2& moveDir)
 
     m_heavyDashDir = dir;
     m_heavyDashTimer = m_heavyDashDuration;
+
 }
 
 bool Player::UpdateHeavyDash(float deltaTime)
@@ -426,6 +571,7 @@ bool Player::UpdateHeavyDash(float deltaTime)
     float dt = deltaTime;
 
     if (dt > 1.0f) dt *= 0.0001f;
+    // 1フレームの移動が大きくなりすぎないように上限をかける
     if (dt > 0.05f) dt = 0.05f;
 
     const float prevDash = m_heavyDashTimer;
@@ -483,6 +629,16 @@ void Player::ApplyVisualSize(const SizeScale& s)
     // 当たり判定半径を固定値にする
     m_object->SetCollisionRadius(m_fixedRadius);
 }
+
+bool Player::ConsumeAttackEffectRequest()
+{
+    if (!m_attackEffectRequest)
+        return false;
+
+    m_attackEffectRequest = false;
+    return true;
+}
+
 void Player::TakeDamage(int dmg)
 {
     if (dmg <= 0) return;
@@ -549,4 +705,10 @@ void Player::PlayHitReaction()
 
     m_hitInvTimer = m_hitInvDuration;
 }
+int Player::GetNextLevelExp() const
+{
+    const float baseExp = 100.0f;
+    const float growth = 1.35f; // ★調整ポイント
 
+    return (int)(baseExp * powf((float)m_level, growth));
+}

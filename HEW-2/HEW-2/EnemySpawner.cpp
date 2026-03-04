@@ -5,7 +5,9 @@
 #include "Enemy.h"
 #include <algorithm>
 #include <unordered_map>
-#include "Boss.h"
+#include "Boss.h" 
+#include "Player.h" 
+#include "GamePlay.h"
 
 EnemySpawner::EnemySpawner()
 {
@@ -13,17 +15,19 @@ EnemySpawner::EnemySpawner()
     m_rng = std::mt19937(rd());
 }
 
-void EnemySpawner::Init(Scene* ownerScene, Object* playerObj)
+void EnemySpawner::Init(Scene* ownerScene, Object* playerObj, Player* player)
 {
     m_scene = ownerScene;
     m_player = playerObj;
+    m_playerLogic = player;
 
     m_enemies.clear();
     m_entries.clear();
     m_spawnTimer = 0.0f;
 
-    m_killCount = 0;
-    m_bossSpawned = false;
+    m_killCount = 0;        // ✅ 初期化：キル数
+    m_bossSpawned = false;  // ✅ 初期化：ボス出現フラグ
+
 }
 
 void EnemySpawner::Update(float deltaTime)
@@ -93,6 +97,11 @@ void EnemySpawner::Update(float deltaTime)
         enemy->SetObject(obj);
         enemy->SetTarget(m_player);
 
+        enemy->SetGamePlay(
+            static_cast<GamePlay*>(m_scene)
+        );
+
+        // ✅ 死亡演出時間（SpawnConfigを反映）
         enemy->SetDeathDelay(cfg.dieDelay);
         enemy->SetDisappearDelay(cfg.disappearDelay);
 
@@ -282,6 +291,16 @@ void EnemySpawner::CleanupDeadEnemies()
 
         if (!e->IsAlive())
         {
+            if (!e->IsRewardGiven())
+            {
+                if (m_playerLogic)
+                {
+                    m_playerLogic->AddExp(e->GetExpValue());
+                }
+
+                e->MarkRewardGiven();
+            }
+            // ✅ 雑魚だけ討伐数を加算（ボスはカウントしない）
             if (!e->IsBoss())
             {
                 m_killCount++;
@@ -340,6 +359,9 @@ void EnemySpawner::SpawnBoss()
 
     boss->SetObject(obj);
     boss->SetTarget(m_player);
+    boss->SetGamePlay(
+        static_cast<GamePlay*>(m_scene)
+    );
 
     boss->SetDeathDelay(cfg.dieDelay);
     boss->SetDisappearDelay(cfg.disappearDelay);

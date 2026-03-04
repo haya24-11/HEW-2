@@ -9,8 +9,10 @@
 #include "Animator.h"
 #include "Input.h"
 #include "AttackSlashEffect.h"
+#include "AttackDir.h"
 
 class Skill;
+class GamePlay; 
 
 /*
     Player
@@ -94,6 +96,11 @@ public:
 
     bool IsFacingRight() const { return m_facingRight; }
 
+    bool ConsumeAttackEffectRequest();
+
+    AttackDir GetAttackDir() const { return m_attackDir; }
+
+    AttackDir GetHeavyDir() const { return m_attackDir; }
     // =========================
     // ✅ 被ダメージ
     // =========================
@@ -117,6 +124,16 @@ public:
         if (m_invincibleTimer < sec) m_invincibleTimer = sec; // ✅ 無敵（HPダメージ無効）も付与
     }
     bool IsNoHitAnim() const { return m_noHitAnimTimer > 0.0f; }
+
+    void AddExp(int value);
+    void LevelUp();
+
+    int GetLevel() const { return m_level; }
+    int GetCurrentExp() const { return m_currentExp; }
+    int GetNextLevelExp() const;
+
+    void SetGamePlay(GamePlay* gp) { m_gamePlay = gp; }
+    GamePlay* GetGamePlay() const { return m_gamePlay; }
 
 private:
     // WASD/Pad入力を移動方向ベクトルに変換
@@ -156,9 +173,12 @@ private:
         AttackLight,
         AttackHeavyCharge,
         AttackHeavy,
+        AttackHeavyDash,    // 突進
         Damaged,
     };
     State m_state = State::Idle;
+
+    AttackDir m_attackDir = AttackDir::Right;
 
     // 向き
     bool m_facingRight = true;
@@ -223,6 +243,30 @@ private:
     // ===== 攻撃SE制御 =====
     bool m_attackSEPlayed = false;
 
+    // 弱攻撃ヒット遅延管理
+    float m_attackLightTimer = 0.0f;
+    bool  m_attackLightEffectFired = false;
+
+    int m_prevAnimFrame = -1;   // 前フレーム記録用
+
+    // 攻撃クールタイム
+    float m_attackCooldown = 0.0f;
+    const float m_attackCooldownTime = 0.35f; // 調整値
+
+    bool m_attackEffectRequest = false;
+
+    // 強攻撃制御
+    bool  m_heavyHolding = false;
+    bool  m_heavyReleased = false;
+
+    float m_dashSpeed = 900.0f;
+    float m_dashTime = 0.18f;
+    float m_dashTimer = 0.0f;
+
+    AttackDir m_heavyDir;
+
+    // 強攻撃エフェクト1回制御 
+    bool m_heavyEffectFired = false;
 
     Object* m_map = nullptr;
 
@@ -233,6 +277,13 @@ private:
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;
+
+    GamePlay* m_gamePlay = nullptr;
+
+    // レベルシステム
+    int m_level = 1;
+    int m_currentExp = 0;
+};
 
 
     float m_blinkTimer = 0.0f;        // 点滅用タイマー

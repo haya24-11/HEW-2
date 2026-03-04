@@ -131,6 +131,7 @@ void GamePlay::InitScene()
 
     // ===== Player Logic =====
     m_player = std::make_unique<Player>();
+    m_player->SetGamePlay(this);
 
     // ===== Player Object =====
     Object* player = AddObject();
@@ -153,7 +154,11 @@ void GamePlay::InitScene()
     }
 
     // ===== Enemy Spawner =====
-    m_spawner.Init(this, m_player->GetObject());
+    m_spawner.Init(
+        this,
+        m_player->GetObject(),
+        m_player.get()      // Player本体を渡す
+    );
     m_spawner.RegisterType<NormalEnemy>(1.0f);
 
     std::cout << "(Debug) GamePlayScene!" << std::endl;
@@ -163,7 +168,7 @@ void GamePlay::InitScene()
     /////////////////////////////////////////////////////////////////////////////
 
     // ===== 弱攻撃ボタンUI =====
-    LightAttackButton = AddObject()
+    /*LightAttackButton = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)     // ★初期値は適当でOK（後でUpdateUIFollowCameraが上書き）
         ->SetSize(45.0f, 35.0f, 0.0f)
         ->SetAngle(0.0f);
@@ -177,7 +182,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     HeavyAttackButton->Init("asset/UI/heavyattackbutton.png");
     HeavyAttackButton->SetUI(true);
-
+    */
     // ===== プレイヤーHPバー UI =====
     PlayerHeartPointBar = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
@@ -193,6 +198,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerIcon->Init("asset/UI/playericon.png");
     PlayerIcon->SetUI(true);
+    
 
     // ===== バフアイコン =====
     BuffIcons.clear(); // ★2回目開始時に前回のポインタが残らないように一応クリア
@@ -230,7 +236,7 @@ void GamePlay::InitScene()
     // 経験値バー ゲージ ※todo
     ExpBarGauge = AddObject()
         ->SetPos(0.0f, 1000.0f, 0.0f)
-        ->SetSize(20.0f, 30.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
+        ->SetSize(0.0f, 40.0f, 0.0f)   // ※見やすい太さ（必要なら調整）
         ->SetAngle(0.0f);
     ExpBarGauge->Init("asset/UI/expbar_gauge.png"); // ここは実際のパスに合わせて
     ExpBarGauge->SetUI(true);
@@ -243,7 +249,8 @@ void GamePlay::InitScene()
     ExpBarFrame->Init("asset/UI/expbar_frame.png"); // ここは実際のパスに合わせて
     ExpBarFrame->SetUI(true);
 
-
+    m_combo.Init(this);
+   
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -275,11 +282,25 @@ void GamePlay::UpdateScene(float deltaTime)
     const auto oldPos = playerObj->GetPos();
 
 
-    if (m_player->IsAttackInputTriggered())
+    m_combo.Update(deltaTime);
+
+    // 弱攻撃エフェクト
+    bool attackStart =
+        m_player->ConsumeAttackEffectRequest();
+
+    if (attackStart)
+    {
+        m_combo.BeginAttack(); // ★コンボ開始
+    }
+
+    if (attackStart)
     {
         m_attackEffects.push_back(
-            new AttackSlashEffect(this,
+            new AttackSlashEffect(
+                this,
                 m_player->GetObject(),
+                m_player->GetAttackDir()
+            ));
                 m_player->IsFacingRight(),
                 m_player->GetPower())
         );
@@ -544,7 +565,30 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    // =======================================
+    // EXPバー更新
+    // =======================================
+    if (m_player && ExpBarGauge)
+    {
+        float current = (float)m_player->GetCurrentExp();
+        float next = (float)m_player->GetNextLevelExp();
 
+        float rate = 0.0f;
+        if (next > 0.0f)
+            rate = current / next;
+
+        rate = std::clamp(rate, 0.0f, 1.0f);
+
+        // -----------------------------
+        // 最大幅（UI画像に合わせる）
+        // -----------------------------
+        const float maxWidth = 1600.0f;
+
+        float width = maxWidth * rate;
+
+        // 横だけ変える
+        ExpBarGauge->SetSize(width, 40.0f, 0.0f);
+    }
 
     prevButtons = buttons;
     UpdateUIFollowCamera();
@@ -552,8 +596,13 @@ void GamePlay::UpdateScene(float deltaTime)
 
 void GamePlay::DrawScene()
 {
+    // =============================
+    // ① ワールド描画（UI以外）
+    // =============================
     for (auto& obj : objects)
     {
+        if (obj->IsUI()) continue;
+
         int frame = -1;
 
         if (obj.get() == m_player->GetObject())
@@ -577,9 +626,16 @@ void GamePlay::DrawScene()
         else            obj->Draw();
     }
 
+    // =============================
+    // UI描画（常に最前面）UI位置更新は描画前に1回だけ
+    // =============================
+    for (auto& obj : objects)
+    {
+        if (!obj->IsUI()) continue;
+        obj->Draw();
+    }
+
 }
-
-
 
 void GamePlay::UninitScene()
 {
@@ -637,6 +693,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
+   
     const float halfW = SCREEN_WIDTH * 0.5f;
     const float halfH = SCREEN_HEIGHT * 0.5f;
     const float pad = 30.0f;
@@ -690,8 +747,26 @@ void GamePlay::UpdateUIFollowCamera()
     if (ExpBarFrame)
     {
         const float gapY = -855.0f;
-        ExpBarBack->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
-        ExpBarGauge->SetPos(hpBarX + -180.0f, hpBarY + gapY, 0.0f); // 経験値バー ゲージ ※todo
+        ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
+        // ==========================
+        // EXPバー左端固定
+        // ==========================
+        /*
+        hpBarX            // カメラ基準位置
+        + 665.0f          // ← UI横オフセット（これが位置調整）
+        - (1600 * 0.5f)   // 画面中央補正
+        */
+        const float expBarLeft =
+            hpBarX + 610.0f - (1600.0f * 0.5f);
+
+        float gaugeWidth = ExpBarGauge->GetSize().x;
+
+        // 中心座標 = 左端 + 半分
+        ExpBarGauge->SetPos(
+            expBarLeft + gaugeWidth * 0.5f,
+            hpBarY + gapY,
+            0.0f
+        );
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
     }
 }
@@ -752,6 +827,7 @@ static void HeavyPinballHit(Player* playerLogic, Object* playerObj,
 
     // ✅ ダメージは1回だけ
     enemyLogic->TakeDamage(dmg);
+    playerLogic->GetGamePlay()->GetCombo().AddHit();
 
     // ✅ 吹き飛ばす
     enemyLogic->KnockBack(n * kick);
@@ -982,6 +1058,7 @@ static void EnemyPinballBounce(Enemy* a, Object* aObj, Enemy* b, Object* bObj)
             // 1) 相手に速度を渡してノックバックさせる
             float kick = ClampF(vn * transferRate, minKick, maxKick);
             other->KnockBack(normalFlyToOther * kick);
+            fly->GetGamePlay()->GetCombo().AddHit();
 
             // 2) 飛んでいる側は反射（鏡面反射: v - 2*(v·n)*n）して減衰
             DirectX::SimpleMath::Vector2 vRef = v - 2.0f * vn * normalFlyToOther;

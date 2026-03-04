@@ -296,6 +296,9 @@
     <ClInclude Include="Effect.h">
       <Filter>ソース ファイル\UI</Filter>
     </ClInclude>
+    <ClInclude Include="AttackDir.h">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\PixelShader.hlsl" />

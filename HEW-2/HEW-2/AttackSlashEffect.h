@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <SimpleMath.h>
 #include "Effect.h"
+#include "AttackDir.h"
 #include <unordered_set>
 
 class Scene;
@@ -21,6 +22,7 @@ public:
 private:
     Scene* m_scene = nullptr;
     Object* m_object = nullptr;
+    Object* m_owner = nullptr;
 
     // 表示/寿命
     float m_timer = 0.0f;
@@ -32,6 +34,10 @@ private:
     int   m_damage = 0;           // ✅ プレイヤー攻撃力
     float m_hitRadius = 45.0f;    // ✅ 判定の広さ（調整ポイント）
     float m_hitActiveTime = 0.12f;// ✅ 判定が有効な時間（調整ポイント）
+
+    bool m_dead = false;
+
+    AttackDir m_dir;
 
     GamePlay* m_gameplay = nullptr;
     std::unordered_set<Enemy*> m_hitOnce; // ✅ 同じ敵への多重ヒット防止

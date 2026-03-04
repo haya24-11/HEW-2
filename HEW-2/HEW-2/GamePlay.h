@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Camera2D.h"
 #include "EnemySpawner.h"
+#include "ComboManager.h"
 #include <vector>
 
 class AttackSlashEffect; // 前方宣言
@@ -31,7 +32,6 @@ public:
     //Object* Player;       // プレイヤー
     //Object* Enemy;      // 敵
 
-
     //シーンの動作
     void InitScene() override;
     void UpdateScene(float deltaTime) override;
@@ -48,6 +48,8 @@ private:
     std::unique_ptr<Player> m_player;
     EnemySpawner m_spawner;
     Camera2D m_camera;
+
+    ComboManager m_combo;
 
     Object* m_map = nullptr;
 
