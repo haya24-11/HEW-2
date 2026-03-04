@@ -1,4 +1,4 @@
-#include "input.h"
+ï»¿#include "input.h"
 
 Input* Input::m_Instance = {};
 
@@ -12,20 +12,20 @@ void Input::Create()
 
 void Input::Update()
 {
-	//1ƒtƒŒ[ƒ€‘O‚Ì“ü—Í‚ğ‹L˜^‚µ‚Ä‚¨‚­
+	//1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®å…¥åŠ›ã‚’è¨˜éŒ²ã—ã¦ãŠã
 	for (int i = 0; i < 256; i++) { m_Instance->keyState_old[i] = m_Instance->keyState[i]; }
 	m_Instance->controllerState_old = m_Instance->controllerState;
 
-	//ƒL[“ü—Í‚ğXV
+	//ã‚­ãƒ¼å…¥åŠ›ã‚’æ›´æ–°
 	BOOL hr = GetKeyboardState(m_Instance->keyState);
 
-	//ƒRƒ“ƒgƒ[ƒ‰[“ü—Í‚ğXV(XInput)
+	//ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›ã‚’æ›´æ–°(XInput)
 	XInputGetState(0, &(m_Instance->controllerState));
 
-	//U“®Œp‘±ŠÔ‚ğƒJƒEƒ“ƒg
+	//æŒ¯å‹•ç¶™ç¶šæ™‚é–“ã‚’ã‚«ã‚¦ãƒ³ãƒˆ
 	if (m_Instance->VibrationTime > 0) {
 		m_Instance->VibrationTime--;
-		if (m_Instance->VibrationTime == 0) { //U“®Œp‘±ŠÔ‚ªŒo‚Á‚½‚ÉU“®‚ğ~‚ß‚é
+		if (m_Instance->VibrationTime == 0) { //æŒ¯å‹•ç¶™ç¶šæ™‚é–“ãŒçµŒã£ãŸæ™‚ã«æŒ¯å‹•ã‚’æ­¢ã‚ã‚‹
 			XINPUT_VIBRATION vibration;
 			ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
 			vibration.wLeftMotorSpeed = 0;
@@ -37,14 +37,14 @@ void Input::Update()
 
 void Input::Release()
 {
-	//U“®‚ğI—¹‚³‚¹‚é
+	//æŒ¯å‹•ã‚’çµ‚äº†ã•ã›ã‚‹
 	XINPUT_VIBRATION vibration;
 	ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
 	vibration.wLeftMotorSpeed = 0;
 	vibration.wRightMotorSpeed = 0;
 	XInputSetState(0, &vibration);
 
-	//‰ğ•ú
+	//è§£æ”¾
 	if (m_Instance)
 	{
 		delete m_Instance;
@@ -52,83 +52,83 @@ void Input::Release()
 	}
 }
 
-//ƒL[“ü—Í
-bool Input::GetKeyPress(int key) //ƒvƒŒƒX
+//ã‚­ãƒ¼å…¥åŠ›
+bool Input::GetKeyPress(int key) //ãƒ—ãƒ¬ã‚¹
 {
 	return m_Instance->keyState[key] & 0x80;
 }
-bool Input::GetKeyTrigger(int key) //ƒgƒŠƒK[
+bool Input::GetKeyTrigger(int key) //ãƒˆãƒªã‚¬ãƒ¼
 {
 	return (m_Instance->keyState[key] & 0x80) && !(m_Instance->keyState_old[key] & 0x80);
 }
-bool Input::GetKeyRelease(int key) //ƒŠƒŠ[ƒX
+bool Input::GetKeyRelease(int key) //ãƒªãƒªãƒ¼ã‚¹
 {
 	return !(m_Instance->keyState[key] & 0x80) && (m_Instance->keyState_old[key] & 0x80);
 }
 
-//¶ƒAƒiƒƒOƒXƒeƒBƒbƒN
+//å·¦ã‚¢ãƒŠãƒ­ã‚°ã‚¹ãƒ†ã‚£ãƒƒã‚¯
 DirectX::XMFLOAT2 Input::GetLeftAnalogStick(void)
 {
-	SHORT x = m_Instance->controllerState.Gamepad.sThumbLX; // -32768`32767
-	SHORT y = m_Instance->controllerState.Gamepad.sThumbLY; // -32768`32767
+	SHORT x = m_Instance->controllerState.Gamepad.sThumbLX; // -32768ï½32767
+	SHORT y = m_Instance->controllerState.Gamepad.sThumbLY; // -32768ï½32767
 
 	DirectX::XMFLOAT2 res = {};
-	res.x = x / 32767.0f; //-1`1
-	res.y = y / 32767.0f; //-1`1
+	res.x = x / 32767.0f; //-1ï½1
+	res.y = y / 32767.0f; //-1ï½1
 	return res;
 }
-//‰EƒAƒiƒƒOƒXƒeƒBƒbƒN
+//å³ã‚¢ãƒŠãƒ­ã‚°ã‚¹ãƒ†ã‚£ãƒƒã‚¯
 DirectX::XMFLOAT2 Input::GetRightAnalogStick(void)
 {
-	SHORT x = m_Instance->controllerState.Gamepad.sThumbRX; // -32768`32767
-	SHORT y = m_Instance->controllerState.Gamepad.sThumbRY; // -32768`32767
+	SHORT x = m_Instance->controllerState.Gamepad.sThumbRX; // -32768ï½32767
+	SHORT y = m_Instance->controllerState.Gamepad.sThumbRY; // -32768ï½32767
 
 	DirectX::XMFLOAT2 res = {};
-	res.x = x / 32767.0f; //-1`1
-	res.y = y / 32767.0f; //-1`1
+	res.x = x / 32767.0f; //-1ï½1
+	res.y = y / 32767.0f; //-1ï½1
 	return res;
 }
 
-//¶ƒgƒŠƒK[
+//å·¦ãƒˆãƒªã‚¬ãƒ¼
 float Input::GetLeftTrigger(void)
 {
-	BYTE t = m_Instance->controllerState.Gamepad.bLeftTrigger; // 0`255
+	BYTE t = m_Instance->controllerState.Gamepad.bLeftTrigger; // 0ï½255
 	return t / 255.0f;
 }
-//‰EƒgƒŠƒK[
+//å³ãƒˆãƒªã‚¬ãƒ¼
 float Input::GetRightTrigger(void)
 {
-	BYTE t = m_Instance->controllerState.Gamepad.bRightTrigger; // 0`255
+	BYTE t = m_Instance->controllerState.Gamepad.bRightTrigger; // 0ï½255
 	return t / 255.0f;
 }
 
-//ƒ{ƒ^ƒ““ü—Í
-bool Input::GetButtonPress(WORD btn) //ƒvƒŒƒX
+//ãƒœã‚¿ãƒ³å…¥åŠ›
+bool Input::GetButtonPress(WORD btn) //ãƒ—ãƒ¬ã‚¹
 {
 	return (m_Instance->controllerState.Gamepad.wButtons & btn) != 0;
 }
-bool Input::GetButtonTrigger(WORD btn) //ƒgƒŠƒK[
+bool Input::GetButtonTrigger(WORD btn) //ãƒˆãƒªã‚¬ãƒ¼
 {
 	return (m_Instance->controllerState.Gamepad.wButtons & btn) != 0 && (m_Instance->controllerState_old.Gamepad.wButtons & btn) == 0;
 }
-bool Input::GetButtonRelease(WORD btn) //ƒŠƒŠ[ƒX
+bool Input::GetButtonRelease(WORD btn) //ãƒªãƒªãƒ¼ã‚¹
 {
 	return (m_Instance->controllerState.Gamepad.wButtons & btn) == 0 && (m_Instance->controllerState_old.Gamepad.wButtons & btn) != 0;
 }
 
-//U“®
+//æŒ¯å‹•
 void Input::SetVibration(int frame, float powor)
 {
-	// XINPUT_VIBRATION\‘¢‘Ì‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğì¬
+	// XINPUT_VIBRATIONæ§‹é€ ä½“ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ä½œæˆ
 	XINPUT_VIBRATION vibration;
 	ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
 
-	// ƒ‚[ƒ^[‚Ì‹­“x‚ğİ’èi0`65535j
+	// ãƒ¢ãƒ¼ã‚¿ãƒ¼ã®å¼·åº¦ã‚’è¨­å®šï¼ˆ0ï½65535ï¼‰
 	vibration.wLeftMotorSpeed = (WORD)(powor * 65535.0f);
 	vibration.wRightMotorSpeed = (WORD)(powor * 65535.0f);
 	XInputSetState(0, &vibration);
 
-	//U“®Œp‘±ŠÔ‚ğ‘ã“ü
+	//æŒ¯å‹•ç¶™ç¶šæ™‚é–“ã‚’ä»£å…¥
 	m_Instance->VibrationTime = frame;
 }
 

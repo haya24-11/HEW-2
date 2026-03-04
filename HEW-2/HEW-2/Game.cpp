@@ -1,19 +1,19 @@
-#include "Game.h"
+ï»¿#include "Game.h"
 #include "Application.h"
 #include <windows.h>
 
-//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 Game::Game()
 {
 }
 
-//ƒfƒXƒgƒ‰ƒNƒ^
+//ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 Game::~Game()
 {
 
 }
 
-//‰Šú‰»ˆ—
+//åˆæœŸåŒ–å‡¦ç†
 void Game::Init()
 {
     scenes[static_cast<int>(SceneType::Title)] = std::make_unique<Title>();
@@ -24,21 +24,21 @@ void Game::Init()
     Input::Create();
     scenes[static_cast<int>(currentScene)]->CommonInit();
 
-    // SoundManager ‰Šú‰»
+    // SoundManager åˆæœŸåŒ–
     SoundManager::GetInstance().Init();
     Sound::GetInstance()->Init();
 
-    // š ‹N“®BGM‚Í‘¦Ä¶iƒtƒF[ƒh‚È‚µj
+    // â˜… èµ·å‹•æ™‚BGMã¯å³å†ç”Ÿï¼ˆãƒ•ã‚§ãƒ¼ãƒ‰ãªã—ï¼‰
     SOUND_LABEL startBGM = GetBGMFromScene(currentScene);
     SoundManager::GetInstance().Play(startBGM);
 
-    // SoundManager ‘¤‚Ìó‘Ô‚à‡‚í‚¹‚é
+    // SoundManager å´ã®çŠ¶æ…‹ã‚‚åˆã‚ã›ã‚‹
     SoundManager::GetInstance().SetCurrentBGM(startBGM);
 
     ChangeBGM(currentScene);
 }
 
-//XVˆ—
+//æ›´æ–°å‡¦ç†
 void Game::Update(float fps)
 {
     Input::Update();
@@ -47,24 +47,24 @@ void Game::Update(float fps)
 
     scenes[static_cast<int>(currentScene)]->UpdateScene(fps);
 
+    // Game.cpp ã® Update() å†…
+
     SceneType nextScene = scenes[static_cast<int>(currentScene)]->GetNextScene();
     if (nextScene != SceneType::NONE)
     {
-        // ¡‚ÌƒV[ƒ“‚ğI—¹‚µ‚Ä
+        scenes[static_cast<int>(currentScene)]->UninitScene();
+
         scenes[static_cast<int>(currentScene)]->ClearObject();
 
-        // Ÿ‚ÌƒV[ƒ“‚Ì‰Šú‰»ˆ—‚ğs‚¤
         scenes[static_cast<int>(nextScene)]->CommonInit();
 
-        // Œ»İ‚ÌƒV[ƒ“î•ñ‚ğXV
         currentScene = nextScene;
 
-        // š ‚±‚±‚ÅBGMØ‚è‘Ö‚¦
         ChangeBGM(currentScene);
     }
 }
 
-//•`‰æˆ—
+//æç”»å‡¦ç†
 void Game::Draw()
 {
     RendererDrawStart();
@@ -77,7 +77,7 @@ void Game::Draw()
 }
 
 
-//I—¹ˆ—
+//çµ‚äº†å‡¦ç†
 void Game::Uninit()
 {
     SoundManager::GetInstance().Uninit();
@@ -111,24 +111,24 @@ void Game::ChangeBGM(SceneType scene)
     SOUND_LABEL nextBGM = GetBGMFromScene(scene);
     SoundManager::GetInstance().RequestBGM(nextBGM);
 
-    // “¯‚¶BGM‚È‚ç‰½‚à‚µ‚È‚¢
+    // åŒã˜BGMãªã‚‰ä½•ã‚‚ã—ãªã„
     if (nextBGM == SOUND_LABEL_MAX || currentBGM == nextBGM)
         return;
 
     auto& sound = SoundManager::GetInstance();
     SoundManager::GetInstance().PlayBGMFade(nextBGM, 1.0f);
 
-    // ˆÈ‘O‚ÌBGM‚ğ~‚ß‚é
+    // ä»¥å‰ã®BGMã‚’æ­¢ã‚ã‚‹
     if (currentBGM != SOUND_LABEL_MAX)
     {
         sound.Stop(currentBGM);
     }
 
-    // ƒtƒF[ƒhƒAƒEƒg ¨ ƒtƒF[ƒhƒCƒ“
+    // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆ â†’ ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³
     sound.FadeOutBGM(0.5f);
     sound.FadeInBGM(nextBGM, 0.5f);
 
-    // V‚µ‚¢BGM‚ğÄ¶
+    // æ–°ã—ã„BGMã‚’å†ç”Ÿ
     sound.Play(nextBGM);
     currentBGM = nextBGM;
 }

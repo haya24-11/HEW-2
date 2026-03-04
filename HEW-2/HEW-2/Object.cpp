@@ -289,11 +289,9 @@ void Object::SetSpriteSheet(int splitX, int splitY)
 
 void Object::Uninit()
 {
-	// =========================
-	// 解放処理
-	//  - AddRef した分だけ Release する
-	// =========================
 	SAFE_RELEASE(m_pVertexBuffer);
+	SAFE_RELEASE(m_pTextureView);
+	SAFE_RELEASE(m_texture);
 }
 
 Object* Object::SetPos(float x, float y, float z)

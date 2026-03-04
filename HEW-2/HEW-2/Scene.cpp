@@ -1,23 +1,20 @@
-#include "Scene.h"
+﻿#include "Scene.h"
 
-Scene::Scene(SceneType type):sceneType(type)
+Scene::Scene(SceneType type) : sceneType(type)
 {
-
 }
 
 Scene::~Scene()
 {
-	ClearObject();
+    ClearObject();
 }
 
 void Scene::InitScene()
 {
-
 }
 
-void Scene::UpdateScene(float deltaTime)
+void Scene::UpdateScene(float /*deltaTime*/)
 {
-
 }
 
 void Scene::DrawScene()
@@ -25,15 +22,15 @@ void Scene::DrawScene()
     for (auto& obj : objects)
         obj->Draw();
 }
+
 void Scene::UninitScene()
 {
-
 }
 
 void Scene::CommonInit()
 {
-	nextScene = SceneType::NONE;
-	InitScene();
+    nextScene = SceneType::NONE;
+    InitScene();
 }
 
 bool Scene::IsChange() const
@@ -54,37 +51,46 @@ void Scene::ChangeScene(SceneType next)
 
 void Scene::SetNextScene(SceneType nextScene)
 {
-	// ���Ɠ����V�[���Ȃ珈���Ȃ�
-	if (sceneType == nextScene)
-		return;
+    // 今と同じシーンなら処理なし
+    if (sceneType == nextScene)
+        return;
 
-	Scene::nextScene = nextScene;
+    Scene::nextScene = nextScene;
 }
 
 Object* Scene::AddObject()
 {
-	objects.push_back(std::make_unique<Object>());
-	return objects.back().get();
+    objects.push_back(std::make_unique<Object>());
+    return objects.back().get();
 }
 
 void Scene::RemoveObject(Object* obj)
 {
     if (!obj) return;
 
-    auto it = std::remove_if(
-        objects.begin(),
-        objects.end(),
-        [&](const std::unique_ptr<Object>& o)
+    // ✅ 先に Object 側の GPU リソースを解放してから削除
+    for (auto it = objects.begin(); it != objects.end(); )
+    {
+        if (it->get() == obj)
         {
-            return o.get() == obj;
+            if (*it) (*it)->Uninit();
+            it = objects.erase(it);
         }
-    );
-
-    objects.erase(it, objects.end());
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 void Scene::ClearObject()
 {
-	objects.clear();
-	objects.shrink_to_fit();
+    // ✅ clear前に全ObjectのUninitを呼んでGPU/参照カウントを解放
+    for (auto& o : objects)
+    {
+        if (o) o->Uninit();
+    }
+
+    objects.clear();
+    objects.shrink_to_fit();
 }

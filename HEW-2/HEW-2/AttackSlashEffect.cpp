@@ -1,14 +1,15 @@
-﻿#include "AttackSlashEffect.h"
+﻿//==============================
+// AttackSlashEffect.cpp
+//==============================
+#include "AttackSlashEffect.h"
 #include "Scene.h"
 #include "Object.h"
-
 #include "GamePlay.h"
 #include "EnemySpawner.h"
 #include "Enemy.h"
 
 #include <cmath>
 #include <Windows.h>
-#include <iostream> // ✅ std::cout
 
 using namespace DirectX::SimpleMath;
 
@@ -18,10 +19,8 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir)
 {
 }
 
-AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool facingRight, int damage)
+AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool /*facingRight*/, int damage)
 {
-    std::cout << "[SlashEffect] Create dmg=" << damage << "\n";
-
     m_scene = scene;
     m_owner = owner;
     m_dir = dir;
@@ -30,35 +29,30 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
     // GamePlay取得（敵リストにアクセスするため）
     m_gameplay = dynamic_cast<GamePlay*>(scene);
 
-    m_object = scene->AddObject();
+    // SceneにObjectを追加（Scene側が所有）
+    if (!m_scene)
+    {
+        m_dead = true;
+        return;
+    }
+
+    m_object = m_scene->AddObject();
     if (!m_object)
     {
         m_dead = true;
         return;
     }
 
-    // =========================
     // 見た目（斬撃）
-    // =========================
     m_object->Init("asset/Texture/slash_effect.png", 1, 1);
     m_object->SetSize(300.0f, 300.0f, 0.0f);
-    m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_object->SetColor(1.0f, 1.0f, 1.0f, 0.0f);
     m_object->SetUI(false);
 
-    // =========================
-    // 初期位置：所有者の前方に配置
-    // =========================
-    Vector3 p = owner ? owner->GetPos() : Vector3(0, 0, 0);
-    Vector2 dirVec = AttackDirToVector(m_dir);
+    // 当たり判定（開始時OFF）
+    m_object->SetCollisionRadius(0.0f);
 
-    const float kSlashOffset = 70.0f;
-    p.x += dirVec.x * kSlashOffset;
-    p.y += dirVec.y * kSlashOffset;
-    p.y += -20.0f;
-
-    m_object->SetPos(p.x, p.y, p.z);
-
-    // 攻撃方向に応じて角度
+    // 角度
     switch (m_dir)
     {
     case AttackDir::Right:     m_object->SetAngle(0.0f);    break;
@@ -71,30 +65,29 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
     case AttackDir::DownLeft:  m_object->SetAngle(-135.0f); break;
     default:                   m_object->SetAngle(0.0f);    break;
     }
-
-    // 当たり判定（開始時OFF）
-    m_object->SetCollisionRadius(0.0f);
-
-    // ✅ パラメータ確認
-    std::cout << "[SlashEffect] life=" << m_lifeTime
-        << " delay=" << m_delay
-        << " hitTime=" << m_hitActiveTime
-        << " hitRadius=" << m_hitRadius
-        << " dmg=" << m_damage << "\n";
 }
 
 AttackSlashEffect::~AttackSlashEffect()
 {
+    Uninit();
 }
 
 void AttackSlashEffect::Update(float dt)
 {
-    if (m_dead || !m_object) return;
+    if (m_dead) return;
+    if (!m_object) { m_dead = true; return; }
 
     m_timer += dt;
 
-    // ★プレイヤー追従（常に前方へ）
-    if (m_owner)
+    // ownerが無い（シーン切替等）なら安全に終了
+    if (!m_owner)
+    {
+        Uninit();
+        m_dead = true;
+        return;
+    }
+
+    // プレイヤー追従（常に前方へ）
     {
         Vector3 p = m_owner->GetPos();
         Vector2 dirVec = AttackDirToVector(m_dir);
@@ -110,35 +103,12 @@ void AttackSlashEffect::Update(float dt)
     // 進行率
     const float t = (m_lifeTime > 0.0f) ? (m_timer / m_lifeTime) : 1.0f;
 
-    // =========================
     // 当たり判定が有効な時間
-    // =========================
     const float hitStart = m_delay;
     const float hitEnd = m_delay + m_hitActiveTime;
     const bool hitActive = (m_timer >= hitStart && m_timer <= hitEnd);
 
     m_object->SetCollisionRadius(hitActive ? m_hitRadius : 0.0f);
-
-    // ✅ 0.2秒마다 상태 로그 (안 뜨면 Update 자체가 안 도는 거)
-    {
-        static float s_dbg = 0.0f;
-        s_dbg += dt;
-        if (s_dbg > 0.2f)
-        {
-            s_dbg = 0.0f;
-            std::cout << "[SlashTick] time=" << m_timer
-                << " active=" << (hitActive ? 1 : 0)
-                << " rad=" << (hitActive ? m_hitRadius : 0.0f)
-                << " dmg=" << m_damage << "\n";
-        }
-    }
-
-    if (t >= 1.0f)
-    {
-        m_object->SetCollisionRadius(0.0f);
-        m_dead = true;
-        return;
-    }
 
     // 表示（フェード）
     float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
@@ -149,17 +119,22 @@ void AttackSlashEffect::Update(float dt)
     float scale = 0.6f + t * 0.6f;
     m_object->SetSize(250.0f * scale, 90.0f * scale, 0.0f);
 
-    // =========================
-    // 敵に当たったらダメージ
-    // =========================
+    // 寿命終了
+    if (t >= 1.0f)
+    {
+        Uninit();
+        m_dead = true;
+        return;
+    }
+
+    // 敵に当たったらダメージ（1回だけ）
     if (hitActive && m_gameplay && m_damage > 0)
     {
         const auto& enemies = m_gameplay->GetSpawner().GetEnemies();
 
-        // ✅ 自前の円判定（CheckCollision を信用しない）
         const auto ap3 = m_object->GetPos();
         const Vector2 aPos(ap3.x, ap3.y);
-        const float aR = m_object->GetCollisionRadius(); // = m_hitRadius (hitActive中)
+        const float aR = m_object->GetCollisionRadius();
 
         for (const auto& e : enemies)
         {
@@ -177,11 +152,9 @@ void AttackSlashEffect::Update(float dt)
 
             const Vector2 d = (ePos - aPos);
             const float rr = (aR + eR);
-            const bool hit = (d.LengthSquared() <= rr * rr);
 
-            if (hit)
+            if (d.LengthSquared() <= rr * rr)
             {
-                std::cout << "[SlashHit] hit! dmg=" << m_damage << " eR=" << eR << "\n";
                 e->TakeDamage(m_damage);
                 m_hitOnce.insert(e.get());
             }
@@ -194,6 +167,11 @@ void AttackSlashEffect::Uninit()
     if (m_scene && m_object)
     {
         m_scene->RemoveObject(m_object);
-        m_object = nullptr;
     }
+
+    m_object = nullptr;
+    m_owner = nullptr;
+    m_gameplay = nullptr;
+    m_scene = nullptr;
+    m_hitOnce.clear();
 }

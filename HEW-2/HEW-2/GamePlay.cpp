@@ -99,7 +99,48 @@ GamePlay::GamePlay() : Scene(SceneType::GamePlay)
 
 void GamePlay::InitScene()
 {
+    // ===== リプレイ対策：完全リセット（InitSceneの先頭）=====
+    LightAttackButton = nullptr;
+    HeavyAttackButton = nullptr;
+    BuffIcons.clear();
+    BuffIcon = nullptr;
+    BuffIcon_A = nullptr;
+    PlayerIcon = nullptr;
+    MagicCircle = nullptr;
+    PlayerHeartPointBar = nullptr;
+    ExpBarBack = nullptr;
+    ExpBarGauge = nullptr;
+    ExpBarFrame = nullptr;
+    m_levelDigits.clear();
+
+    // エフェクト完全削除
+    for (auto* e : m_attackEffects)
+    {
+        if (!e) continue;
+        e->Uninit();
+        delete e;
+    }
+    m_attackEffects.clear();
+
+    // ボス関連
+    m_bossTimer = 0.0f;
+    m_bossPhase = false;
     m_bossHasSpawned = false;
+
+    // プレイヤー/マップ
+    m_player.reset();
+    m_map = nullptr;
+
+    // ✅ 重要：Spawnerを作り直す（中のポインタ/敵リストを完全リセット）
+    m_spawner = EnemySpawner();
+
+    // Comboも念のため作り直し（または Reset() を用意）
+   // m_combo = ComboManager();
+
+    // カメラも初期値に（必要なら）
+    m_camera = Camera2D();
+
+
 
     // ===== プレイヤー関連テクスチャを事前ロード =====
     PreloadTexture(g_pDevice, "asset/Texture/player_idle.png");
@@ -199,7 +240,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerIcon->Init("asset/UI/playericon.png");
     PlayerIcon->SetUI(true);
-    
+
 
     // ===== バフアイコン =====
     BuffIcons.clear(); // ★2回目開始時に前回のポインタが残らないように一応クリア
@@ -251,7 +292,7 @@ void GamePlay::InitScene()
     ExpBarFrame->SetUI(true);
 
     m_combo.Init(this);
-   
+
     for (int i = 0; i < 2; i++)
     {
         Object* digit = AddObject();
@@ -270,6 +311,7 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
+
     float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
 
@@ -283,7 +325,7 @@ void GamePlay::UpdateScene(float deltaTime)
     const bool isHeavyDashing = m_player->IsHeavyDashing();
     if (wasHeavyDashing && !isHeavyDashing)
     {
-       m_player->StartNoHitAnim(1.0f);
+        m_player->StartNoHitAnim(1.0f);
     }
 
     if (!m_player) return;
@@ -715,13 +757,43 @@ void GamePlay::DrawScene()
 
 void GamePlay::UninitScene()
 {
-    Object::ReleaseTextureCache();
-    std::cout << "UninitScene" << std::endl;
-    for (auto e : m_attackEffects)
+   // m_combo = ComboManager();
+
+    std::cout << "UninitScene(GamePlay)" << std::endl;
+
+    // ✅ 攻撃エフェクトを確実に破棄（Scene内Objectも安全に除去）
+    for (auto* e : m_attackEffects)
     {
+        if (!e) continue;
+        e->Uninit();
         delete e;
     }
     m_attackEffects.clear();
+
+    // ✅ Enemy* をキーにした静的クールダウンはリプレイで必ずクリア（アドレス再利用でバグる）
+    s_touchHitCD.clear();
+    s_heavyHitCD.clear();
+    s_touchHitCD_All = 0.0f;
+
+    // ✅ 参照を切る（ClearObjectでObjectは消えるので、ポインタを残すと危険）
+    LightAttackButton = nullptr;
+    HeavyAttackButton = nullptr;
+    BuffIcons.clear();
+    BuffIcon = nullptr;
+    BuffIcon_A = nullptr;
+    PlayerIcon = nullptr;
+    MagicCircle = nullptr;
+    PlayerHeartPointBar = nullptr;
+    ExpBarBack = nullptr;
+    ExpBarGauge = nullptr;
+    ExpBarFrame = nullptr;
+    m_levelDigits.clear();
+
+    m_player.reset();
+    m_map = nullptr;
+
+    // ✅ Spawnerも念のため初期化（内部Enemy配列を破棄）
+    m_spawner = EnemySpawner();
 }
 
 static void PushOutCircle(Object* playerObj, Object* enemyObj)
@@ -769,7 +841,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
-   
+
     const float halfW = SCREEN_WIDTH * 0.5f;
     const float halfH = SCREEN_HEIGHT * 0.5f;
     const float pad = 30.0f;
@@ -823,7 +895,7 @@ void GamePlay::UpdateUIFollowCamera()
     if (ExpBarFrame)
     {
         const float gapY = -855.0f;
-        ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
+        ExpBarBack->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
         // ==========================
         // EXPバー左端固定
         // ==========================

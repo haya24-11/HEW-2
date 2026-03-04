@@ -12,7 +12,7 @@ namespace SM = DirectX::SimpleMath;
 
 Player::Player()
 {
-    hp = 50;
+    hp = 100;
     power = 10;
 
     moveSpeed = 30.0f;

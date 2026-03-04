@@ -1,4 +1,4 @@
-#include "ComboManager.h"
+ï»¿#include "ComboManager.h"
 #include "GamePlay.h"
 
 static constexpr float COMBO_DISPLAY_TIME = 3.0f;
@@ -7,29 +7,45 @@ void ComboManager::Init(GamePlay* scene)
 {
     m_scene = scene;
 
-    // Å‘å4Œ…
+    // âœ… ãƒªãƒ—ãƒ¬ã‚¤å¯¾ç­–ï¼šå‰å›ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å¿…ãšç ´æ£„ï¼ˆClearObject å¾Œã«è§¦ã‚‹ã¨å±é™ºï¼‰
+    m_digits.clear();
+    m_debugText = nullptr;
+
+    // çŠ¶æ…‹ã‚’åˆæœŸåŒ–
+    m_comboCount = 0;
+    m_attackActive = false;
+    m_visible = false;
+    m_timer = 0.0f;
+    m_popScale = 1.0f;
+    m_popTimer = 0.0f;
+
+    if (!m_scene) return;
+
+    // 4æ¡åˆ†ã®UIã‚’ç”Ÿæˆ
+    m_digits.reserve(4);
     for (int i = 0; i < 4; i++)
     {
         Object* digit = m_scene->AddObject();
+        if (!digit) continue;
+
         digit->Init("asset/UI/combo_number.png", 10, 1);
         digit->SetSpriteSheet(10, 1);
         digit->SetUI(true);
         digit->SetSize(64, 64, 0);
 
+        // æœ€åˆã¯éè¡¨ç¤º
+        digit->SetActive(false);
+
         m_digits.push_back(digit);
-    }
-    for (auto d : m_digits)
-    {
-        d->SetActive(false);
     }
 }
 
 void ComboManager::BeginAttack()
 {
     m_attackActive = true;
-    m_comboCount = 0; // UŒ‚ŠJn‚ÅƒRƒ“ƒ{ƒŠƒZƒbƒg
-    m_visible = false; // UŒ‚ŠJn‚Í•\¦
-    m_timer = 0.0f;  // ƒ^ƒCƒ}[ƒŠƒZƒbƒg
+    m_comboCount = 0; // æ”»æ’ƒé–‹å§‹ã§ã‚³ãƒ³ãƒœãƒªã‚»ãƒƒãƒˆ
+    m_visible = false; // æ”»æ’ƒé–‹å§‹æ™‚ã¯è¡¨ç¤º
+    m_timer = 0.0f;  // ã‚¿ã‚¤ãƒãƒ¼ãƒªã‚»ãƒƒãƒˆ
 }
 
 void ComboManager::AddHit()
@@ -37,7 +53,7 @@ void ComboManager::AddHit()
     if (!m_attackActive) return;
 
     m_comboCount++;
-    std::cout << "Combo = " << m_comboCount << std::endl; // ƒfƒoƒbƒO•\¦
+    std::cout << "Combo = " << m_comboCount << std::endl; // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
 
     m_visible = true;
     m_timer = COMBO_DISPLAY_TIME;
@@ -47,7 +63,7 @@ void ComboManager::AddHit()
 void ComboManager::UpdateDraw()
 {
     for (auto d : m_digits)
-        d->SetActive(false);
+        if (d) d->SetActive(false);
 
     if (!m_visible) return;
 
@@ -69,7 +85,7 @@ void ComboManager::UpdateDraw()
             obj->SetAnimFrame(num);
 
             // =====================
-            // š’µ‚ËƒTƒCƒY“K—p
+            // â˜…è·³ã­ã‚µã‚¤ã‚ºé©ç”¨
             // =====================
             obj->SetSize(
                 64.0f * m_popScale,
@@ -92,20 +108,20 @@ void ComboManager::UpdateDraw()
 void ComboManager::EndAttack()
 {
     m_attackActive = false;
-    m_timer = COMBO_DISPLAY_TIME; // 3•b•\¦
+    m_timer = COMBO_DISPLAY_TIME; // 3ç§’è¡¨ç¤º
 }
 
 void ComboManager::Update(float deltaTime)
 {
 
     // =====================
-    // ƒ|ƒbƒvƒAƒjƒ
+    // ãƒãƒƒãƒ—ã‚¢ãƒ‹ãƒ¡
     // =====================
     if (m_popTimer > 0.0f)
     {
         m_popTimer -= deltaTime;
         float t = m_popTimer / POP_TIME;
-        // 1.5”{ ¨ 1”{
+        // 1.5å€ â†’ 1å€
         m_popScale = 1.0f + t * 0.5f;
     }
     else
