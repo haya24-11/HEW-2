@@ -6,6 +6,7 @@ class Skillpowerbuff :public BuffSkill
 private:
 
 	int m_buffValue;//UŒ‚—Íã¸—Ê
+	
 
 public:
 
