@@ -85,6 +85,13 @@ public:
     void Attack() override;
 
     // スキル取得時の共通処理
+    void ApplyAbility(auto* skill);
+   
+    //取得したスキル一覧
+    const std::vector<Skill*>& GetLearnedSkills() const;
+
+
+
     void ApplyAbility(Skill* skill);
 
     int GetPower() const;
@@ -290,6 +297,8 @@ private:
     // レベルシステム
     int m_level = 1;
     int m_currentExp = 0;
+
+    bool m_justLeveledUp = false;
 
 
     float m_blinkTimer = 0.0f;        // 点滅用タイマー

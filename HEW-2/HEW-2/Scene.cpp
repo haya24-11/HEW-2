@@ -43,8 +43,9 @@ const SceneType Scene::GetNextScene() const
     return nextScene;
 }
 
-void Scene::ChangeScene(SceneType next)
+void Scene::ChangeScene(SceneType next, const ResultData& data)
 {
+    m_lastResult = data;
     isChange = true;
     nextScene = next;
 }
@@ -94,3 +95,4 @@ void Scene::ClearObject()
     objects.clear();
     objects.shrink_to_fit();
 }
+

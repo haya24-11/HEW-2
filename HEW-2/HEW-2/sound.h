@@ -53,6 +53,7 @@ private:
 	float m_volumeSE = 5.0f;
 
 public:
+	Sound();
 	static Sound* GetInstance();
 
 	// ゲームループ開始前に呼び出すサウンドの初期化処理

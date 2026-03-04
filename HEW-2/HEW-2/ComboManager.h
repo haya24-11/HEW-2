@@ -16,11 +16,14 @@ public:
     void AddHit();        // ƒqƒbƒg‰ÁZ
     void UpdateDraw();
     void EndAttack(); // UŒ‚I—¹‚ÉŒÄ‚Ô
+
+    int GetMaxCombo() const { return m_maxCombo; } // ResultŒfÚ—p
 private:
     GamePlay* m_scene = nullptr;
     Object* m_debugText = nullptr;
 
     int   m_comboCount = 0;
+    int   m_maxCombo = 0;
     bool  m_attackActive = false;
     bool  m_visible = false;
 

@@ -48,12 +48,11 @@ void SoundManager::PlayBGMFade(SOUND_LABEL next, float fadeTime)
 void SoundManager::Update(float deltaTime)
 {
     if (!m_isCrossFade) return;
-    if (m_fadeTime <= 0.0f) return;
 
     m_fadeTimer += deltaTime;
+
     float t = m_fadeTimer / m_fadeTime;
     if (t > 1.0f) t = 1.0f;
-
     //printf(
     //    "[Sound] current=%d next=%d fadeOut=%d t=%.2f\n",
     //    m_currentBGM,
@@ -63,28 +62,28 @@ void SoundManager::Update(float deltaTime)
     //);
 
     // フェードアウト（旧BGM）
+
     if (m_fadeOutBGM != SOUND_LABEL_MAX)
     {
         sound.SetVolume(m_fadeOutBGM, 1.0f - t);
-
-        if (t >= 1.0f)
-        {
-            sound.Stop(m_fadeOutBGM);
-            m_fadeOutBGM = SOUND_LABEL_MAX;
-        }
     }
 
     // フェードイン（新BGM）
-    if (m_nextBGM != SOUND_LABEL_MAX)
+    if (m_fadeInBGM != SOUND_LABEL_MAX)
     {
-        sound.SetVolume(m_nextBGM, t);
+        sound.SetVolume(m_fadeInBGM, t);
     }
 
     // クロスフェード完了
     if (t >= 1.0f)
     {
-        m_currentBGM = m_nextBGM;
-        m_nextBGM = SOUND_LABEL_MAX;
+        if (m_fadeOutBGM != SOUND_LABEL_MAX)
+            sound.Stop(m_fadeOutBGM);
+
+        m_currentBGM = m_fadeInBGM;
+
+        m_fadeOutBGM = SOUND_LABEL_MAX;
+        m_fadeInBGM = SOUND_LABEL_MAX;
         m_isCrossFade = false;
     }
 }
@@ -140,15 +139,18 @@ void SoundManager::FadeOutBGM(float fadeTime)
 void SoundManager::RequestBGM(SOUND_LABEL next)
 {
     if (next == m_currentBGM)
-        return; // 同じBGMなら何もしない
+        return;
 
-    m_nextBGM = next;
+    m_fadeOutBGM = m_currentBGM;
+    m_fadeInBGM = next;
+
     m_fadeTimer = 0.0f;
+    m_fadeTime = 1.5f; // 任意
+
     m_isCrossFade = true;
 
-    // 新BGMを無音で再生開始
-    sound.Play(m_nextBGM);
-    sound.SetVolume(m_nextBGM, 0.0f);
+    sound.Play(m_fadeInBGM);
+    sound.SetVolume(m_fadeInBGM, 0.0f);
 }
 
 void SoundManager::SetCurrentBGM(SOUND_LABEL label)

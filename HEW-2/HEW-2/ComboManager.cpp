@@ -43,9 +43,9 @@ void ComboManager::Init(GamePlay* scene)
 void ComboManager::BeginAttack()
 {
     m_attackActive = true;
-    m_comboCount = 0; // 攻撃開始でコンボリセット
-    m_visible = false; // 攻撃開始時は表示
-    m_timer = 0.0f;  // タイマーリセット
+    m_comboCount = 0; // �U���J�n�ŃR���{���Z�b�g
+    m_visible = false; // �U���J�n���͕\��
+    m_timer = 0.0f;  // �^�C�}�[���Z�b�g
 }
 
 void ComboManager::AddHit()
@@ -53,7 +53,7 @@ void ComboManager::AddHit()
     if (!m_attackActive) return;
 
     m_comboCount++;
-    std::cout << "Combo = " << m_comboCount << std::endl; // デバッグ表示
+    std::cout << "Combo = " << m_comboCount << std::endl; // �f�o�b�O�\��
 
     m_visible = true;
     m_timer = COMBO_DISPLAY_TIME;
@@ -85,7 +85,7 @@ void ComboManager::UpdateDraw()
             obj->SetAnimFrame(num);
 
             // =====================
-            // ★跳ねサイズ適用
+            // �����˃T�C�Y�K�p
             // =====================
             obj->SetSize(
                 64.0f * m_popScale,
@@ -108,20 +108,20 @@ void ComboManager::UpdateDraw()
 void ComboManager::EndAttack()
 {
     m_attackActive = false;
-    m_timer = COMBO_DISPLAY_TIME; // 3秒表示
+    m_timer = COMBO_DISPLAY_TIME; // 3�b�\��
 }
 
 void ComboManager::Update(float deltaTime)
 {
 
     // =====================
-    // ポップアニメ
+    // �|�b�v�A�j��
     // =====================
     if (m_popTimer > 0.0f)
     {
         m_popTimer -= deltaTime;
         float t = m_popTimer / POP_TIME;
-        // 1.5倍 → 1倍
+        // 1.5�{ �� 1�{
         m_popScale = 1.0f + t * 0.5f;
     }
     else
@@ -143,6 +143,8 @@ void ComboManager::Update(float deltaTime)
 
             return;
         }
+        m_comboCount = 0; // �\��������Ɠ����ɃJ�E���g�����Z�b�g
+
     }
 
     UpdateDraw();

@@ -149,6 +149,8 @@ void GamePlay::InitScene()
     PreloadTexture(g_pDevice, "asset/Texture/player_attack_heavy.png");
     PreloadTexture(g_pDevice, "asset/Texture/slash_effect.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_damaged.png");
+    PreloadTexture(g_pDevice, "asset/UI/LevelNumber.png");
+    PreloadTexture(g_pDevice, "asset/UI/level_text.png");
 
     Object dummy;
     dummy.Init("asset/Texture/player_attack_heavy.png", 1, 1);
@@ -299,10 +301,18 @@ void GamePlay::InitScene()
         digit->Init("asset/UI/LevelNumber.png", 5, 2);
         digit->SetSpriteSheet(5, 2);
         digit->SetUI(true);
-        digit->SetSize(48.0f, 64.0f, 0.0f);  // ←縦長なので少し縦強め
+        digit->SetSize(96.0f, 96.0f, 0.0f);  // ←縦長なので少し縦強め
 
         m_levelDigits.push_back(digit);
     }
+
+    // ============================
+    // LEVEL. ラベル
+    // ============================
+    m_levelLabel = AddObject();
+    m_levelLabel->Init("asset/UI/level_text.png");  // ← LEVEL. 画像パス
+    m_levelLabel->SetUI(true);
+    m_levelLabel->SetSize(120.0f, 30.0f, 0.0f);  // ★ここ調整ポイント①
 
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
@@ -603,6 +613,11 @@ void GamePlay::UpdateScene(float deltaTime)
         // ✅ 今プレイで出現済みなのに、今は居ない/死んでいる → Resultへ
         if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
+            ResultData data;
+            data.monsterKills = m_spawner.GetKillCount();
+            data.maxCombo = m_combo.GetMaxCombo();
+            data.playTime = m_playtime;
+            data.isClear = true;
             SetNextScene(SceneType::Result);
             return;
         }
@@ -654,45 +669,63 @@ void GamePlay::UpdateScene(float deltaTime)
    // =======================================
     int level = m_player->GetLevel();
 
-    // いったん全部非表示
+    // 全部非表示
     for (auto d : m_levelDigits)
         d->SetActive(false);
 
-    // 桁数を数える
-    int temp = level;
-    int digitCount = 0;
-    do
-    {
-        digitCount++;
-        temp /= 10;
-    } while (temp > 0);
+    // 文字列に変換（←これが一番安全）
+    std::string levelStr = std::to_string(level);
 
-    // 左上基準位置（画面基準）
     float halfW = SCREEN_WIDTH * 0.5f;
     float halfH = SCREEN_HEIGHT * 0.5f;
 
-    float startX = -halfW + 40.0f;      // ←左から40px
-    float startY = halfH - 80.0f;      // ←上から80px
+    float startX = -halfW + 380.0f;
+    float startY = halfH - 70.0f;
 
-    // 左→右に並べる
-    for (int i = digitCount - 1; i >= 0; --i)
+    // ★数字サイズから間隔を計算
+    float digitWidth = 96.0f;
+    float spacing = digitWidth - 67.0f;   // ← 数字間を詰める（ここ調整可）
+
+    for (int i = 0; i < levelStr.size(); i++)
     {
-        int num = level % 10;
+        if (i >= m_levelDigits.size()) break;
 
-        if (i < m_levelDigits.size())
+        int num = levelStr[i] - '0';
+
+        auto obj = m_levelDigits[i];
+        obj->SetActive(true);
+        obj->SetAnimFrame(num);
+
+        obj->SetPos(
+            startX + i * spacing,
+            startY,
+            0.0f
+        );
+    }
+    // ============================
+    // LEVEL. の位置
+    // ============================
+    if (m_levelLabel)
+    {
+        m_levelLabel->SetPos(
+            startX - 90.0f,   // ★調整ポイント②（数字との距離）
+            startY,
+            0.0f
+        );
+    }
+
+    // レベル数字を強制初期表示
+    for (int i = 0; i < m_levelDigits.size(); i++)
+    {
+        if (i < levelStr.size())
         {
-            auto obj = m_levelDigits[i];
-            obj->SetActive(true);
-            obj->SetAnimFrame(num);
-
-            obj->SetPos(
-                startX + (digitCount - 1 - i) * 50.0f,  // ←横間隔50
-                startY,
-                0.0f
-            );
+            m_levelDigits[i]->SetActive(true);
+            m_levelDigits[i]->SetAnimFrame(levelStr[i] - '0');
         }
-
-        level /= 10;
+        else
+        {
+            m_levelDigits[i]->SetActive(false);
+        }
     }
 
     // レベルアップ時の演出（未実装）
@@ -742,6 +775,11 @@ void GamePlay::DrawScene()
 
         if (frame >= 0) obj->Draw(frame);
         else            obj->Draw();
+
+        ExpBarFrame->Draw();
+        ExpBarGauge->Draw();
+        ExpBarBack->Draw();
+
     }
 
     // =============================
