@@ -1,13 +1,13 @@
 #include "Scene.h"
 
-Scene::Scene(SceneType type):sceneType(type)
+Scene::Scene(SceneType type) :sceneType(type)
 {
 
 }
 
 Scene::~Scene()
 {
-	ClearObject();
+    ClearObject();
 }
 
 void Scene::InitScene()
@@ -32,8 +32,8 @@ void Scene::UninitScene()
 
 void Scene::CommonInit()
 {
-	nextScene = SceneType::NONE;
-	InitScene();
+    nextScene = SceneType::NONE;
+    InitScene();
 }
 
 bool Scene::IsChange() const
@@ -46,25 +46,26 @@ const SceneType Scene::GetNextScene() const
     return nextScene;
 }
 
-void Scene::ChangeScene(SceneType next)
+void Scene::ChangeScene(SceneType next, const ResultData& data)
 {
+    m_lastResult = data;
     isChange = true;
     nextScene = next;
 }
 
 void Scene::SetNextScene(SceneType nextScene)
 {
-	// 今と同じシーンなら処理なし
-	if (sceneType == nextScene)
-		return;
+    // 今と同じシーンなら処理なし
+    if (sceneType == nextScene)
+        return;
 
-	Scene::nextScene = nextScene;
+    Scene::nextScene = nextScene;
 }
 
 Object* Scene::AddObject()
 {
-	objects.push_back(std::make_unique<Object>());
-	return objects.back().get();
+    objects.push_back(std::make_unique<Object>());
+    return objects.back().get();
 }
 
 void Scene::RemoveObject(Object* obj)
@@ -85,6 +86,7 @@ void Scene::RemoveObject(Object* obj)
 
 void Scene::ClearObject()
 {
-	objects.clear();
-	objects.shrink_to_fit();
+    objects.clear();
+    objects.shrink_to_fit();
 }
+

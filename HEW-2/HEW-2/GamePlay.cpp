@@ -199,7 +199,7 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerIcon->Init("asset/UI/playericon.png");
     PlayerIcon->SetUI(true);
-    
+
 
     // ===== バフアイコン =====
     BuffIcons.clear(); // ★2回目開始時に前回のポインタが残らないように一応クリア
@@ -569,6 +569,11 @@ void GamePlay::UpdateScene(float deltaTime)
         // ✅ 今プレイで出現済みなのに、今は居ない/死んでいる → Resultへ
         if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
+            ResultData data;
+            data.monsterKills = m_spawner.GetKillCount();
+            data.maxCombo = m_combo.GetMaxCombo();
+            data.playTime = m_playtime;
+            data.isClear = true;
             SetNextScene(SceneType::Result);
             return;
         }
@@ -721,6 +726,11 @@ void GamePlay::DrawScene()
 
         if (frame >= 0) obj->Draw(frame);
         else            obj->Draw();
+
+        ExpBarFrame->Draw();
+        ExpBarGauge->Draw();
+        ExpBarBack->Draw();
+
     }
 
     // =============================
@@ -790,7 +800,7 @@ static void PushOutCircle(Object* playerObj, Object* enemyObj)
 
 void GamePlay::UpdateUIFollowCamera()
 {
-   
+
     const float halfW = SCREEN_WIDTH * 0.5f;
     const float halfH = SCREEN_HEIGHT * 0.5f;
     const float pad = 30.0f;
@@ -844,7 +854,7 @@ void GamePlay::UpdateUIFollowCamera()
     if (ExpBarFrame)
     {
         const float gapY = -855.0f;
-        ExpBarBack->SetPos(hpBarX +665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
+        ExpBarBack->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);     // 経験値バー 背景
         // ==========================
         // EXPバー左端固定
         // ==========================

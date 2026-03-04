@@ -5,6 +5,7 @@
 #include "GamePlay.h"
 #include "Result.h"
 #include "GameOver.h"
+#include "SaveScore.h"
 #include "input.h"
 #include "Object.h"
 #include "SoundManager.h"
