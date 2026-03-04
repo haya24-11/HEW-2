@@ -46,7 +46,7 @@ void SaveScore::InitScene()
 	PlayerCharacter->SetUI(true);
 
 
-	// ScoreText_Text　ランキング
+	// ScoreText_Text　ランキング　
 	ScoreText_Text = AddObject()
 		->SetPos(100.0f, 0.0f, 0.0f)
 		->SetSize(500.0f, 300.0f, 0.0f);

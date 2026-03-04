@@ -16,7 +16,7 @@ public:
     Object* PlayerCharacter; //キャラクター
     Object* ScoreText_Text;   //スコア表示のテキスト(文字)
     Object* ScoreText_Score;   //スコア表示のテキスト(スコアのみ文字)
-    Object* ScoreText_Coron; //スコア表示のテキスト(数字)
+    Object* ScoreText_Coron; //スコア表示のテキスト(数字)　
     Object* NextWindow; //次へのテキストがあるウィンドウ
 
     //シーンの動作

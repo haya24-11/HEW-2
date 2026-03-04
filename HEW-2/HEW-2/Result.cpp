@@ -91,7 +91,7 @@ void Result::InitScene()
     PlayerCharacter->SetSpriteSheet(8, 3);
     PlayerCharacter->SetUI(true);
 
-    //次へボタン
+    //次へボタン　
     NextWindow = AddObject()
         ->SetPos(300.0f, -200.0f, 0.0f)
         ->SetSize(200.0f, 50.0f, 0.0f);

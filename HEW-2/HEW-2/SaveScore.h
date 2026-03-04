@@ -9,7 +9,7 @@ public:
 
     ResultData data;
 
-    Object* ResultWindow; //リザルトのウィンドウ
+    Object* ResultWindow; //リザルトのウィンドウ　
     Object* PlayWallpaper; //リザルトのウィンドウ
     Object* TitleWindow; //TITLEのテキストがあるウィンドウ
     Object* PlayerCharacter; //キャラクター
