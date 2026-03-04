@@ -286,7 +286,6 @@ private:
     int m_currentExp = 0;
 
     bool m_justLeveledUp = false;
-};
 
 
     float m_blinkTimer = 0.0f;        // 点滅用タイマー

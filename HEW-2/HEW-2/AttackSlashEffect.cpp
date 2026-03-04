@@ -2,16 +2,22 @@
 #include "Scene.h"
 #include "Object.h"
 
-#include "GamePlay.h"       // ✅ 必要
-#include "EnemySpawner.h"   // ✅ 必要
-#include "Enemy.h"          // ✅ 必要
+#include "GamePlay.h"
+#include "EnemySpawner.h"
+#include "Enemy.h"
 
 #include <cmath>
+#include <Windows.h> // OutputDebugStringA
 
 using namespace DirectX::SimpleMath;
 
-//AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, bool facingRight, int damage)
-AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, int damage)
+// 旧呼び出し互換（damage無し）
+AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir)
+    : AttackSlashEffect(scene, owner, dir, /*facingRight*/ true, /*damage*/ 0)
+{
+}
+
+AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool facingRight, int damage)
 {
     OutputDebugStringA("SlashEffect Create\n");
 
@@ -20,7 +26,7 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
     m_dir = dir;
     m_damage = damage;
 
-    // ✅ GamePlay取得（敵リストにアクセスするため）
+    // GamePlay取得（敵リストにアクセスするため）
     m_gameplay = dynamic_cast<GamePlay*>(scene);
 
     m_object = scene->AddObject();
@@ -33,68 +39,39 @@ AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir,
     // =========================
     // 見た目（斬撃）
     // =========================
+     // ▼ 確実に見える設定（デバッグ用）
     m_object->Init("asset/Texture/slash_effect.png", 1, 1);
     m_object->SetSize(300.0f, 300.0f, 0.0f);
     m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // 真っ赤
-    m_object->SetUI(false);                 // UI扱いを明示的にオフ
-
-    // 初期は透明
-    m_object->SetColor(1, 1, 1, 0);
+    m_object->SetUI(false);
 
     // =========================
-    // 位置：プレイヤー前方に出す
+    // 初期位置：所有者の前方に配置
     // =========================
-    auto p = owner->GetPos();
-    const float offsetX = 80.0f;
-    const float offsetY = -20.0f;
+    Vector3 p = owner ? owner->GetPos() : Vector3(0, 0, 0);
+    Vector2 dirVec = AttackDirToVector(m_dir);
 
-    // ★突進方向へ前方配置
     p.x += dirVec.x * 120.0f;
     p.y += dirVec.y * 120.0f;
-
-    // ===============================
-    // 攻撃方向に応じて位置＆角度変更
-    // ===============================
+    p.y += -20.0f; // 下に少し
 
     m_object->SetPos(p.x, p.y, p.z);
+
+    // 攻撃方向に応じて角度
     switch (m_dir)
     {
-    case AttackDir::Right:
-        m_object->SetAngle(0.0f);
-        break;
-
-    case AttackDir::Left:
-        m_object->SetAngle(180.0f);
-        break;
-
-    case AttackDir::Up:
-        m_object->SetAngle(90.0f);
-        break;
-
-    case AttackDir::Down:
-        m_object->SetAngle(-90.0f);
-        break;
-
-    case AttackDir::UpRight:
-        m_object->SetAngle(45.0f);
-        break;
-
-    case AttackDir::UpLeft:
-        m_object->SetAngle(135.0f);
-        break;
-
-    case AttackDir::DownRight:
-        m_object->SetAngle(-45.0f);
-        break;
-
-    case AttackDir::DownLeft:
-        m_object->SetAngle(-135.0f);
-        break;
+    case AttackDir::Right:     m_object->SetAngle(0.0f);    break;
+    case AttackDir::Left:      m_object->SetAngle(180.0f);  break;
+    case AttackDir::Up:        m_object->SetAngle(90.0f);   break;
+    case AttackDir::Down:      m_object->SetAngle(-90.0f);  break;
+    case AttackDir::UpRight:   m_object->SetAngle(45.0f);   break;
+    case AttackDir::UpLeft:    m_object->SetAngle(135.0f);  break;
+    case AttackDir::DownRight: m_object->SetAngle(-45.0f);  break;
+    case AttackDir::DownLeft:  m_object->SetAngle(-135.0f); break;
+    default:                   m_object->SetAngle(0.0f);    break;
     }
-    // 向き（左なら回転）
-    m_object->SetAngle(facingRight ? 0.0f : 180.0f);
 
-    // ✅ 当たり判定（開始時はOFFにして、判定時間だけON）
+    // 当たり判定（開始時OFF）
     m_object->SetCollisionRadius(0.0f);
 }
 
@@ -108,24 +85,24 @@ void AttackSlashEffect::Update(float dt)
 
     m_timer += dt;
 
-    // ★プレイヤー追従
+    // ★プレイヤー追従（常に前方へ）
     if (m_owner)
     {
         Vector3 p = m_owner->GetPos();
-
         Vector2 dirVec = AttackDirToVector(m_dir);
 
         p.x += dirVec.x * 120.0f;
         p.y += dirVec.y * 120.0f;
+        p.y += -20.0f;
 
         m_object->SetPos(p.x, p.y, p.z);
     }
+
     // 進行率
     const float t = (m_lifeTime > 0.0f) ? (m_timer / m_lifeTime) : 1.0f;
 
     if (t >= 1.0f)
     {
-        // 終了：判定OFF→消滅
         m_object->SetCollisionRadius(0.0f);
         m_dead = true;
         return;
@@ -143,7 +120,7 @@ void AttackSlashEffect::Update(float dt)
     m_object->SetSize(250.0f * scale, 90.0f * scale, 0.0f);
 
     // =========================
-    // ✅ 当たり判定の有効時間
+    // 当たり判定が有効な時間
     // =========================
     const float hitStart = m_delay;
     const float hitEnd = m_delay + m_hitActiveTime;
@@ -152,7 +129,7 @@ void AttackSlashEffect::Update(float dt)
     m_object->SetCollisionRadius(hitActive ? m_hitRadius : 0.0f);
 
     // =========================
-    // ✅ 敵に当たったらダメージ（プレイヤー攻撃力そのまま）
+    // 敵に当たったらダメージ（攻撃力そのまま）
     // =========================
     if (hitActive && m_gameplay && m_damage > 0)
     {
@@ -186,4 +163,3 @@ void AttackSlashEffect::Uninit()
         m_object = nullptr;
     }
 }
-

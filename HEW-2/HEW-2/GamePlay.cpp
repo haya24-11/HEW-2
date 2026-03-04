@@ -281,8 +281,7 @@ void GamePlay::UpdateScene(float deltaTime)
     const bool isHeavyDashing = m_player->IsHeavyDashing();
     if (wasHeavyDashing && !isHeavyDashing)
     {
-        // ✅ 強攻撃ダッシュ終了後 1秒：無敵＋被撃アニメ禁止
-        m_player->StartNoHitAnim(3.0f);
+      //  m_player->StartNoHitAnim(3.0f);
     }
 
     if (!m_player) return;
@@ -310,10 +309,10 @@ void GamePlay::UpdateScene(float deltaTime)
             new AttackSlashEffect(
                 this,
                 m_player->GetObject(),
-                m_player->GetAttackDir()
-            ));
+                m_player->GetAttackDir(),
                 m_player->IsFacingRight(),
-                m_player->GetPower())
+                m_player->GetPower()
+            )
         );
     }
 
