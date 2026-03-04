@@ -22,36 +22,39 @@ void Result::InitScene()
     ResultWindow->Init("asset/resultwindow.png");
     ResultWindow->SetUI(true);
 
-    int kills = data.monsterKills;
-    int combo = data.maxCombo;
-    int seconds = (int)data.playTime;
-    bool clear = data.isClear;
+    int Kills = data.monsterKills;
+    int Combo = data.maxCombo;
+    int Seconds = (int)data.playTime;
+    bool Clear = data.isClear;
+    int ResultScore = data.score;
 
     // スコア計算(仮)
-    int totalScore = (kills * 4000) + (combo * 2000) + max(0, (600 - seconds) * 100);
+    int TotalScore = (Kills * 4000) + (Combo * 2000) + max(0, (600 - Seconds) * 100);
+
+    ResultScore = TotalScore;
 
     // 討伐数
-    CreateNumberText(150.0f, 100.0f, std::to_string(kills));
+    CreateNumberText(150.0f, 100.0f, std::to_string(Kills));
 
     // 最大コンボ
-    CreateNumberText(150.0f, 50.0f, std::to_string(combo));
+    CreateNumberText(150.0f, 50.0f, std::to_string(Combo));
 
     // 戦闘時間 (分：秒秒)
 // 1. データの計算
-    int totalSeconds = (int)data.playTime;
-    int mins = totalSeconds / 60; // 分
-    int secs = totalSeconds % 60; // 秒
+    int TotalSeconds = (int)data.playTime;
+    int Mins = TotalSeconds / 60; // 分
+    int Secs = TotalSeconds % 60; // 秒
 
     //「分」の表示 
-    CreateNumberText(150.0f, 0.0f, std::to_string(mins));
+    CreateNumberText(150.0f, 0.0f, std::to_string(Mins));
 
     //「秒」の表示
-    char secBuf[3];
-    sprintf_s(secBuf, "%02d", secs); // 9秒なら "09" になる
-    CreateNumberText(210.0f, 0.0f, secBuf);
+    char SecBuf[3];
+    sprintf_s(SecBuf, "%02d", Secs); // 9秒なら "09" になる
+    CreateNumberText(210.0f, 0.0f, SecBuf);
 
     // 合計スコア
-    CreateNumberText(100.0f, -80.0f, std::to_string(totalScore));
+    CreateNumberText(100.0f, -80.0f, std::to_string(TotalScore));
 
     //文字
     ScoreText_Text = AddObject()
@@ -78,7 +81,13 @@ void Result::InitScene()
     PlayerCharacter = AddObject()
         ->SetPos(-270.0f, 0.0f, 0.0f)
         ->SetSize(220.0f, 250.0f, 0.0f);
-    PlayerCharacter->Init("asset/clearplayer.png" , 8 , 3);
+    if (Clear == true) {
+        PlayerCharacter->Init("asset/clearplayer.png", 8, 3);
+    }
+    else
+    {
+        PlayerCharacter->Init("asset/overplayer.png", 8, 3);
+    }
     PlayerCharacter->SetSpriteSheet(8, 3);
     PlayerCharacter->SetUI(true);
 
@@ -88,6 +97,8 @@ void Result::InitScene()
         ->SetSize(200.0f, 50.0f, 0.0f);
     NextWindow->Init("asset/nextwindow.png");
     NextWindow->SetUI(true);
+
+    std::cout << "(Debug) ResultScene!" << std::endl;
 }
 
 void Result::UpdateScene(float deltaTime)

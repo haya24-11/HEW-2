@@ -1,10 +1,13 @@
 #pragma once
 #include "Scene.h"
+#include "ResultData.h"
 class SaveScore :
     public Scene
 {
 public:
     SaveScore();
+
+    ResultData data;
 
     Object* ResultWindow; //リザルトのウィンドウ
     Object* PlayWallpaper; //リザルトのウィンドウ
