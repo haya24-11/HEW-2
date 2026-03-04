@@ -10,6 +10,6 @@ public:
     int GetSkilllevel() { return m_skillbufflevel; };
 protected:
 
-    int m_skillbufflevel;
+  
 };
 
