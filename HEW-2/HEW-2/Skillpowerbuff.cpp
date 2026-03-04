@@ -5,13 +5,14 @@ Skillpowerbuff::Skillpowerbuff(int value):BuffSkill("Buff",4),m_buffValue(value)
 {
 }
 
-
-
-static void Apply(Player* player)
+void Skillpowerbuff::Apply(Player* player)
 {
+
 	if (!player)return;
 
 	int atk = player->GetPower();
-	atk = static_cast<int>(atk *0.2);
+	atk = static_cast<int>(atk * 1.2);
 	player->SetPower(atk);
+	printf("Npw Power -> Atk %d\n", player->GetPower());
+
 }

@@ -501,6 +501,7 @@ void Player::LevelUp()
     // ===== 今は確認用 =====
     printf("LEVEL UP! -> Lv %d\n", m_level);
     //スキル取得
+    ApplyAbility(new Skillpowerbuff(0));
 }
 
 SM::Vector2 Player::GetMoveInput() const
