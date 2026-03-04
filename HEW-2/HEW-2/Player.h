@@ -291,6 +291,8 @@ private:
     int m_level = 1;
     int m_currentExp = 0;
 
+    bool m_justLeveledUp = false;
+
 
     float m_blinkTimer = 0.0f;        // 点滅用タイマー
     float m_blinkInterval = 3.0f;    // 点滅間隔（秒
