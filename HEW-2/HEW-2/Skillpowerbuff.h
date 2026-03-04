@@ -11,4 +11,5 @@ public:
 	Skillpowerbuff(int value);
 
 	void Apply(Player* player) override;
+	const char* GetIconPath() const override;
 };

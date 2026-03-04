@@ -16,3 +16,10 @@ void Skillpowerbuff::Apply(Player* player)
 	printf("Npw Power -> Atk %d\n", player->GetPower());
 
 }
+
+const char* Skillpowerbuff::GetIconPath() const
+{
+
+	return "asset/Texture/skill_buff_default.png";
+	
+}

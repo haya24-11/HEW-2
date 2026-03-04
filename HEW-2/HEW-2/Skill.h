@@ -15,6 +15,9 @@ public:
     int GetId() const;
     const std::string& GetName() const;
 
+    //スキルアイコンのパスのゲッター
+    virtual const char* GetIconPath() const = 0;
+
 protected:
     std::string skillName;
     int skillId = 0;

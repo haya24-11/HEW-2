@@ -14,3 +14,8 @@ void BuffSkill::Remove(Player* player)
 {
 
 }
+
+const char* BuffSkill::GetIconPath() const
+{
+    
+}

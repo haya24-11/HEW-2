@@ -84,6 +84,8 @@ public:
     // 攻撃処理の入口
     void Attack() override;
 
+    //スキル抽選
+    void SelectSkill();
     // スキル取得時の共通処理
     void ApplyAbility(Skill* skill);
    
