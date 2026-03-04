@@ -1,8 +1,13 @@
 ﻿#include "EnemySpawner.h"
-#include <cmath> // sqrtf / sinf / cosf 用
+#include <cmath> // sqrtf / sinf / cosf
 #include "Scene.h"
 #include "Object.h"
 #include "Enemy.h"
+#include <algorithm>
+#include <unordered_map>
+#include "Boss.h" 
+#include "Player.h" 
+#include "GamePlay.h"
 
 EnemySpawner::EnemySpawner()
 {
@@ -10,85 +15,67 @@ EnemySpawner::EnemySpawner()
     m_rng = std::mt19937(rd());
 }
 
-void EnemySpawner::Init(Scene* ownerScene, Object* playerObj)
+void EnemySpawner::Init(Scene* ownerScene, Object* playerObj, Player* player)
 {
-    // シーン（AddObject を使うため）とプレイヤーObjectを保持
     m_scene = ownerScene;
     m_player = playerObj;
+    m_playerLogic = player;
 
-    // 管理している敵ロジック/登録タイプ/タイマーを初期化
     m_enemies.clear();
     m_entries.clear();
     m_spawnTimer = 0.0f;
+
+    m_killCount = 0;        // ✅ 初期化：キル数
+    m_bossSpawned = false;  // ✅ 初期化：ボス出現フラグ
+
 }
 
 void EnemySpawner::Update(float deltaTime)
 {
-    // シーンまたはプレイヤーが無ければ何もしない
     if (!m_scene || !m_player) return;
-
-    // 生成する敵タイプが登録されていなければ何もしない
     if (m_entries.empty()) return;
 
-    // =========================
-    // (1) 既存の敵を毎フレーム更新
-    //     （追跡/移動/AI などは Enemy::Update 内で行われる）
-    // =========================
+    // (1) update enemies
     for (auto& e : m_enemies)
     {
         if (e) e->Update(deltaTime);
     }
 
-    // =========================
-    // (1.5) 敵同士の当たり判定（押し出し）
-    // =========================
-    ResolveEnemyCollisions();
+    // cleanup dead enemies
+    CleanupDeadEnemies();
 
-    // =========================
-    // (2) スポーン用タイマー更新
-    //     敵タイプごとに interval が違うため、先に「今回スポーンするタイプ」を決める
-    // =========================
+    // (1.5) enemy-enemy collision pushout
+    // stopDistで止まっている敵は「押し出しで動かさない」
+    for (int iter = 0; iter < 3; ++iter)
+    {
+        ResolveEnemyCollisions();
+    }
+
+    // (2) spawn timer
     m_spawnTimer += deltaTime;
 
-    // 今回スポーンする敵タイプのインデックスを抽選
     int idx = RandIndexByWeight();
     if (idx < 0 || idx >= (int)m_entries.size()) return;
 
-    // -------------------------
-    // ※注意：
-    // ここで一時インスタンスを作って GetSpawnConfig() を読むため、
-    // タイプ数が多い/毎フレーム呼ぶと重くなり得る（最適化は後で可能）
-    // -------------------------
     std::unique_ptr<Enemy> temp = m_entries[idx].createFn();
+    if (!temp) return;
     Enemy::SpawnConfig cfg = temp->GetSpawnConfig();
 
-    // 同時に存在できる最大数に達していたらスポーンしない
     if ((int)m_enemies.size() >= cfg.maxAlive) return;
 
-    // interval 秒を超えたらスポーン
     if (m_spawnTimer >= cfg.interval)
     {
         m_spawnTimer = 0.0f;
 
-        // =========================
-        // 実際の敵ロジック生成（同じ idx のタイプ）
-        // =========================
         std::unique_ptr<Enemy> enemy = m_entries[idx].createFn();
         if (!enemy) return;
 
-        // この敵タイプのスポーン設定を取得
         cfg = enemy->GetSpawnConfig();
 
-        // =========================
-        // Object を生成（Scene が所有）
-        // =========================
         Object* obj = m_scene->AddObject();
         if (!obj) return;
 
-        // 生成する Object の見た目/サイズ/当たり判定
         obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
-
-        // (보험) 혹시 Init에서 SetSpriteSheet를 안 해주는 프로젝트면 아래 한 줄도 같이 켜두면 확실함
         if (cfg.useSheet)
         {
             obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
@@ -96,63 +83,54 @@ void EnemySpawner::Update(float deltaTime)
 
         obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
         obj->SetCollisionRadius(cfg.collisionRadius);
-        // =========================
-        // スポーン位置：プレイヤー中心の「円環(minDist～maxDist)」でランダム
-        // =========================
+
         auto pp3 = m_player->GetPos();
         DirectX::SimpleMath::Vector2 center(pp3.x, pp3.y);
 
-        float angle = RandFloat(0.0f, 6.2831853f); // 0～2π
+        float angle = RandFloat(0.0f, 6.2831853f);
         float dist = RandFloat(cfg.minDist, cfg.maxDist);
 
         float sx = center.x + cosf(angle) * dist;
         float sy = center.y + sinf(angle) * dist;
-
         obj->SetPos(sx, sy, 0.0f);
 
-        // =========================
-        // ロジックと Object を接続
-        // =========================
         enemy->SetObject(obj);
         enemy->SetTarget(m_player);
 
+        enemy->SetGamePlay(
+            static_cast<GamePlay*>(m_scene)
+        );
+
+        // ✅ 死亡演出時間（SpawnConfigを反映）
+        enemy->SetDeathDelay(cfg.dieDelay);
+        enemy->SetDisappearDelay(cfg.disappearDelay);
+
         enemy->OnSpawned();
 
-        // =========================
-        // 追跡設定（念のため明示）
-        // =========================
         enemy->SetChaseEnabled(true);
 
-        // stopDist が 0 より大きければ、その距離で追跡を止める
-        // 0 の場合は最後まで追跡
         if (cfg.stopDist > 0.0f) enemy->SetChaseStopDistance(cfg.stopDist);
         else                    enemy->SetChaseStopDistance(0.0f);
 
-        // 管理リストに追加（EnemySpawner がロジックを所有）
         m_enemies.emplace_back(std::move(enemy));
     }
 }
 
 float EnemySpawner::RandFloat(float a, float b)
 {
-    // a～b の一様乱数
     std::uniform_real_distribution<float> dist(a, b);
     return dist(m_rng);
 }
 
 int EnemySpawner::RandIndexByWeight()
 {
-    // 登録が無いなら無効
     if (m_entries.empty()) return -1;
 
-    // 重み合計
     float total = 0.0f;
     for (auto& e : m_entries) total += e.weight;
 
-    // 合計が 0 以下なら 0 を返す
     if (total <= 0.0f) return 0;
 
-    // 0～total の範囲で乱数を引いて累積で決定
     float r = RandFloat(0.0f, total);
     float acc = 0.0f;
 
@@ -164,17 +142,34 @@ int EnemySpawner::RandIndexByWeight()
     return (int)m_entries.size() - 1;
 }
 
-// ※ここで <cmath> を二重 include しているなら片方は消してOK
-// #include <cmath> // sqrtf
-
 void EnemySpawner::ResolveEnemyCollisions()
 {
-    // 敵が 2 体未満なら判定不要
     if (m_enemies.size() < 2) return;
+    if (!m_player) return;
 
-    // =========================
-    // 全ペア(i<j)で衝突判定
-    // =========================
+    // プレイヤー位置（stopDist 判定用）
+    auto pp3 = m_player->GetPos();
+    DirectX::SimpleMath::Vector2 playerPos(pp3.x, pp3.y);
+
+    // stopDist に到達して止まっている敵は、押し出しで動かさない
+    // ※ノックバック中は例外（飛んでいる敵は固定しない）
+    auto IsStoppedEnemy = [&](Enemy* e, Object* eo) -> bool
+        {
+            if (!e || !eo) return false;
+
+            const float stop = e->GetChaseStopDistance();
+            if (stop <= 0.0f) return false;
+
+            if (e->IsKnockBacking()) return false;
+
+            auto p3 = eo->GetPos();
+            DirectX::SimpleMath::Vector2 pos(p3.x, p3.y);
+            float dist = (pos - playerPos).Length();
+
+            // 境界でガタつかないよう少し余裕
+            return dist <= (stop + 2.0f);
+        };
+
     for (size_t i = 0; i < m_enemies.size(); ++i)
     {
         Enemy* a = m_enemies[i].get();
@@ -191,14 +186,11 @@ void EnemySpawner::ResolveEnemyCollisions()
             Object* ob = b->GetObject();
             if (!ob) continue;
 
-            // -------------------------
-            // 円形当たり判定（Object::CheckCollision が半径ベース想定）
-            // -------------------------
             if (!oa->CheckCollision(*ob)) continue;
 
-            // -------------------------
-            // 重なり解消：お互いを半分ずつ押し出す
-            // -------------------------
+            const bool aFly = a->IsKnockBacking();
+            const bool bFly = b->IsKnockBacking();
+
             auto pa3 = oa->GetPos();
             auto pb3 = ob->GetPos();
 
@@ -208,23 +200,177 @@ void EnemySpawner::ResolveEnemyCollisions()
             float distSq = dx * dx + dy * dy;
             float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
 
-            // ※本来は Object の collisionRadius を取得して使うのが正しい
-            // getter が無いので、とりあえず 50 固定（必要なら改修）
-            float ra = 50.0f;
-            float rb = 50.0f;
+            float nx = dx / dist;
+            float ny = dy / dist;
+
+            // ---- impact damage（既存）----
+            if (aFly && !bFly)
+            {
+                int impact = 0;
+                if (a->TryConsumeImpactDamage(impact))
+                {
+                    b->TakeDamage(impact);
+                }
+            }
+            else if (!aFly && bFly)
+            {
+                int impact = 0;
+                if (b->TryConsumeImpactDamage(impact))
+                {
+                    a->TakeDamage(impact);
+                }
+            }
+
+            // ---- pushout ----
+            float ra = oa->GetCollisionRadius();
+            float rb = ob->GetCollisionRadius();
 
             float overlap = (ra + rb) - dist;
             if (overlap <= 0.0f) continue;
 
-            // 方向ベクトル（正規化）
-            float nx = dx / dist;
-            float ny = dy / dist;
+            bool aStop = IsStoppedEnemy(a, oa);
+            bool bStop = IsStoppedEnemy(b, ob);
 
-            // 押し出し量（半分ずつ）
-            float push = overlap * 0.5f;
+            float pushA = overlap * 0.5f;
+            float pushB = overlap * 0.5f;
 
-            oa->SetPos(pa3.x - nx * push, pa3.y - ny * push, pa3.z);
-            ob->SetPos(pb3.x + nx * push, pb3.y + ny * push, pb3.z);
+            if (aStop && !bStop)
+            {
+                pushA = 0.0f;
+                pushB = overlap;
+            }
+            else if (!aStop && bStop)
+            {
+                pushA = overlap;
+                pushB = 0.0f;
+            }
+            else if (aStop && bStop)
+            {
+                // 両方止まっている場合：プレイヤー中心の円周接線方向へ逃がす（押し込みにくくする）
+                DirectX::SimpleMath::Vector2 posA(pa3.x, pa3.y);
+                DirectX::SimpleMath::Vector2 posB(pb3.x, pb3.y);
+
+                auto mid = (posA + posB) * 0.5f;
+                auto r = mid - playerPos;
+                float rlen = r.Length();
+
+                if (rlen < 0.0001f) r = { 1.0f, 0.0f };
+                else r /= rlen;
+
+                DirectX::SimpleMath::Vector2 t(-r.y, r.x);
+
+                auto ab = (posB - posA);
+                if (ab.Dot(t) < 0.0f) t = -t;
+
+                float ax = -t.x * pushA;
+                float ay = -t.y * pushA;
+                float bx = t.x * pushB;
+                float by = t.y * pushB;
+
+                oa->SetPos(pa3.x + ax, pa3.y + ay, pa3.z);
+                ob->SetPos(pb3.x + bx, pb3.y + by, pb3.z);
+                continue;
+            }
+
+            oa->SetPos(pa3.x - nx * pushA, pa3.y - ny * pushA, pa3.z);
+            ob->SetPos(pb3.x + nx * pushB, pb3.y + ny * pushB, pb3.z);
         }
     }
+}
+
+void EnemySpawner::CleanupDeadEnemies()
+{
+    for (auto it = m_enemies.begin(); it != m_enemies.end(); )
+    {
+        Enemy* e = it->get();
+        if (!e)
+        {
+            it = m_enemies.erase(it);
+            continue;
+        }
+
+        if (!e->IsAlive())
+        {
+            if (!e->IsRewardGiven())
+            {
+                if (m_playerLogic)
+                {
+                    m_playerLogic->AddExp(e->GetExpValue());
+                }
+
+                e->MarkRewardGiven();
+            }
+            // ✅ 雑魚だけ討伐数を加算（ボスはカウントしない）
+            if (!e->IsBoss())
+            {
+                m_killCount++;
+
+                if (m_killCount >= 10 && !m_bossSpawned)
+                {
+                    SpawnBoss();
+                }
+            }
+
+            if (Object* o = e->GetObject())
+            {
+                o->SetCollisionRadius(0.0f);
+                o->SetColor(1, 1, 1, 0.0f);
+                auto p = o->GetPos();
+                o->SetPos(999999.0f, 999999.0f, p.z);
+            }
+
+            it = m_enemies.erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+}
+
+void EnemySpawner::SpawnBoss()
+{
+    if (m_bossSpawned) return;
+    if (!m_scene || !m_player) return;
+
+    std::unique_ptr<Enemy> boss = std::make_unique<Boss>();
+    if (!boss) return;
+
+    Enemy::SpawnConfig cfg = boss->GetSpawnConfig();
+
+    Object* obj = m_scene->AddObject();
+    if (!obj) return;
+
+    obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
+    if (cfg.useSheet)
+        obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
+
+    obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
+    obj->SetCollisionRadius(cfg.collisionRadius);
+
+    auto pp3 = m_player->GetPos();
+    DirectX::SimpleMath::Vector2 center(pp3.x, pp3.y);
+
+    float angle = RandFloat(0.0f, 6.2831853f);
+    float dist = RandFloat(cfg.minDist, cfg.maxDist);
+
+    float sx = center.x + cosf(angle) * dist;
+    float sy = center.y + sinf(angle) * dist;
+    obj->SetPos(sx, sy, 0.0f);
+
+    boss->SetObject(obj);
+    boss->SetTarget(m_player);
+    boss->SetGamePlay(
+        static_cast<GamePlay*>(m_scene)
+    );
+
+    boss->SetDeathDelay(cfg.dieDelay);
+    boss->SetDisappearDelay(cfg.disappearDelay);
+
+    boss->OnSpawned();
+
+    boss->SetChaseEnabled(true);
+    if (cfg.stopDist > 0.0f) boss->SetChaseStopDistance(cfg.stopDist);
+
+    m_enemies.emplace_back(std::move(boss));
+    m_bossSpawned = true;
 }

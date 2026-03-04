@@ -26,6 +26,7 @@ void Game::Init()
 
     // SoundManager 初期化
     SoundManager::GetInstance().Init();
+    Sound::GetInstance()->Init();
 
     // ★ 起動時BGMは即再生（フェードなし）
     SOUND_LABEL startBGM = GetBGMFromScene(currentScene);
@@ -80,6 +81,7 @@ void Game::Draw()
 void Game::Uninit()
 {
     SoundManager::GetInstance().Uninit();
+    Sound::GetInstance()->Uninit();
     Input::Release();
 }
 

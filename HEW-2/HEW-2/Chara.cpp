@@ -1,43 +1,47 @@
-#include "Chara.h"
+ï»¿#include "Chara.h"
+#include <algorithm>
 
 void Chara::Update(float /*deltaTime*/)
 {
-	// HP‚ª 0 ˆÈ‰º‚È‚çŽ€–Sˆµ‚¢
-	if (hp <= 0)
-	{
-		isAlive = false;
-	}
+
 }
 
-void Chara::Move(const DirectX::SimpleMath::Vector2& direction,float deltaTime)
+void Chara::Move(const DirectX::SimpleMath::Vector2& direction, float deltaTime)
 {
-	// Object ‚ª–³‚¯‚ê‚Î“®‚©‚¹‚È‚¢
-	if (!m_object)
-		return;
+    if (!m_object) return;
+    if (direction.LengthSquared() == 0.0f) return;
 
-	// “ü—Í‚ª‚È‚¢ê‡‚Í‰½‚à‚µ‚È‚¢
-	if (direction.LengthSquared() == 0.0f)
-		return;
+    /*
+        æ­£è¦åŒ–ã™ã‚‹ç†ç”±
+        ãƒ»æ–œã‚ç§»å‹•(W+Aãªã©)ãŒé€Ÿããªã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹ãŸã‚
+    */
+    DirectX::SimpleMath::Vector2 dir = direction;
+    dir.Normalize();
 
-	/*
-	   ³‹K‰»‚·‚é——R
-	   EŽÎ‚ßˆÚ“®(W+A‚È‚Ç)‚ª‘¬‚­‚È‚ç‚È‚¢‚æ‚¤‚É‚·‚é‚½‚ß
-   */
-	DirectX::SimpleMath::Vector2 dir = direction;
-	dir.Normalize();
+    auto p = m_object->GetPos();
 
-	// Œ»ÝÀ•W‚ðŽæ“¾
-	position = m_object->GetPos();
+    // ç§»å‹•é‡ = æ–¹å‘ Ã— é€Ÿåº¦ Ã— çµŒéŽæ™‚é–“
+    p.x += dir.x * moveSpeed * deltaTime;
+    p.y += dir.y * moveSpeed * deltaTime;
 
-	// ˆÚ“®—Ê = •ûŒü ~ ‘¬“x ~ Œo‰ßŽžŠÔ
-	position.x += dir.x * moveSpeed * deltaTime;
-	position.y += dir.y * moveSpeed * deltaTime;
-
-	// Object ‚É”½‰f
-	m_object->SetPos(position.x, position.y, position.z);
+    m_object->SetPos(p.x, p.y, p.z);
 }
 
-int Chara::GetHp()const
+void Chara::TakeDamage(int dmg)
 {
-	return hp;
+    if (dmg <= 0) return;
+
+    hp -= dmg;
+    if (hp <= 0)
+    {
+        hp = 0;
+        OnHpZero(); // â˜…ã“ã“ã§æ´¾ç”Ÿã®å‡¦ç†ãŒå‘¼ã°ã‚Œã‚‹ï¼ˆEnemyã®é…å»¶æ­»ãªã©ï¼‰
+    }
+}
+
+
+
+void Chara::OnHpZero()
+{
+
 }

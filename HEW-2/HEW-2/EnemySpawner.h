@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <SimpleMath.h>
 
+
 class Scene;
 class Object;
 class Enemy;
+class Player;
 
 class EnemySpawner
 {
@@ -15,7 +17,7 @@ public:
     EnemySpawner();
 
     // Scene（AddObject を使うため）と Player（Object*）を受け取って初期化
-    void Init(Scene* ownerScene, Object* playerObj);
+    void Init(Scene* ownerScene, Object* playerObj, Player* player);
 
     // 敵タイプ登録（複数タイプ登録可能）
     template<typename T>
@@ -27,19 +29,24 @@ public:
     // 衝突チェック用（必要なら GamePlay 側で利用）
     const std::vector<std::unique_ptr<Enemy>>& GetEnemies() const { return m_enemies; }
 
-    // 敵-敵の衝突処理（重なったら押し出す）
-    void ResolveEnemyCollisions();
+    // ★ デバッグ / 即スポーン用
+   // Enemy* SpawnOneImmediate();
+
+   
 
 private:
-    Enemy* SpawnOne(); // 1体スポーン
+ //   Enemy* SpawnOne(); // 1体スポーン
 
     // 乱数ユーティリティ
     float RandFloat(float a, float b);
     int   RandIndexByWeight();
 
+    // 敵-敵の衝突処理（重なったら押し出す）
+    void ResolveEnemyCollisions();
 private:
     Scene* m_scene = nullptr;
     Object* m_player = nullptr;
+    Player* m_playerLogic = nullptr;
 
     // 登録された敵タイプ（ファクトリ）
     struct Entry
@@ -57,6 +64,19 @@ private:
 
     // 乱数エンジン
     std::mt19937 m_rng;
+
+    void CleanupDeadEnemies();
+
+    int  m_killCount = 0;        
+    bool m_bossSpawned = false;  
+
+
+    void SpawnBoss();            // ✅ ボスを強制スポーン
+
+    std::vector<unsigned char> m_stopLock; // ★このフレーム「外にいた敵」をロック
+
+    void BuildStopLock();   // ★追加：外にいた敵の印を付ける
+    void ClampStopLocked(); // ★追加：押し出しで内側に入ったら戻す
 };
 
 // =========================

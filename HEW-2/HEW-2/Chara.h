@@ -1,19 +1,8 @@
+ï»¿// Chara.h
 #pragma once
 #include "GameObject.h"
-#include "SceneTypes.h"
-
-/*
-    Chara
-    =====
-    EƒLƒƒƒ‰ƒNƒ^[‹¤’Ê‚Ìó‘Ô‚ğ‚ÂƒNƒ‰ƒX
-    EHP
-    EŠî‘bUŒ‚—Íipowerj
-    Eó‘Ô’listatusj
-    EˆÚ“®
-    EUŒ‚i’ŠÛj
-
-    ¦ Exp / Skill / Mode / Combo ‚É‚ÍˆêØˆË‘¶‚µ‚È‚¢
-*/
+#include "Object.h"
+#include <SimpleMath.h>
 
 class Chara : public GameObject
 {
@@ -21,34 +10,33 @@ public:
     virtual ~Chara() = default;
 
     Object* GetObject() const { return m_object; }
-
-    // HPŠÄ‹‚È‚ÇÅ’áŒÀ‚ÌXV
-    void Update(float deltaTime)override;
-
     void SetObject(Object* obj) { m_object = obj; }
-    /*
-        Move
-        ----
-        Edirection : ˆÚ“®•ûŒüƒxƒNƒgƒ‹i³‹K‰»‚³‚ê‚Ä‚¢‚È‚­‚Ä‚æ‚¢j
-        EdeltaTime : ƒtƒŒ[ƒ€ˆË‘¶‚ğ–h‚®‚½‚ß‚ÌŒo‰ßŠÔ
-    */
-    // ˆÚ“®ˆ—i‘¬“x‚â“ü—Í‚ÍŠO•”‚ÅŒˆ‚ß‚éj
-    virtual void Move(const DirectX::SimpleMath::Vector2& direction,float deltaTime);
 
-    // UŒ‚‚ÍƒLƒƒƒ‰í•Ê‚²‚Æ‚ÉˆÙ‚È‚é‚½‚ßƒˆ‰¼‘z
+    // HPç›£è¦–ãªã©æœ€ä½é™ã®æ›´æ–°
+    void Update(float deltaTime) override;
+
+    virtual void Move(const DirectX::SimpleMath::Vector2& direction, float deltaTime);
     virtual void Attack() = 0;
 
-    int GetHp() const;
-    
+    int GetHp() const { return hp; }
+    int GetPower() const { return power; }
+
+    // âœ… ãƒ€ãƒ¡ãƒ¼ã‚¸å…¥å£ï¼ˆEnemyãŒoverrideã§ãã‚‹ï¼‰
+    virtual void TakeDamage(int dmg);
+
+    float GetHeavyMul() const { return heavyDamageMul; }
+    void SetHeavyMul(float m) { heavyDamageMul = m; }
 
 protected:
+    // âœ… HPãŒ0ã«ãªã£ãŸç¬é–“ã®å‡¦ç†ï¼ˆæ´¾ç”Ÿã§å·®ã—æ›¿ãˆï¼‰
+    virtual void OnHpZero();
+    float heavyDamageMul = 2.0f; 
+protected:
     Object* m_object = nullptr;
+    DirectX::SimpleMath::Vector3 position{ 0,0,0 };
 
-    DirectX::SimpleMath::Vector3 position{};
     int hp = 1;
-    int power = 1; // Šî‘bUŒ‚—ÍiƒXƒLƒ‹‚Å•Ï‰»j
-    int status = 0; // ó‘ÔŠÇ——pi‰¼j
- 
-    // ‚P•b“–‚½‚è‚ÌˆÚ“®—Ê
+    int power = 1;
     float moveSpeed = 300.0f;
+
 };
