@@ -4,6 +4,7 @@
 void ComboManager::Init(GamePlay* scene)
 {
     m_scene = scene;
+    m_player = scene->GetPlayer();
 
     // 最大4桁
     for (int i = 0; i < 4; i++)
@@ -36,6 +37,19 @@ void ComboManager::AddHit()
 
     m_comboCount++;
     std::cout << "Combo = " << m_comboCount << std::endl; // デバッグ表示
+
+    // =====================
+    // ★倍率付き経験値加算
+    // =====================
+    if (m_player)
+    {
+        // 例：1コンボなら1.1倍、2コンボなら1.2倍
+        float multiplier = 1.0f + (m_comboCount * COMBO_EXP_RATE);
+
+        int addExp = static_cast<int>(BASE_EXP * multiplier);
+
+        m_player->AddExp(addExp);
+    }
 
     m_visible = true;
     m_timer = 0.0f;
@@ -104,7 +118,7 @@ void ComboManager::Update(float deltaTime)
     UpdateDraw();
     if (!m_visible) return;
 
-    m_timer -= deltaTime;
+    //m_timer -= deltaTime;
 
     // =====================
     // ポップアニメ
@@ -121,7 +135,7 @@ void ComboManager::Update(float deltaTime)
         m_popScale = 1.0f;
     }
 
-    UpdateDraw();
+    //UpdateDraw();
 
     // タイマー処理
     if (!m_attackActive && m_visible)

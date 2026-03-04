@@ -128,6 +128,7 @@ public:
     void AddExp(int value);
     void LevelUp();
 
+    // レベルアップ用
     int GetLevel() const { return m_level; }
     int GetCurrentExp() const { return m_currentExp; }
     int GetNextLevelExp() const;
@@ -283,6 +284,8 @@ private:
     // レベルシステム
     int m_level = 1;
     int m_currentExp = 0;
+
+    bool m_justLeveledUp = false;
 };
 
 

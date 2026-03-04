@@ -503,7 +503,7 @@ void Player::LevelUp()
 {
     m_level++;
     // 次レベル必要EXP増加（基本式）
-
+    m_justLeveledUp = true;
     // ===== 今は確認用 =====
     printf("LEVEL UP! -> Lv %d\n", m_level);
 }
