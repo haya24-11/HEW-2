@@ -286,7 +286,7 @@ void Enemy::TakeDamage(int damage)
     if (m_isDying) return; // 死亡演出中は無視
 
     // ✅ 被弾フラッシュだけは常に出す
-    StartHitFlash(0.15f);
+    StartHitFlash(0.8f);
 
     // ✅ HP減少
     Chara::TakeDamage(damage);
