@@ -25,6 +25,7 @@ void Result::InitScene()
     int kills = data.monsterKills;
     int combo = data.maxCombo;
     int seconds = (int)data.playTime;
+    bool clear = data.isClear;
 
     // スコア計算(仮)
     int totalScore = (kills * 4000) + (combo * 2000) + max(0, (600 - seconds) * 100);
@@ -36,9 +37,18 @@ void Result::InitScene()
     CreateNumberText(150.0f, 50.0f, std::to_string(combo));
 
     // 戦闘時間 (分：秒秒)
-    char timeStr[16];
-    sprintf_s(timeStr, "%d:%02d", seconds / 60, seconds % 60);
-    CreateNumberText(150.0f, 0.0f, timeStr);
+// 1. データの計算
+    int totalSeconds = (int)data.playTime;
+    int mins = totalSeconds / 60; // 分
+    int secs = totalSeconds % 60; // 秒
+
+    //「分」の表示 
+    CreateNumberText(150.0f, 0.0f, std::to_string(mins));
+
+    //「秒」の表示
+    char secBuf[3];
+    sprintf_s(secBuf, "%02d", secs); // 9秒なら "09" になる
+    CreateNumberText(210.0f, 0.0f, secBuf);
 
     // 合計スコア
     CreateNumberText(100.0f, -80.0f, std::to_string(totalScore));
@@ -57,11 +67,19 @@ void Result::InitScene()
     ScoreText_Score->Init("asset/score_moji.png");
     ScoreText_Score->SetUI(true);
 
+    ScoreText_Coron = AddObject()
+        ->SetPos(219.0f, -51.0f, 0.0f)
+        ->SetSize(80.0f, 80.0f, 0.0f);
+    ScoreText_Coron->Init("asset/coron.png");
+    ScoreText_Coron->SetUI(true);
+    
+
     //キャラクター
     PlayerCharacter = AddObject()
         ->SetPos(-270.0f, 0.0f, 0.0f)
         ->SetSize(220.0f, 250.0f, 0.0f);
-    PlayerCharacter->Init("asset/playerwindow.png");
+    PlayerCharacter->Init("asset/clearplayer.png" , 8 , 3);
+    PlayerCharacter->SetSpriteSheet(8, 3);
     PlayerCharacter->SetUI(true);
 
     //次へボタン
@@ -102,16 +120,13 @@ void Result::CreateNumberText(float startX, float y, std::string text)
         if (text[i] >= '0' && text[i] <= '9') {
             nU = (float)(text[i] - '0');
         }
-        else if (text[i] == ':') {
-            nU = 10.0f; // 11番目のコロン
-        }
 
         Object* obj = AddObject()
             ->SetPos(startX + (i * spacing) + 40.0f, y + -50.0f, 0.0f)
-            ->SetSize(32.0f, 32.0f, 0.0f); // 表示サイズ
+            ->SetSize(64.0f, 64.0f, 0.0f); // 表示サイズ
 
-        obj->Init("asset/scoretext.png", 11, 1);
-        obj->SetSpriteSheet(11, 1);
+        obj->Init("asset/scoretext.png", 5, 2);
+        obj->SetSpriteSheet(5, 2);
         obj->numU = nU;     // 1文字=1.0の設定を適用
         obj->SetUI(true);   // UIとして描画
     }

@@ -527,7 +527,7 @@ void GamePlay::UpdateScene(float deltaTime)
             data.monsterKills = m_spawner.GetKillCount();
             data.maxCombo = m_combo.GetMaxCombo();
             data.playTime = m_playtime;
-
+            data.isClear = true;
             SetNextScene(SceneType::Result);
             return;
         }

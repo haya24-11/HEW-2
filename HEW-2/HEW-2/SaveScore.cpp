@@ -83,8 +83,8 @@ void SaveScore::CreateNumberText(float startX, float y, std::string text)
 			->SetPos(startX + (i * spacing) + 40.0f, y + -50.0f, 0.0f)
 			->SetSize(32.0f, 32.0f, 0.0f); // 表示サイズ
 
-		obj->Init("asset/scoretext.png", 11, 1);
-		obj->SetSpriteSheet(11, 1);
+		obj->Init("asset/scoretext.png", 10, 1);
+		obj->SetSpriteSheet(10, 1);
 		obj->numU = nU;     // 1文字=1.0の設定を適用
 		obj->SetUI(true);   // UIとして描画
 	}
