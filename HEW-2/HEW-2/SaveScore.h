@@ -7,8 +7,6 @@ class SaveScore :
 public:
     SaveScore();
 
-    ResultData data;
-
     Object* ResultWindow; //リザルトのウィンドウ　
     Object* PlayWallpaper; //リザルトのウィンドウ
     Object* TitleWindow; //TITLEのテキストがあるウィンドウ
