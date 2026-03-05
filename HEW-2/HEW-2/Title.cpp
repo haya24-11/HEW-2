@@ -3,8 +3,6 @@
 #include <Xinput.h>
 #pragma comment(lib, "Xinput.lib")
 
-Object* obj = new Object;
-
 Title::Title() : Scene(SceneType::Title)
 {
 }
@@ -21,7 +19,21 @@ void Title::InitScene()
 		->SetSize(1670.0f, 940.0f, 0.0f)
 		->SetAngle(0.0f);
 	TitleBackground->Init("asset/Title/titlebackground.png");
-	TitleBackground->SetUI(true);
+	// 背景はワールド描画にする
+	TitleBackground->SetUI(false);
+	// 背景ロゴ
+	Object* TitleBackLogo = AddObject();
+	TitleBackLogo->Init("asset/Title/title_backlogo.png");
+	TitleBackLogo->SetPos(0, 0, 0);
+	TitleBackLogo->SetSize(1674.0f, 940.0f, 0.0f);  // ★ここでサイズ調整
+	TitleBackLogo->SetUI(true);
+
+	// タイトルロゴ
+	Object* TitleLogo = AddObject();
+	TitleLogo->Init("asset/Title/title_logo.png");
+	TitleLogo->SetPos(-65,145, 0);
+	TitleLogo->SetSize(891.3f, 651.0f, 0.0f);      // ★ここでサイズ調整
+	TitleLogo->SetUI(true);
 	// =========================
 	// タイトルロゴ
 	// =========================
@@ -163,16 +175,22 @@ void Title::UpdateScene(float deltaTime)
 
 void Title::DrawScene()
 {
+	// =============================
+	// ① ワールド描画（UI以外）
+	// =============================
 	for (auto& obj : objects)
 	{
-		// =========================
-		// スプライトシートのフレーム指定描画
-		// numU が 0/1 で切り替わる
-		// =========================
-		if (obj.get() == GameStartLogo) obj->Draw(GameStartLogo->numU);
-		else if (obj.get() == ScoreLogo) obj->Draw(ScoreLogo->numU);
-		else if (obj.get() == ExitLogo) obj->Draw(ExitLogo->numU);
-		else obj->Draw();
+		if (obj->IsUI()) continue;
+		obj->Draw();
+	}
+
+	// =============================
+	// ② UI描画
+	// =============================
+	for (auto& obj : objects)
+	{
+		if (!obj->IsUI()) continue;
+		obj->Draw();
 	}
 }
 
