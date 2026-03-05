@@ -24,7 +24,7 @@ void Title::InitScene()
 		->SetSize(1670.0f, 940.0f, 0.0f)
 		->SetAngle(0.0f);
 	TitleBackground->Init("asset/Title/titlebackground.png");
-	TitleBackground->SetUI(false);
+	TitleBackground->SetUI(true);
 
 	// =========================
 	// 先読み
