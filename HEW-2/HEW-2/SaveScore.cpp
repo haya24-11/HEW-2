@@ -12,7 +12,6 @@ void SaveScore::InitScene()
 	ResultData data = Scene::GetResultData();
 
 	bool clear = data.isClear;
-	int ResultScore = data.score;
 
 	// PlayWallpaper 背景
 	PlayWallpaper = AddObject()
@@ -62,8 +61,31 @@ void SaveScore::InitScene()
 	// ------------------------------------------------
 	// スコア数字生成
 	// ------------------------------------------------
-	CreateNumberText(200.0f, 100.0f, std::to_string(ResultScore));
-	std::cout << "(Debug) SaveScoreScene!" << std::endl;
+	// =======================================
+	// スコア数字オブジェクト生成（最大6桁）
+	// =======================================
+
+	float startX = 150.0f;
+	float y = -80.0f;
+	float spacing = 40.0f;
+
+	for (int i = 0; i < 6; i++)
+	{
+		Object* digit = AddObject()
+			->SetPos(startX + (i * spacing), y, 0.0f)
+			->SetSize(64.0f, 64.0f, 0.0f);
+
+		digit->Init("asset/scoretext.png", 5, 2);
+		digit->SetSpriteSheet(5, 2);
+		digit->SetUI(true);
+
+		scoreDigits.push_back(digit);
+	}
+	int ResultScore = data.score;
+	// =======================================
+	// スコア表示更新
+	// =======================================
+	UpdateScoreDisplay(ResultScore);
 }
 
 void SaveScore::UpdateScene(float deltaTime)
@@ -99,48 +121,25 @@ void SaveScore::UninitScene()
 	ClearObject();
 }
 
-void SaveScore::CreateNumberText(float startX, float y, std::string text)
+void SaveScore::UpdateScoreDisplay(int score)
 {
-	// ------------------------------------------------
-	// 1文字ごとの間隔
-	// ------------------------------------------------
-	float spacing = 32.0f; // 1文字進む幅（フォントサイズに合わせて調整）
+	std::string text = std::to_string(score);
 
-	// ------------------------------------------------
-	// 文字生成
-	// ------------------------------------------------
-	for (size_t i = 0; i < text.length(); ++i) {
-		float nU = 0.0f;
+	int digitIndex = scoreDigits.size() - text.length();
 
-		// -------------------------------
-		// 数字判定
-		// -------------------------------
-		if (text[i] >= '0' && text[i] <= '9')
+	for (size_t i = 0; i < scoreDigits.size(); i++)
+	{
+		if (i < digitIndex)
 		{
-			nU = (float)(text[i] - '0');
+			scoreDigits[i]->numU = 0;
+			scoreDigits[i]->numV = 0;
 		}
+		else
+		{
+			int num = text[i - digitIndex] - '0';
 
-		// -------------------------------
-		// Object生成
-		// -------------------------------
-		Object* obj = AddObject()
-			->SetPos(startX + (i * spacing) + 40.0f, y - 50.0f, 0.0f)
-			->SetSize(32.0f, 32.0f, 0.0f);
-
-		// -------------------------------
-		// スプライト設定
-		// -------------------------------
-		obj->Init("asset/scoretext.png", 10, 1);
-		obj->SetSpriteSheet(10, 1);
-
-		// -------------------------------
-		// 表示する数字
-		// -------------------------------
-		obj->numU = nU;
-
-		// -------------------------------
-		// UI描画
-		// -------------------------------
-		obj->SetUI(true);
+			scoreDigits[i]->numU = num % 5;
+			scoreDigits[i]->numV = num / 5;
+		}
 	}
 }

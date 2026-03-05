@@ -176,20 +176,24 @@ void Result::CreateNumberText(float startX, float y, std::string text)
 
     for (size_t i = 0; i < text.length(); ++i) {
 
-        // 文字に応じた numU を設定
-        if (text[i] < '0' || text[i] > '9')
-            continue;
+        float spacing = 32.0f;
 
-        float nU = (float)(text[i] - '0');
+        for (int i = 0; i < text.length(); i++)
+        {
+            int num = text[i] - '0';
 
-        Object* obj = AddObject()
-            ->SetPos(startX + (i * spacing) + 40.0f, y + -50.0f, 0.0f)
-            ->SetSize(64.0f, 64.0f, 0.0f); // 表示サイズ
+            Object* obj = AddObject()
+                ->SetPos(startX + (i * spacing) + 40.0f, y - 50.0f, 0.0f)
+                ->SetSize(32.0f, 32.0f, 0.0f);
 
-        obj->Init("asset/scoretext.png", 5, 2);
-        obj->SetSpriteSheet(5, 2);
-        obj->numU = nU;     // 1文字=1.0の設定を適用
-        obj->SetUI(true);   // UIとして描画
+            obj->Init("asset/scoretext.png", 5, 2);
+            obj->SetSpriteSheet(5, 2);
+
+            obj->numU = num % 5;
+            obj->numV = num / 5;
+
+            obj->SetUI(true);
+        }
     }
 }
 

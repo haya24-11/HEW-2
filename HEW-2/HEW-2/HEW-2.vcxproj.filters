@@ -174,9 +174,6 @@
     <ClCompile Include="AttackSlashEffect.cpp">
       <Filter>ソース ファイル\UI</Filter>
     </ClCompile>
-    <ClCompile Include="SaveScore.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="NormalEnemyred.cpp">
       <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
     </ClCompile>
@@ -185,6 +182,9 @@
     </ClCompile>
     <ClCompile Include="ComboManager.cpp">
       <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveScore.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -314,9 +314,6 @@
     <ClInclude Include="ResultData.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="SaveScore.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="NormalEnemyred.h">
       <Filter>ソース ファイル\Objects\Character\Enemy Character</Filter>
     </ClInclude>
@@ -325,6 +322,9 @@
     </ClInclude>
     <ClInclude Include="ComboManager.h">
       <Filter>ソース ファイル\Gameplay\GameMechanics</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveScore.h">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
