@@ -359,6 +359,7 @@ void GamePlay::UpdateScene(float deltaTime)
     // 生存タイマー
     // =============================
     {
+        // 更に遅くさせてリアルタイムの時間速度に合わせるための変数
         float timerSpeed = 0.15f;   // ★ここで遅さ調整（0.5 = 半分の速度）
 
         float add = deltaTime * timerSpeed;
