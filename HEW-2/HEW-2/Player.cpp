@@ -40,12 +40,6 @@ Player::~Player()
 
 }
 
-Player::~Player()
-{
-    for (auto* s : skills)
-        delete s;
-}
-
 void Player::Update(float deltaTime)
 {
 
