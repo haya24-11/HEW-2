@@ -114,11 +114,12 @@ void GamePlay::InitScene()
     m_levelDigits.clear();
 
     // エフェクト完全削除
-    for (auto* e : m_attackEffects)
+    for (auto& e : m_attackEffects)
     {
-        if (!e) continue;
-        e->Uninit();
-        delete e;
+        if (e)
+        {
+            e->Uninit();
+        }
     }
     m_attackEffects.clear();
 
@@ -355,6 +356,31 @@ void GamePlay::UpdateScene(float deltaTime)
     float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
     
+    // =======================================
+    // デバッグ操作
+    // =======================================
+
+    // F1 : タイム +10秒
+    if (Input::GetKeyTrigger(VK_F1))
+    {
+        m_timer += 10.0f;
+
+        std::cout << "[DEBUG] Time = " << m_timer << std::endl;
+    }
+
+    // F2 : 討伐数 +10
+    if (Input::GetKeyTrigger(VK_F2))
+    {
+        m_spawner.DebugAddKill(10);
+    }
+
+    // F3 : コンボ +1
+    if (Input::GetKeyTrigger(VK_F3))
+    {
+        m_combo.AddCombo(1);
+    }
+
+
     // =============================
     // 生存タイマー
     // =============================
@@ -428,7 +454,7 @@ void GamePlay::UpdateScene(float deltaTime)
     {
         std::cout << "[GamePlay] attackStart TRUE -> create slash\n";
         m_attackEffects.push_back(
-            new AttackSlashEffect(
+            std::make_unique<AttackSlashEffect>(
                 this,
                 m_player->GetObject(),
                 m_player->GetAttackDir(),
@@ -454,7 +480,7 @@ void GamePlay::UpdateScene(float deltaTime)
    ================================ */
     for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
     {
-        AttackSlashEffect* e = *it;
+        auto& e = *it;
 
         if (!e)
         {
@@ -467,7 +493,6 @@ void GamePlay::UpdateScene(float deltaTime)
         if (e->IsDead())
         {
             e->Uninit();
-            delete e;
             it = m_attackEffects.erase(it);
         }
         else
@@ -693,6 +718,7 @@ void GamePlay::UpdateScene(float deltaTime)
             m_resultData.playTime = m_timer;
             m_resultData.isClear = true;
 
+            Scene::SetResultData(m_resultData);
             SetNextScene(SceneType::Result);
             return;
         }
@@ -876,12 +902,14 @@ void GamePlay::UninitScene()
     std::cout << "UninitScene(GamePlay)" << std::endl;
 
     // ✅ 攻撃エフェクトを確実に破棄（Scene内Objectも安全に除去）
-    for (auto* e : m_attackEffects)
+    for (auto& e : m_attackEffects)
     {
-        if (!e) continue;
-        e->Uninit();
-        delete e;
+        if (e)
+        {
+            e->Uninit();
+        }
     }
+
     m_attackEffects.clear();
 
     // ✅ Enemy* をキーにした静的クールダウンはリプレイで必ずクリア（アドレス再利用でバグる）

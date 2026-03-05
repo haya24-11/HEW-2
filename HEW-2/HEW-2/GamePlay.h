@@ -62,7 +62,7 @@ private:
     bool  m_bossPhase = false;
     bool  m_bossHasSpawned = false;
 
-    std::vector<AttackSlashEffect*> m_attackEffects;
+    std::vector<std::unique_ptr<AttackSlashEffect>> m_attackEffects;
     std::vector<Object*> m_levelDigits;
     Object* m_levelLabel = nullptr;   // "LEVEL." 表示用
 
