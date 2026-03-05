@@ -330,15 +330,15 @@ void GamePlay::InitScene()
 
 // 1段目（A D W S）
     UI_KeyboardGuide = AddObject()
-        ->SetPos(-490.0f, -410.0f, 0.0f)
-        ->SetSize(700.0f, 100.0f, 0.0f)
+        ->SetPos(-440.0f, -415.0f, 0.0f)
+        ->SetSize(800.0f, 50.0f, 0.0f)
         ->SetAngle(0.0f);
     UI_KeyboardGuide->Init("asset/UI/Keyboard.png");
     UI_KeyboardGuide->SetUI(true);
 
     UI_PadGuide = AddObject()
-        ->SetPos(-590.0f, -410.0f, 0.0f)
-        ->SetSize(500.0f, 100.0f, 0.0f)
+        ->SetPos(-640.0f, -410.0f, 0.0f)
+        ->SetSize(390.0f, 100.0f, 0.0f)
         ->SetAngle(0.0f);
     UI_PadGuide->Init("asset/UI/Pad.png");
     UI_PadGuide->SetUI(true);
@@ -694,8 +694,11 @@ void GamePlay::UpdateScene(float deltaTime)
 
                     if (s_touchHitCD_All <= 0.0f)
                     {
-                        m_player->TakeDamage(e->GetPower());
-                        s_touchHitCD_All = touchCooldown;
+                        if (!m_player->IsInvincible())
+                        {
+                            m_player->TakeDamage(e->GetPower());
+                            s_touchHitCD_All = touchCooldown;
+                        }
                     }
                 }
 

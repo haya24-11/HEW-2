@@ -59,6 +59,8 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 	m_splitX = sx;
 	m_splitY = sy;
 
+	SetSpriteSheet(sx, sy);
+
 	// UVは常にフルテクスチャ
 	m_vertexList[0].u = 0.0f;
 	m_vertexList[0].v = 0.0f;
