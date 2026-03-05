@@ -147,6 +147,7 @@ void GamePlay::InitScene()
     //PreloadTexture(g_pDevice, "asset/Texture/boss_attack.png");
    // PreloadTexture(g_pDevice, "asset/Texture/boss_die.png");
 
+    PreloadTexture(g_pDevice, "asset/Texture/ComboEffect.png");
     // ===== プレイヤー関連テクスチャを事前ロード =====
     PreloadTexture(g_pDevice, "asset/Texture/player_idle.png");
     PreloadTexture(g_pDevice, "asset/Texture/player_walk.png");
@@ -579,7 +580,7 @@ void GamePlay::UpdateScene(float deltaTime)
         if (!isHeavy)
         {
             m_attackEffects.push_back(
-                new AttackSlashEffect(
+                std::make_unique<AttackSlashEffect>(
                     this,
                     m_player->GetObject(),
                     m_player->GetAttackDir(),

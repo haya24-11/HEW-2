@@ -107,12 +107,6 @@ void ComboManager::EndAttack()
     m_attackActive = false;
     m_timer = COMBO_DISPLAY_TIME; // 3�b�\��
 }
-void ComboManager::Update(float deltaTime)
-{
-    // =====================
-    // ポップアニメ
-    // =====================
-
 void ComboManager::AddCombo(int value)
 {
     m_comboCount += value;
