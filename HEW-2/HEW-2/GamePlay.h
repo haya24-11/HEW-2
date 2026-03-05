@@ -24,6 +24,7 @@ public:
     Object* PlayerIcon;             // プレイヤーの状態アイコン
     Object* MagicCircle;           // 選択したモードの魔法陣を表示
     Object* PlayerHeartPointBar;        // プレイヤーのHP
+    Object* PlayerHeartPointFrontBar;
     // Object* EnemyHeartPointBar;   // 敵のHP
     Object* ExpBarBack;       // 経験値ゲージ（背景）
     Object* ExpBarGauge;    // 経験値ゲージ（ゲージ）

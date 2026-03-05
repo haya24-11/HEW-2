@@ -188,12 +188,20 @@ void GamePlay::InitScene()
     */
     // ===== プレイヤーHPバー UI =====
     PlayerHeartPointBar = AddObject()
-        ->SetPos(0.0f, 0.0f, 0.0f)
+        ->SetPos(60000.0f, 0.0f, 0.0f)
         ->SetSize(420.0f, 300.0f, 0.0f)
         ->SetAngle(0.0f);
     PlayerHeartPointBar->Init("asset/UI/playerheartpointbar.png");
     PlayerHeartPointBar->SetUI(true);
 
+    // ===== プレイヤーフロントHPバー UI =====
+
+    PlayerHeartPointFrontBar = AddObject()
+        ->SetPos(0.0f, 0.0f, 0.0f)
+        ->SetSize(420.0f, 300.0f, 500.0f)
+        ->SetAngle(0.0f);
+    PlayerHeartPointFrontBar->Init("asset/UI/hpfrontbar.png",3,3);
+    PlayerHeartPointFrontBar->SetUI(true);
     // ===== プレイヤーアイコン UI =====
     PlayerIcon = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
@@ -686,6 +694,20 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    if (m_player && PlayerHeartPointFrontBar)
+    {
+
+        float rate = std::clamp(
+            (float)m_player->GetHp() / (float)m_player->GetMaxHp(),
+            0.0f, 1.0f
+        );
+        const float maxWidth = 250.0f;  // ← 要調整
+        float width = maxWidth * rate;
+        PlayerHeartPointFrontBar->SetSize(width, 33.0f, 0.0f);
+
+
+
+    }
     // レベルアップ時の演出（未実装）
     /*
     if (m_player->IsJustLeveledUp())
@@ -820,6 +842,18 @@ void GamePlay::UpdateUIFollowCamera()
 
     if (PlayerHeartPointBar)
         PlayerHeartPointBar->SetPos(hpBarX, hpBarY - 20, 0.0f);
+
+
+    if(PlayerHeartPointFrontBar)
+    {
+        float gaugeWidth = PlayerHeartPointFrontBar->GetSize().x;
+        const float gaugeLeft = hpBarX - 50.0f;  // ← 要調整（バー画像内のゲージ開始位置）
+        PlayerHeartPointFrontBar->SetPos(
+            gaugeLeft + gaugeWidth * 0.5f,
+            hpBarY - 40.0f,
+            0.0f
+        );
+    }
 
     // アイコン
     const float hpW = 360.0f;
