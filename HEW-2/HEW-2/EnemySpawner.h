@@ -35,7 +35,8 @@ public:
     // ★ デバッグ / 即スポーン用
    // Enemy* SpawnOneImmediate();
 
-
+    // デバッグ用：討伐数追加
+    void DebugAddKill(int value);
 
 private:
     //   Enemy* SpawnOne(); // 1体スポーン
@@ -46,6 +47,9 @@ private:
 
     // 敵-敵の衝突処理（重なったら押し出す）
     void ResolveEnemyCollisions();
+
+
+
 private:
     Scene* m_scene = nullptr;
     Object* m_player = nullptr;

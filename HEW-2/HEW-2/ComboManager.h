@@ -18,6 +18,9 @@ public:
     void EndAttack(); // 攻撃終了時に呼ぶ
 
     int GetMaxCombo() const { return m_maxCombo; } // Result掲載用
+
+    // デバッグ用
+    void AddCombo(int value);
 private:
     GamePlay* m_scene = nullptr;
     Object* m_debugText = nullptr;
