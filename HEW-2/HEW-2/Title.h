@@ -13,6 +13,7 @@ public:
 
     //タイトルUIオブジェクト一覧
     Object* TitleLogo; //タイトルロゴ
+    Object* TitleTM;
     Object* TitleBackground; //タイトル画面の背景
     Object* GameStartLogo; //ゲームスタート文字
     Object* ScoreLogo; //スコア文字

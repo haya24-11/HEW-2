@@ -38,6 +38,14 @@ void Title::InitScene()
 	TitleLogo->SetSize(891.3f, 651.0f, 0.0f);      // ★ここでサイズ調整
 	TitleLogo->SetUI(true);
 	// =========================
+	// ™マーク
+	// =========================
+	TitleTM = AddObject();
+	TitleTM->Init("asset/Title/title_tm.png"); // ™画像
+	TitleTM->SetPos(320, -87, 0);              // ←ロゴ右上あたりに配置
+	TitleTM->SetSize(75.0f, 45.0f, 0.0f);      // サイズは好みで
+	TitleTM->SetUI(true);
+	// =========================
 	// タイトルロゴ
 	// =========================
 	/*
