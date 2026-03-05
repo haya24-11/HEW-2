@@ -2,11 +2,11 @@
 
 NormalEnemy::NormalEnemy()
 {
-	hp = 30;
-	power = 5;
 	isBoss = false;
-
-	moveSpeed = 10.0f;
+    const auto cfg = GetSpawnConfig();
+    hp = cfg.hp;
+    power = cfg.power;
+	moveSpeed = 7.0f;
 
 	SetupAnimation();
 }

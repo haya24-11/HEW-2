@@ -1,33 +1,51 @@
-#include "ComboManager.h"
+ï»¿#include "ComboManager.h"
 #include "GamePlay.h"
+
+static constexpr float COMBO_DISPLAY_TIME = 3.0f;
 
 void ComboManager::Init(GamePlay* scene)
 {
     m_scene = scene;
 
-    // Å‘å4Œ…
+    // âœ… ãƒªãƒ—ãƒ¬ã‚¤å¯¾ç­–ï¼šå‰å›ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å¿…ãšç ´æ£„ï¼ˆClearObject å¾Œã«è§¦ã‚‹ã¨å±é™ºï¼‰
+    m_digits.clear();
+    m_debugText = nullptr;
+
+    // çŠ¶æ…‹ã‚’åˆæœŸåŒ–
+    m_comboCount = 0;
+    m_attackActive = false;
+    m_visible = false;
+    m_timer = 0.0f;
+    m_popScale = 1.0f;
+    m_popTimer = 0.0f;
+
+    if (!m_scene) return;
+
+    // 4æ¡åˆ†ã®UIã‚’ç”Ÿæˆ
+    m_digits.reserve(4);
     for (int i = 0; i < 4; i++)
     {
         Object* digit = m_scene->AddObject();
+        if (!digit) continue;
+
         digit->Init("asset/UI/combo_number.png", 10, 1);
         digit->SetSpriteSheet(10, 1);
         digit->SetUI(true);
         digit->SetSize(64, 64, 0);
 
+        // æœ€åˆã¯éè¡¨ç¤º
+        digit->SetActive(false);
+
         m_digits.push_back(digit);
-    }
-    for (auto d : m_digits)
-    {
-        d->SetActive(false);
     }
 }
 
 void ComboManager::BeginAttack()
 {
     m_attackActive = true;
-    m_comboCount = 0; // UŒ‚ŠJn‚ÅƒRƒ“ƒ{ƒŠƒZƒbƒg
-    m_visible = true; // UŒ‚ŠJn‚Í•\¦
-    m_timer = 0.0f;  // ƒ^ƒCƒ}[ƒŠƒZƒbƒg
+    m_comboCount = 0; // ï¿½Uï¿½ï¿½ï¿½Jï¿½nï¿½ÅƒRï¿½ï¿½ï¿½{ï¿½ï¿½ï¿½Zï¿½bï¿½g
+    m_visible = false; // ï¿½Uï¿½ï¿½ï¿½Jï¿½nï¿½ï¿½ï¿½Í•\ï¿½ï¿½
+    m_timer = 0.0f;  // ï¿½^ï¿½Cï¿½}ï¿½[ï¿½ï¿½ï¿½Zï¿½bï¿½g
 }
 
 void ComboManager::AddHit()
@@ -35,23 +53,17 @@ void ComboManager::AddHit()
     if (!m_attackActive) return;
 
     m_comboCount++;
-    std::cout << "Combo = " << m_comboCount << std::endl; // ƒfƒoƒbƒO•\¦
+    std::cout << "Combo = " << m_comboCount << std::endl; // ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
 
     m_visible = true;
-    m_timer = 0.0f;
-    //m_timer = COMBO_VISIBLE_TIME;
-    //m_attackActive = true;
-
-    // =====================
-    // š’µ‚ËŠJn
-    // =====================
+    m_timer = COMBO_DISPLAY_TIME;
     m_popTimer = POP_TIME;
 }
 
 void ComboManager::UpdateDraw()
 {
     for (auto d : m_digits)
-        d->SetActive(false);
+        if (d) d->SetActive(false);
 
     if (!m_visible) return;
 
@@ -73,7 +85,7 @@ void ComboManager::UpdateDraw()
             obj->SetAnimFrame(num);
 
             // =====================
-            // š’µ‚ËƒTƒCƒY“K—p
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ËƒTï¿½Cï¿½Yï¿½Kï¿½p
             // =====================
             obj->SetSize(
                 64.0f * m_popScale,
@@ -96,24 +108,20 @@ void ComboManager::UpdateDraw()
 void ComboManager::EndAttack()
 {
     m_attackActive = false;
-    m_timer = COMBO_DISPLAY_TIME; // 3•b•\¦
+    m_timer = COMBO_DISPLAY_TIME; // 3ï¿½bï¿½\ï¿½ï¿½
 }
 
 void ComboManager::Update(float deltaTime)
 {
-    UpdateDraw();
-    if (!m_visible) return;
-
-    m_timer -= deltaTime;
 
     // =====================
-    // ƒ|ƒbƒvƒAƒjƒ
+    // ï¿½|ï¿½bï¿½vï¿½Aï¿½jï¿½ï¿½
     // =====================
     if (m_popTimer > 0.0f)
     {
         m_popTimer -= deltaTime;
         float t = m_popTimer / POP_TIME;
-        // 1.5”{ ¨ 1”{
+        // 1.5ï¿½{ ï¿½ï¿½ 1ï¿½{
         m_popScale = 1.0f + t * 0.5f;
     }
     else
@@ -121,16 +129,23 @@ void ComboManager::Update(float deltaTime)
         m_popScale = 1.0f;
     }
 
-    UpdateDraw();
-
-    // ƒ^ƒCƒ}[ˆ—
-    if (!m_attackActive && m_visible)
+    if (m_visible)
     {
         m_timer -= deltaTime;
         if (m_timer <= 0.0f)
         {
             m_visible = false;
-            m_comboCount = 0; // •\¦Á‚¦‚é‚Æ“¯‚ÉƒJƒEƒ“ƒg‚àƒŠƒZƒbƒg
+
+            m_comboCount = 0;
+
+            for (auto d : m_digits)
+                d->SetActive(false);
+
+            return;
         }
+        m_comboCount = 0; // ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ“ï¿½ï¿½ï¿½ï¿½ÉƒJï¿½Eï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½g
+
     }
+
+    UpdateDraw();
 }

@@ -120,6 +120,7 @@ HRESULT Object::Init(const char* imgname, int sx, int sy)
 void Object::Draw()
 {
 	if (!m_active) return;
+	if (!m_visible) return;
 
 	// =========================
 	// 頂点バッファ設定
@@ -288,11 +289,9 @@ void Object::SetSpriteSheet(int splitX, int splitY)
 
 void Object::Uninit()
 {
-	// =========================
-	// 解放処理
-	//  - AddRef した分だけ Release する
-	// =========================
 	SAFE_RELEASE(m_pVertexBuffer);
+	SAFE_RELEASE(m_pTextureView);
+	SAFE_RELEASE(m_texture);
 }
 
 Object* Object::SetPos(float x, float y, float z)
@@ -308,15 +307,15 @@ Object* Object::SetPos(float x, float y, float z)
 
 Object* Object::SetSize(float x, float y, float z)
 {
-	// 大きさを設定
 	m_size.x = x;
 	m_size.y = y;
 	m_size.z = z;
 
-	// 半径設定（例：100x100なら radius=50）
-	m_collider.SetRadius((x + y) * 0.25f);
+	// ✅ 半径（デフォルト）
+	const float r = (x + y) * 0.25f;
+	m_collider.SetRadius(r);
+	collisionRadius = r; // （任意）GetCollisionRadius用に一致させる
 
-	// 位置も念のため更新
 	m_collider.SetPosition({ m_pos.x, m_pos.y });
 	return this;
 
@@ -388,14 +387,16 @@ DirectX::XMFLOAT4 Object::GetColor(void)
 // =========================
 // Collision
 // =========================
+
 void Object::SetCollisionRadius(float r)
 {
 	collisionRadius = r;
+	m_collider.SetRadius(r); // ✅ これが無いと CheckCollision に効かない
 }
 
 float Object::GetCollisionRadius() const
 {
-	return collisionRadius;
+	return m_collider.GetRadius(); // ✅ どこから見ても同じ半径になる
 }
 Collision& Object::GetCollider()
 {

@@ -1,30 +1,45 @@
-#pragma once
+﻿#pragma once
 #include <SimpleMath.h>
 #include "Effect.h"
 #include "AttackDir.h"
+#include <unordered_set>
+
+class Scene;
+class Object;
+class Enemy;
+class GamePlay;
 
 class AttackSlashEffect : public Effect
 {
 public:
-    AttackSlashEffect(Scene* scene,Object* owner,AttackDir dir);
-    ~AttackSlashEffect();
+    AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool facingRight, int damage);
+
+    AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir);
+    ~AttackSlashEffect(); 
 
     void Update(float deltaTime);
     bool IsDead() const { return m_dead; }
     void Uninit();
 
 private:
+    Scene* m_scene = nullptr;
     Object* m_object = nullptr;
     Object* m_owner = nullptr;
 
+    // 表示/寿命
     float m_timer = 0.0f;
-    float m_lifeTime = 3.0f;   // �\������
-    bool  m_visible = false;
+    float m_lifeTime = 1.5f;     // ✅ 斬撃の表示時間（短めが自然）
+    float m_delay = 0.08f;        // ✅ 遅延（必要なら 0.05〜0.1）
+    bool  m_dead = false;
 
-    float m_delay = 0.08f;   // �\���x���i�b�j
+    // ダメージ/当たり判定
+    int   m_damage = 10;           // ✅ プレイヤー攻撃力
+    float m_hitRadius = 85.0f;    // ✅ 判定の広さ（調整ポイント）
+    float m_hitActiveTime = 1.0f;// ✅ 判定が有効な時間（調整ポイント）
 
-    bool m_dead = false;
 
     AttackDir m_dir;
-};
 
+    GamePlay* m_gameplay = nullptr;
+    std::unordered_set<Enemy*> m_hitOnce; // ✅ 同じ敵への多重ヒット防止
+};

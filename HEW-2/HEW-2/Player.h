@@ -87,6 +87,13 @@ public:
     //スキル抽選
     void SelectSkill();
     // スキル取得時の共通処理
+    void ApplyAbility(auto* skill);
+   
+    //取得したスキル一覧
+    const std::vector<Skill*>& GetLearnedSkills() const;
+
+
+
     void ApplyAbility(Skill* skill);
    
     //取得したスキル一覧
@@ -114,15 +121,27 @@ public:
     void TakeDamage(int dmg);
 
     // ✅ 無敵判定（連続ヒット防止 + 強攻撃中無敵）
-    bool IsInvincible() const
+    void StartInvincible(float sec, bool blink)
     {
-        return (m_invincibleTimer > 0.0f) || IsHeavyCharging() || IsHeavyDashing();
+        if (sec <= 0.0f) return;
+        if (m_invincibleTimer < sec) m_invincibleTimer = sec;
+        m_invincibleBlink = blink;
     }
 
+    bool IsInvincible() const { return m_invincibleTimer > 0.0f; }
 
     void PlayHitReaction();
 
-    void StartNoHitAnim(float sec) { m_noHitAnimTimer = sec; }
+    void StartNoHitAnim(float sec)
+    {
+        if (sec <= 0.0f) return;
+
+        if (m_noHitAnimTimer < sec) m_noHitAnimTimer = sec;
+        if (m_invincibleTimer < sec) m_invincibleTimer = sec;
+
+        m_invincibleBlink = false; // ✅ 強攻撃後の無敵は点滅しない
+    }
+
     bool IsNoHitAnim() const { return m_noHitAnimTimer > 0.0f; }
 
     void AddExp(int value);
@@ -206,7 +225,7 @@ private:
 
     // ✅ 被ダメ後の短い無敵（連続ヒット防止）
     float m_invincibleTimer = 0.0f;
-    float m_invincibleDuration = 1.0f;
+    float m_invincibleDuration = 5.0f;
 
     // ===== HeavyAttack ダッシュ =====
     float m_heavyDashSpeed = 700.0f;
@@ -274,14 +293,23 @@ private:
     float m_hitReactCD = 0.0f;
     float m_hitReactCooldown = 3.0f;
 
-    float m_hitInvTimer = 2.0f;
+    float m_hitInvTimer = 0.0f;
     float m_hitInvDuration = 3.0f;
 
     float m_noHitAnimTimer = 0.0f;
+
+    bool m_invincibleBlink = true;
 
     GamePlay* m_gamePlay = nullptr;
 
     // レベルシステム
     int m_level = 1;
     int m_currentExp = 0;
+
+    bool m_justLeveledUp = false;
+
+
+    float m_blinkTimer = 0.0f;        // 点滅用タイマー
+    float m_blinkInterval = 3.0f;    // 点滅間隔（秒
+    bool  m_blinkVisible = true;      // 今見えているか
 };

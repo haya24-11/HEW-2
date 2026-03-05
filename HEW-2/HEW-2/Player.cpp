@@ -12,7 +12,7 @@ namespace SM = DirectX::SimpleMath;
 
 Player::Player()
 {
-    hp = 10;
+    hp = 100;
     power = 10;
 
     moveSpeed = 30.0f;
@@ -44,6 +44,33 @@ void Player::Update(float deltaTime)
         if (m_noHitAnimTimer < 0.0f) m_noHitAnimTimer = 0.0f;
     }
 
+    if (m_invincibleTimer > 0.0f)
+    {
+        m_invincibleTimer -= deltaTime;
+        if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
+    }
+    if (m_object)
+    {
+        if (m_invincibleTimer > 0.0f)
+        {
+            if (m_invincibleBlink)
+            {
+                const float kBlink = 0.08f;               // 点滅の速さ
+                const float t = fmodf(m_invincibleTimer, kBlink * 2.0f);
+                const float a = (t < kBlink) ? 0.25f : 1.0f;
+                m_object->SetColor(1.0f, 1.0f, 1.0f, a);  // ✅ 点滅あり
+            }
+            else
+            {
+                m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // ✅ 点滅なし（常に表示）
+            }
+        }
+        else
+        {
+            m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+            m_invincibleBlink = true; // ✅ 次の無敵（被ダメ無敵）は点滅ありに戻す
+        }
+    }
     if (m_hitInvTimer > 0.0f)
     {
         m_hitInvTimer -= deltaTime;
@@ -95,13 +122,7 @@ void Player::Update(float deltaTime)
 // ✅ 無敵タイマー更新（連続ヒット防止）
 // ※ どの return よりも前に必ず置く
 // =========================
-    if (m_invincibleTimer > 0.0f)
-    {
-        m_invincibleTimer -= deltaTime;
-        if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
 
-        std::cout << "[INV] " << m_invincibleTimer << "\n";
-    }
     /* if (m_hitReactCD > 0.0f)
      {
          m_hitReactCD -= deltaTime;
@@ -245,6 +266,8 @@ void Player::Update(float deltaTime)
             }
         }
 
+
+
         // チャージアニメを継続更新
         m_animator.Update(deltaTime);
         Chara::Update(deltaTime);
@@ -252,6 +275,15 @@ void Player::Update(float deltaTime)
         CommitPad();
         return;
     }
+
+    // 押した瞬間に経験値が入る（デバッグ）
+#ifdef _DEBUG
+
+    if (GetAsyncKeyState(VK_F1) & 0x0001) AddExp(10);
+    if (GetAsyncKeyState(VK_F2) & 0x0001) AddExp(100);
+    if (GetAsyncKeyState(VK_F3) & 0x0001) AddExp(1000);
+
+#endif
 
     // =========================
     // 攻撃中
@@ -328,8 +360,11 @@ void Player::Update(float deltaTime)
             // ✅ 強攻撃終了後：1秒間は接触で被弾アニメを出さない
             if (wasHeavy)
             {
-                StartNoHitAnim(1.0f);
-                if (m_hitInvTimer < 1.0f) m_hitInvTimer = 1.0f;
+                if (m_hitInvTimer < 1.5f) m_hitInvTimer = 1.5f;
+
+                if (m_invincibleTimer < 1.5f) m_invincibleTimer = 1.5f;
+
+                m_invincibleBlink = false;
             }
         }
 
@@ -578,8 +613,8 @@ bool Player::UpdateHeavyDash(float deltaTime)
     // ✅ 強攻撃ダッシュが終わった瞬間から1秒は接触被弾アニメを禁止
     if (prevDash > 0.0f && m_heavyDashTimer == 0.0f)
     {
-        StartNoHitAnim(1.0f);
-        if (m_hitInvTimer < 1.0f) m_hitInvTimer = 1.0f;
+        StartNoHitAnim(2.0f);
+        if (m_hitInvTimer < 2.0f) m_hitInvTimer = 2.0f;
     }
 
     auto p = m_object->GetPos();
@@ -595,7 +630,7 @@ void Player::Attack()
     // Mode / Skill 側で実装（ここでは未使用）
 }
 
-void Player::ApplyAbility(Skill* skill)
+void Player::ApplyAbility(auto* skill)
 {
     // スキルを保持（適用）
     if (!skill) return;
@@ -645,37 +680,16 @@ bool Player::ConsumeAttackEffectRequest()
 void Player::TakeDamage(int dmg)
 {
     if (dmg <= 0) return;
-
+    //damaged debug
+    std::cout << "[TakeDamage] inv=" << m_invincibleTimer
+        << " hp=" << hp
+        << " dmg=" << dmg << "\n";
     if (IsHeavyCharging() || IsHeavyDashing())
         return;
 
+    // ✅ 無敵中は「ダメージも演出も」完全無視
     if (m_invincibleTimer > 0.0f)
-    {
-        if (m_hitReactCD <= 0.0f)
-        {
-            m_state = State::Damaged;
-
-            m_lockFacing = false;
-            m_heavyDashTimer = 0.0f;
-
-            if (m_object)
-            {
-                m_object->SetTexture("asset/Texture/player_damaged.png");
-                m_object->SetSpriteSheet(5, 1);
-                ApplyVisualSize(m_scaleDamaged);
-
-                const bool textureIsRightFacing = true;
-                m_object->SetFlipX(textureIsRightFacing != m_facingRight);
-            }
-
-            // Animatorが同一Play無視でも確実にリスタート
-            m_animator.Play(m_idleAnim);
-            m_animator.Play(m_damagedAnim);
-
-            m_hitReactCD = m_hitReactCooldown;
-        }
         return;
-    }
 
     Chara::TakeDamage(dmg);
     if (hp <= 0) return;
@@ -698,15 +712,18 @@ void Player::TakeDamage(int dmg)
     m_animator.Play(m_idleAnim);
     m_animator.Play(m_damagedAnim);
 
+    // ✅ ここで無敵開始
     m_invincibleTimer = m_invincibleDuration;
+    m_invincibleBlink = true;   // ✅ 被ダメ無敵は点滅あり（強攻撃後と区別）
 
     m_hitReactCD = m_hitReactCooldown;
 }
 
-
 void Player::PlayHitReaction()
 {
+    if (m_invincibleTimer > 0.0f) return;
     if (m_hitInvTimer > 0.0f) return;
+    if (IsHeavyCharging() || IsHeavyDashing()) return;
 
     m_state = State::Damaged;
     m_lockFacing = false;

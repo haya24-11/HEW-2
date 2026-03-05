@@ -1,12 +1,12 @@
 ﻿#include "EnemySpawner.h"
-#include <cmath> // sqrtf / sinf / cosf
+#include <cmath>
 #include "Scene.h"
 #include "Object.h"
 #include "Enemy.h"
 #include <algorithm>
 #include <unordered_map>
-#include "Boss.h" 
-#include "Player.h" 
+#include "Boss.h"
+#include "Player.h"
 #include "GamePlay.h"
 
 EnemySpawner::EnemySpawner()
@@ -25,9 +25,11 @@ void EnemySpawner::Init(Scene* ownerScene, Object* playerObj, Player* player)
     m_entries.clear();
     m_spawnTimer = 0.0f;
 
-    m_killCount = 0;        // ✅ 初期化：キル数
-    m_bossSpawned = false;  // ✅ 初期化：ボス出現フラグ
+    m_killCount = 0;
+    m_bossSpawned = false;
 
+    // ★念のため同期
+    m_stopLock.assign(m_enemies.size(), 0);
 }
 
 void EnemySpawner::Update(float deltaTime)
@@ -45,7 +47,6 @@ void EnemySpawner::Update(float deltaTime)
     CleanupDeadEnemies();
 
     // (1.5) enemy-enemy collision pushout
-    // stopDistで止まっている敵は「押し出しで動かさない」
     for (int iter = 0; iter < 3; ++iter)
     {
         ResolveEnemyCollisions();
@@ -97,11 +98,8 @@ void EnemySpawner::Update(float deltaTime)
         enemy->SetObject(obj);
         enemy->SetTarget(m_player);
 
-        enemy->SetGamePlay(
-            static_cast<GamePlay*>(m_scene)
-        );
+        enemy->SetGamePlay(static_cast<GamePlay*>(m_scene));
 
-        // ✅ 死亡演出時間（SpawnConfigを反映）
         enemy->SetDeathDelay(cfg.dieDelay);
         enemy->SetDisappearDelay(cfg.disappearDelay);
 
@@ -113,6 +111,9 @@ void EnemySpawner::Update(float deltaTime)
         else                    enemy->SetChaseStopDistance(0.0f);
 
         m_enemies.emplace_back(std::move(enemy));
+
+        // ★同期（保険）
+        m_stopLock.assign(m_enemies.size(), 0);
     }
 }
 
@@ -147,12 +148,12 @@ void EnemySpawner::ResolveEnemyCollisions()
     if (m_enemies.size() < 2) return;
     if (!m_player) return;
 
+    using namespace DirectX::SimpleMath;
+
     // プレイヤー位置（stopDist 判定用）
     auto pp3 = m_player->GetPos();
-    DirectX::SimpleMath::Vector2 playerPos(pp3.x, pp3.y);
+    Vector2 playerPos(pp3.x, pp3.y);
 
-    // stopDist に到達して止まっている敵は、押し出しで動かさない
-    // ※ノックバック中は例外（飛んでいる敵は固定しない）
     auto IsStoppedEnemy = [&](Enemy* e, Object* eo) -> bool
         {
             if (!e || !eo) return false;
@@ -160,13 +161,13 @@ void EnemySpawner::ResolveEnemyCollisions()
             const float stop = e->GetChaseStopDistance();
             if (stop <= 0.0f) return false;
 
+            // ノックバック中は「止まっている扱いにしない」
             if (e->IsKnockBacking()) return false;
 
             auto p3 = eo->GetPos();
-            DirectX::SimpleMath::Vector2 pos(p3.x, p3.y);
+            Vector2 pos(p3.x, p3.y);
             float dist = (pos - playerPos).Length();
 
-            // 境界でガタつかないよう少し余裕
             return dist <= (stop + 2.0f);
         };
 
@@ -174,6 +175,7 @@ void EnemySpawner::ResolveEnemyCollisions()
     {
         Enemy* a = m_enemies[i].get();
         if (!a) continue;
+        if (!a->IsAlive()) continue;                // ✅ 追加：死んでる敵は処理しない
 
         Object* oa = a->GetObject();
         if (!oa) continue;
@@ -181,10 +183,10 @@ void EnemySpawner::ResolveEnemyCollisions()
         for (size_t j = i + 1; j < m_enemies.size(); ++j)
         {
             Enemy* b = m_enemies[j].get();
-            if (!b) continue;
+            if (!b || !b->IsAlive()) continue;   // ✅ b 체크
 
             Object* ob = b->GetObject();
-            if (!ob) continue;
+            if (!ob) continue;                   // ✅ ob 체크
 
             if (!oa->CheckCollision(*ob)) continue;
 
@@ -202,8 +204,9 @@ void EnemySpawner::ResolveEnemyCollisions()
 
             float nx = dx / dist;
             float ny = dy / dist;
+            Vector2 n(nx, ny);
 
-            // ---- impact damage（既存）----
+            // ---- impact damage ----
             if (aFly && !bFly)
             {
                 int impact = 0;
@@ -231,6 +234,54 @@ void EnemySpawner::ResolveEnemyCollisions()
             bool aStop = IsStoppedEnemy(a, oa);
             bool bStop = IsStoppedEnemy(b, ob);
 
+            // ---- pinball impulse ----
+            {
+                Vector2 va = aFly ? a->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
+                Vector2 vb = bFly ? b->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
+
+                float vrelN = (va - vb).Dot(n);
+
+                if (vrelN > 0.0f)
+                {
+                    const float e = 0.85f;
+                    const float transfer = 0.80f;
+                    const float dampTangent = 0.20f;
+
+                    const float kickTimeB = 0.35f;
+                    const float minKickB = 180.0f;
+
+                    auto KillTangent = [&](Vector2 v) -> Vector2
+                        {
+                            float vn = v.Dot(n);
+                            Vector2 vN = vn * n;
+                            Vector2 vT = v - vN;
+                            vT *= (1.0f - dampTangent);
+                            return vN + vT;
+                        };
+
+                    if (aFly)
+                    {
+                        Vector2 vReflect = va - (1.0f + e) * vrelN * n;
+                        const float reflectMix = 0.55f;
+                        Vector2 vaNew = va * (1.0f - reflectMix) + vReflect * reflectMix;
+                        a->SetKnockBackVelocity(KillTangent(vaNew));
+                    }
+
+                    Vector2 impulseB = (1.0f + e) * vrelN * n * transfer;
+                    Vector2 kickB = KillTangent(impulseB);
+
+                    float len = kickB.Length();
+                    if (len < minKickB)
+                    {
+                        if (len > 0.0001f) kickB *= (minKickB / len);
+                        else               kickB = n * minKickB;
+                    }
+
+                    b->AddKnockBackImpulse(kickB, kickTimeB);
+                }
+            }
+
+            // ---- position pushout ----
             float pushA = overlap * 0.5f;
             float pushB = overlap * 0.5f;
 
@@ -246,9 +297,8 @@ void EnemySpawner::ResolveEnemyCollisions()
             }
             else if (aStop && bStop)
             {
-                // 両方止まっている場合：プレイヤー中心の円周接線方向へ逃がす（押し込みにくくする）
-                DirectX::SimpleMath::Vector2 posA(pa3.x, pa3.y);
-                DirectX::SimpleMath::Vector2 posB(pb3.x, pb3.y);
+                Vector2 posA(pa3.x, pa3.y);
+                Vector2 posB(pb3.x, pb3.y);
 
                 auto mid = (posA + posB) * 0.5f;
                 auto r = mid - playerPos;
@@ -257,18 +307,13 @@ void EnemySpawner::ResolveEnemyCollisions()
                 if (rlen < 0.0001f) r = { 1.0f, 0.0f };
                 else r /= rlen;
 
-                DirectX::SimpleMath::Vector2 t(-r.y, r.x);
+                Vector2 t(-r.y, r.x);
 
                 auto ab = (posB - posA);
                 if (ab.Dot(t) < 0.0f) t = -t;
 
-                float ax = -t.x * pushA;
-                float ay = -t.y * pushA;
-                float bx = t.x * pushB;
-                float by = t.y * pushB;
-
-                oa->SetPos(pa3.x + ax, pa3.y + ay, pa3.z);
-                ob->SetPos(pb3.x + bx, pb3.y + by, pb3.z);
+                oa->SetPos(pa3.x - t.x * pushA, pa3.y - t.y * pushA, pa3.z);
+                ob->SetPos(pb3.x + t.x * pushB, pb3.y + t.y * pushB, pb3.z);
                 continue;
             }
 
@@ -297,15 +342,13 @@ void EnemySpawner::CleanupDeadEnemies()
                 {
                     m_playerLogic->AddExp(e->GetExpValue());
                 }
-
                 e->MarkRewardGiven();
             }
-            // ✅ 雑魚だけ討伐数を加算（ボスはカウントしない）
+
             if (!e->IsBoss())
             {
                 m_killCount++;
-
-                if (m_killCount >= 10 && !m_bossSpawned)
+                if (m_killCount >= 50 && !m_bossSpawned)
                 {
                     SpawnBoss();
                 }
@@ -313,10 +356,7 @@ void EnemySpawner::CleanupDeadEnemies()
 
             if (Object* o = e->GetObject())
             {
-                o->SetCollisionRadius(0.0f);
-                o->SetColor(1, 1, 1, 0.0f);
-                auto p = o->GetPos();
-                o->SetPos(999999.0f, 999999.0f, p.z);
+                if (m_scene) m_scene->RemoveObject(o);
             }
 
             it = m_enemies.erase(it);
@@ -325,6 +365,9 @@ void EnemySpawner::CleanupDeadEnemies()
 
         ++it;
     }
+
+    // ✅ enemy数と同期（安全）
+    m_stopLock.assign(m_enemies.size(), 0);
 }
 
 void EnemySpawner::SpawnBoss()
@@ -359,9 +402,7 @@ void EnemySpawner::SpawnBoss()
 
     boss->SetObject(obj);
     boss->SetTarget(m_player);
-    boss->SetGamePlay(
-        static_cast<GamePlay*>(m_scene)
-    );
+    boss->SetGamePlay(static_cast<GamePlay*>(m_scene));
 
     boss->SetDeathDelay(cfg.dieDelay);
     boss->SetDisappearDelay(cfg.disappearDelay);
@@ -373,4 +414,7 @@ void EnemySpawner::SpawnBoss()
 
     m_enemies.emplace_back(std::move(boss));
     m_bossSpawned = true;
+
+    // ★同期（保険）
+    m_stopLock.assign(m_enemies.size(), 0);
 }

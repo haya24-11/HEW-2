@@ -1,128 +1,177 @@
+ï»¿//==============================
+// AttackSlashEffect.cpp
+//==============================
 #include "AttackSlashEffect.h"
 #include "Scene.h"
 #include "Object.h"
+#include "GamePlay.h"
+#include "EnemySpawner.h"
+#include "Enemy.h"
+
+#include <cmath>
+#include <Windows.h>
 
 using namespace DirectX::SimpleMath;
 
+// æ—§å‘¼ã³å‡ºã—äº’æ›ï¼ˆdamageç„¡ã—ï¼‰
 AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir)
+    : AttackSlashEffect(scene, owner, dir, /*facingRight*/ true, /*damage*/ 0)
 {
-    OutputDebugStringA("SlashEffect Create\n");
+}
 
+AttackSlashEffect::AttackSlashEffect(Scene* scene, Object* owner, AttackDir dir, bool /*facingRight*/, int damage)
+{
     m_scene = scene;
     m_owner = owner;
     m_dir = dir;
+    m_damage = damage;
 
-    m_object = scene->AddObject();
+    // GamePlayå–å¾—ï¼ˆæ•µãƒªã‚¹ãƒˆã«ã‚¢ã‚¯ã‚»ã‚¹ã™ã‚‹ãŸã‚ï¼‰
+    m_gameplay = dynamic_cast<GamePlay*>(scene);
+
+    // Sceneã«Objectã‚’è¿½åŠ ï¼ˆSceneå´ãŒæ‰€æœ‰ï¼‰
+    if (!m_scene)
+    {
+        m_dead = true;
+        return;
+    }
+
+    m_object = m_scene->AddObject();
     if (!m_object)
     {
         m_dead = true;
         return;
     }
 
-    // ¥ ŠmÀ‚ÉŒ©‚¦‚éİ’èiƒfƒoƒbƒO—pj
+    // è¦‹ãŸç›®ï¼ˆæ–¬æ’ƒï¼‰
     m_object->Init("asset/Texture/slash_effect.png", 1, 1);
     m_object->SetSize(300.0f, 300.0f, 0.0f);
-    m_object->SetColor(1.0f, 1.0f, 1.0f, 1.0f); // ^‚ÁÔ
-    m_object->SetUI(false);                 // UIˆµ‚¢‚ğ–¾¦“I‚ÉƒIƒt
+    m_object->SetColor(1.0f, 1.0f, 1.0f, 0.0f);
+    m_object->SetUI(false);
 
-    // =============================
-     // Š—LÒˆÊ’uæ“¾
-     // =============================
-    Vector3 p = owner->GetPos();
-    
-    Vector2 dirVec = AttackDirToVector(m_dir);
+    // å½“ãŸã‚Šåˆ¤å®šï¼ˆé–‹å§‹æ™‚OFFï¼‰
+    m_object->SetCollisionRadius(0.0f);
 
-    // š“Ëi•ûŒü‚Ö‘O•û”z’u
-    p.x += dirVec.x * 120.0f;
-    p.y += dirVec.y * 120.0f;
-
-    // ===============================
-    // UŒ‚•ûŒü‚É‰‚¶‚ÄˆÊ’u•Šp“x•ÏX
-    // ===============================
-
-    m_object->SetPos(p.x, p.y, p.z);
+    // è§’åº¦
     switch (m_dir)
     {
-    case AttackDir::Right:
-        m_object->SetAngle(0.0f);
-        break;
-
-    case AttackDir::Left:
-        m_object->SetAngle(180.0f);
-        break;
-
-    case AttackDir::Up:
-        m_object->SetAngle(90.0f);
-        break;
-
-    case AttackDir::Down:
-        m_object->SetAngle(-90.0f);
-        break;
-
-    case AttackDir::UpRight:
-        m_object->SetAngle(45.0f);
-        break;
-
-    case AttackDir::UpLeft:
-        m_object->SetAngle(135.0f);
-        break;
-
-    case AttackDir::DownRight:
-        m_object->SetAngle(-45.0f);
-        break;
-
-    case AttackDir::DownLeft:
-        m_object->SetAngle(-135.0f);
-        break;
+    case AttackDir::Right:     m_object->SetAngle(0.0f);    break;
+    case AttackDir::Left:      m_object->SetAngle(180.0f);  break;
+    case AttackDir::Up:        m_object->SetAngle(90.0f);   break;
+    case AttackDir::Down:      m_object->SetAngle(-90.0f);  break;
+    case AttackDir::UpRight:   m_object->SetAngle(45.0f);   break;
+    case AttackDir::UpLeft:    m_object->SetAngle(135.0f);  break;
+    case AttackDir::DownRight: m_object->SetAngle(-45.0f);  break;
+    case AttackDir::DownLeft:  m_object->SetAngle(-135.0f); break;
+    default:                   m_object->SetAngle(0.0f);    break;
     }
 }
 
 AttackSlashEffect::~AttackSlashEffect()
 {
-
+    Uninit();
 }
 
 void AttackSlashEffect::Update(float dt)
 {
-    if (m_dead || !m_object) return;
+    if (m_dead) return;
+    if (!m_object) { m_dead = true; return; }
 
     m_timer += dt;
 
-    // šƒvƒŒƒCƒ„[’Ç]
-    if (m_owner)
+    // ownerãŒç„¡ã„ï¼ˆã‚·ãƒ¼ãƒ³åˆ‡æ›¿ç­‰ï¼‰ãªã‚‰å®‰å…¨ã«çµ‚äº†
+    if (!m_owner)
     {
-        Vector3 p = m_owner->GetPos();
-
-        Vector2 dirVec = AttackDirToVector(m_dir);
-
-        p.x += dirVec.x * 120.0f;
-        p.y += dirVec.y * 120.0f;
-
-        m_object->SetPos(p.x, p.y, p.z);
-    }
-
-    float t = m_timer / m_lifeTime;
-
-    if (t >= 1.0f)
-    {
+        Uninit();
         m_dead = true;
         return;
     }
 
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è¿½å¾“ï¼ˆå¸¸ã«å‰æ–¹ã¸ï¼‰
+    {
+        Vector3 p = m_owner->GetPos();
+        Vector2 dirVec = AttackDirToVector(m_dir);
+
+        const float kSlashOffset = 70.0f;
+        p.x += dirVec.x * kSlashOffset;
+        p.y += dirVec.y * kSlashOffset;
+        p.y += -20.0f;
+
+        m_object->SetPos(p.x, p.y, p.z);
+    }
+
+    // é€²è¡Œç‡
+    const float t = (m_lifeTime > 0.0f) ? (m_timer / m_lifeTime) : 1.0f;
+
+    // å½“ãŸã‚Šåˆ¤å®šãŒæœ‰åŠ¹ãªæ™‚é–“
+    const float hitStart = m_delay;
+    const float hitEnd = m_delay + m_hitActiveTime;
+    const bool hitActive = (m_timer >= hitStart && m_timer <= hitEnd);
+
+    m_object->SetCollisionRadius(hitActive ? m_hitRadius : 0.0f);
+
+    // è¡¨ç¤ºï¼ˆãƒ•ã‚§ãƒ¼ãƒ‰ï¼‰
+    float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
+    if (m_timer < m_delay) alpha = 0.0f;
+    m_object->SetColor(1, 1, 1, alpha);
+
+    // æ‹¡å¤§
     float scale = 0.6f + t * 0.6f;
     m_object->SetSize(250.0f * scale, 90.0f * scale, 0.0f);
 
-    float alpha = (t < 0.5f) ? 1.0f : (1.0f - (t - 0.5f) * 2.0f);
-    m_object->SetColor(1, 1, 1, alpha);
-}
+    // å¯¿å‘½çµ‚äº†
+    if (t >= 1.0f)
+    {
+        Uninit();
+        m_dead = true;
+        return;
+    }
 
+    // æ•µã«å½“ãŸã£ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ï¼ˆ1å›ã ã‘ï¼‰
+    if (hitActive && m_gameplay && m_damage > 0)
+    {
+        const auto& enemies = m_gameplay->GetSpawner().GetEnemies();
+
+        const auto ap3 = m_object->GetPos();
+        const Vector2 aPos(ap3.x, ap3.y);
+        const float aR = m_object->GetCollisionRadius();
+
+        for (const auto& e : enemies)
+        {
+            if (!e) continue;
+            if (!e->IsAlive()) continue;
+
+            Object* enemyObj = e->GetObject();
+            if (!enemyObj) continue;
+
+            if (m_hitOnce.find(e.get()) != m_hitOnce.end()) continue;
+
+            const auto ep3 = enemyObj->GetPos();
+            const Vector2 ePos(ep3.x, ep3.y);
+            const float eR = enemyObj->GetCollisionRadius();
+
+            const Vector2 d = (ePos - aPos);
+            const float rr = (aR + eR);
+
+            if (d.LengthSquared() <= rr * rr)
+            {
+                e->TakeDamage(m_damage);
+                m_hitOnce.insert(e.get());
+            }
+        }
+    }
+}
 
 void AttackSlashEffect::Uninit()
 {
     if (m_scene && m_object)
     {
         m_scene->RemoveObject(m_object);
-        m_object = nullptr;
     }
-}
 
+    m_object = nullptr;
+    m_owner = nullptr;
+    m_gameplay = nullptr;
+    m_scene = nullptr;
+    m_hitOnce.clear();
+}

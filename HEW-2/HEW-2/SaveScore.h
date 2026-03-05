@@ -1,23 +1,19 @@
 #pragma once
 #include "Scene.h"
-#include "EnemySpawner.h"
-#include "ComboManager.h"
-class Result :
+#include "ResultData.h"
+class SaveScore :
     public Scene
 {
 public:
-    Result();
+    SaveScore();
 
     ResultData data;
 
-    //リザルトUIオブジェクト一覧
-    Object* ResultWindow; //リザルトのウィンドウ
+    Object* ResultWindow; //リザルトのウィンドウ　
     Object* PlayWallpaper; //リザルトのウィンドウ
+    Object* TitleWindow; //TITLEのテキストがあるウィンドウ
     Object* PlayerCharacter; //キャラクター
     Object* ScoreText_Text;   //スコア表示のテキスト(文字)
-    Object* ScoreText_Score;   //スコア表示のテキスト(スコアのみ文字)
-    Object* ScoreText_Coron; //スコア表示のテキスト(数字)　
-    Object* NextWindow; //次へのテキストがあるウィンドウ
 
     //シーンの動作
     void InitScene() override;
@@ -25,7 +21,4 @@ public:
     void DrawScene() override;
     void UninitScene() override;
     void CreateNumberText(float startX, float y, std::string text);
-
-
 };
-
