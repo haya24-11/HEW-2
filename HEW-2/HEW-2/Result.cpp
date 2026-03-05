@@ -53,6 +53,14 @@ void Result::InitScene()
         timeScore +
         clearScore;
 
+    // ------------------------------------------------
+    // SaveScoreシーンへ渡すためResultDataに保存
+    // ------------------------------------------------
+    resultData.score = totalScore;
+
+    // Sceneの共有データにセット
+    Scene::SetResultData(resultData);
+
     //----------------------------------
     // 討伐数
     //----------------------------------

@@ -1,4 +1,5 @@
 #include "SaveScore.h"
+#include <algorithm>
 
 SaveScore::SaveScore() :Scene(SceneType::SaveScore)
 {
@@ -65,8 +66,11 @@ void SaveScore::InitScene()
 	// スコア数字オブジェクト生成（最大6桁）
 	// =======================================
 
-	float startX = 150.0f;
-	float y = -80.0f;
+	// -----------------------------
+	// 今回スコア位置
+	// -----------------------------
+	float startX = -60.0f;
+	float y = -190.0f;
 	float spacing = 40.0f;
 
 	for (int i = 0; i < 6; i++)
@@ -82,10 +86,21 @@ void SaveScore::InitScene()
 		scoreDigits.push_back(digit);
 	}
 	int ResultScore = data.score;
-	// =======================================
-	// スコア表示更新
-	// =======================================
+
+	// --------------------------------
+	// ランキング更新
+	// --------------------------------
+	UpdateRanking(ResultScore);
+
+	// --------------------------------
+	// 今回のスコア表示
+	// --------------------------------
 	UpdateScoreDisplay(ResultScore);
+
+	// --------------------------------
+	// ランキング表示
+	// --------------------------------
+	DrawRanking();
 }
 
 void SaveScore::UpdateScene(float deltaTime)
@@ -140,6 +155,69 @@ void SaveScore::UpdateScoreDisplay(int score)
 
 			scoreDigits[i]->numU = num % 5;
 			scoreDigits[i]->numV = num / 5;
+		}
+	}
+}
+
+// =======================================
+// ランキング更新
+// =======================================
+void SaveScore::UpdateRanking(int newScore)
+{
+	// 新しいスコアを追加
+	rankingScores.push_back(newScore);
+
+	// 高い順にソート
+	std::sort(rankingScores.begin(), rankingScores.end(), std::greater<int>());
+
+	// 5位までに制限
+	if (rankingScores.size() > 5)
+	{
+		rankingScores.resize(5);
+	}
+}
+
+// =======================================
+// ランキング表示
+// =======================================
+void SaveScore::DrawRanking()
+{
+	// -----------------------------
+	// ランキング数字の位置
+	// -----------------------------
+	float startX = 180.0f;  // 右側へ移動
+	// ランキングの1位の位置
+	float startY = 44.0f;
+	float lineSpacing = 34.0f; // 行間
+
+	for (int i = 0; i < 5; i++)
+	{
+		if (i >= rankingScores.size())
+		{
+			continue;
+		}
+
+		int score = rankingScores[i];
+
+		std::string text = std::to_string(score);
+
+		float spacing = 32.0f;
+
+		for (int j = 0; j < text.length(); j++)
+		{
+			int num = text[j] - '0';
+
+			Object* digit = AddObject()
+				->SetPos(startX + (j * spacing), startY - (i * lineSpacing), 0.0f)
+				->SetSize(64.0f, 64.0f, 0.0f);
+
+			digit->Init("asset/scoretext.png", 5, 2);
+			digit->SetSpriteSheet(5, 2);
+
+			digit->numU = num % 5;
+			digit->numV = num / 5;
+
+			digit->SetUI(true);
 		}
 	}
 }

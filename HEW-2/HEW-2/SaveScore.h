@@ -22,4 +22,15 @@ public:
     void DrawScene() override;
     void UninitScene() override;
     void UpdateScoreDisplay(int score);
+
+    // =======================================
+    // ランキングデータ
+    // =======================================
+    std::vector<int> rankingScores;
+
+    // ランキング更新処理
+    void UpdateRanking(int newScore);
+
+    // ランキング数字表示
+    void DrawRanking();
 };
