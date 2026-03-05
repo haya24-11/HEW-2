@@ -314,6 +314,36 @@ void GamePlay::InitScene()
     m_levelLabel->SetUI(true);
     m_levelLabel->SetSize(120.0f, 30.0f, 0.0f);  // ★ここ調整ポイント①
 
+    // ============================
+    // タイマーUI
+    // ============================
+
+    // 数字 (MMSS → 4桁)
+    for (int i = 0; i < 4; i++)
+    {
+        Object* digit = AddObject();
+        digit->Init("asset/UI/timer_number.png", 5, 2); // 0〜9横並び
+        digit->SetSpriteSheet(5, 2);
+        digit->SetUI(true);
+        digit->SetSize(96.0f, 96.0f, 0.0f);
+
+        m_timerDigits.push_back(digit);
+    }
+
+    // 「:」
+    m_timerColon = AddObject();
+    m_timerColon->Init("asset/UI/colon.png");
+    m_timerColon->SetUI(true);
+    m_timerColon->SetSize(96.0f, 96.0f, 0.0f);
+
+    m_timer = 0.0f;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i < m_timerDigits.size())
+            m_timerDigits[i]->SetAnimFrame(0);
+    }
+
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -324,7 +354,44 @@ void GamePlay::UpdateScene(float deltaTime)
 
     float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
+    
+    // =============================
+    // 生存タイマー
+    // =============================
+    {
+        float timerSpeed = 0.15f;   // ★ここで遅さ調整（0.5 = 半分の速度）
 
+        float add = deltaTime * timerSpeed;
+
+        if (add > 0.1f)
+            add = 0.1f;
+
+        m_timer += add;
+
+        int totalSec = (int)m_timer;
+
+        // 安全制限（極端な低FPS対策）
+        if (totalSec > 3599)
+            totalSec = 3599;
+
+        int minute = totalSec / 60;
+        int second = totalSec % 60;
+
+        int digits[4] =
+        {
+            minute / 10,
+            minute % 10,
+            second / 10,
+            second % 10
+        };
+
+        // UI反映
+        for (int i = 0; i < 4; i++)
+        {
+            if (i >= m_timerDigits.size()) break;
+            m_timerDigits[i]->SetAnimFrame(digits[i]);
+        }
+    }
     const bool wasHeavyDashing = m_player->IsHeavyDashing();
 
     // プレイヤー更新
@@ -613,11 +680,11 @@ void GamePlay::UpdateScene(float deltaTime)
         // ✅ 今プレイで出現済みなのに、今は居ない/死んでいる → Resultへ
         if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
-            ResultData data;
-            data.monsterKills = m_spawner.GetKillCount();
-            data.maxCombo = m_combo.GetMaxCombo();
-            data.playTime = m_playtime;
-            data.isClear = true;
+            m_resultData.monsterKills = m_spawner.GetKillCount();
+            m_resultData.maxCombo = m_combo.GetMaxCombo();
+            m_resultData.playTime = m_timer;
+            m_resultData.isClear = true;
+
             SetNextScene(SceneType::Result);
             return;
         }
@@ -830,6 +897,9 @@ void GamePlay::UninitScene()
     m_player.reset();
     m_map = nullptr;
 
+    m_timerDigits.clear();
+    m_timerColon = nullptr;
+
     // ✅ Spawnerも念のため初期化（内部Enemy配列を破棄）
     m_spawner = EnemySpawner();
 }
@@ -954,6 +1024,40 @@ void GamePlay::UpdateUIFollowCamera()
             0.0f
         );
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
+    }
+
+    // ============================
+    // タイマーUI（画面上中央）
+    // ============================
+    {
+        float timerY = halfH - 60.0f;   // ← 上からの位置調整
+        float timerX = 0.0f;            // ← 画面中央
+
+        float digitWidth = 96.0f;       // ← 数字サイズ
+        float spacing = digitWidth - 30.0f;   // ← ★数字間隔調整ポイント
+
+        for (int i = 0; i < m_timerDigits.size(); i++)
+        {
+            if (!m_timerDigits[i]) continue;
+
+            float x = timerX + (i - 1.5f) * spacing;
+
+            m_timerDigits[i]->SetPos(
+                x,
+                timerY,
+                0.0f
+            );
+        }
+
+        // コロン
+        if (m_timerColon)
+        {
+            m_timerColon->SetPos(
+                timerX,
+                timerY,
+                0.0f
+            );
+        }
     }
 }
 

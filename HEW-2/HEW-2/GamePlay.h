@@ -65,4 +65,12 @@ private:
     std::vector<AttackSlashEffect*> m_attackEffects;
     std::vector<Object*> m_levelDigits;
     Object* m_levelLabel = nullptr;   // "LEVEL." 表示用
+
+    // 生存タイマー
+    float m_timer = 0.0f;
+    // タイマーUI
+    std::vector<Object*> m_timerDigits;
+    Object* m_timerColon = nullptr;
+    // リザルトにタイムを渡す
+    ResultData m_resultData;
 };

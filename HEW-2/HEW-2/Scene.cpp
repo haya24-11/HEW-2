@@ -1,5 +1,7 @@
 ﻿#include "Scene.h"
 
+static ResultData g_resultData;
+
 Scene::Scene(SceneType type) : sceneType(type)
 {
 }
@@ -13,19 +15,6 @@ void Scene::InitScene()
 {
 }
 
-void Scene::UpdateScene(float /*deltaTime*/)
-{
-}
-
-void Scene::DrawScene()
-{
-    for (auto& obj : objects)
-        obj->Draw();
-}
-
-void Scene::UninitScene()
-{
-}
 
 void Scene::CommonInit()
 {
@@ -96,3 +85,12 @@ void Scene::ClearObject()
     objects.shrink_to_fit();
 }
 
+ResultData Scene::GetResultData()
+{
+    return g_resultData;
+}
+
+void Scene::SetResultData(const ResultData& data)
+{
+    g_resultData = data;
+}

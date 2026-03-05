@@ -12,6 +12,7 @@ private:
     SceneType nextScene = SceneType::NONE;
     SceneType sceneType;
     ResultData m_lastResult; // 前のシーンから受け取ったデータを一時保存
+
 protected:
     void ChangeScene(SceneType next, const ResultData& data);
     const ResultData& GetLastResult() const { return m_lastResult; }
@@ -24,6 +25,9 @@ protected:
     virtual void InitScene() = 0;
 
 public:
+    static ResultData GetResultData();
+    static void SetResultData(const ResultData& data);
+
     Scene(SceneType type);//なんのシーンかを名義する
     virtual ~Scene();
 

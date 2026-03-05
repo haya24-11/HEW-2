@@ -1,4 +1,6 @@
+#define NOMINMAX
 #include "Result.h"
+#include <algorithm>
 
 Result::Result() :Scene(SceneType::Result)
 {
@@ -9,60 +11,88 @@ Result::Result() :Scene(SceneType::Result)
 
 void Result::InitScene()
 {
-
+    // 背景
     PlayWallpaper = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
         ->SetSize(1670.0f, 940.0f, 0.0f);
     PlayWallpaper->Init("asset/wallpaper.png");
     PlayWallpaper->SetUI(true);
 
+    // 結果ウィンドウ
     ResultWindow = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
         ->SetSize(900.0f, 500.0f, 0.0f);
     ResultWindow->Init("asset/resultwindow.png");
     ResultWindow->SetUI(true);
 
+    ResultData data = Scene::GetResultData();
+
     int Kills = data.monsterKills;
     int Combo = data.maxCombo;
     int Seconds = (int)data.playTime;
     bool Clear = data.isClear;
-    int ResultScore = data.score;
 
-    // スコア計算(仮)
-    int TotalScore = (Kills * 4000) + (Combo * 2000) + max(0, (600 - Seconds) * 100);
+    //----------------------------------
+    // スコア計算
+    //----------------------------------
 
-    ResultScore = TotalScore;
+    int killScore = Kills * 4000;
+    int comboScore = Combo * 2000;
 
+    // 生存時間ボーナス
+    int timeScore = (600 - Seconds) * 100;
+    if (timeScore < 0) timeScore = 0;
+
+    // クリアボーナス
+    int clearScore = Clear ? 30000 : 0;
+
+    int TotalScore =
+        killScore +
+        comboScore +
+        timeScore +
+        clearScore;
+
+    //----------------------------------
     // 討伐数
+    //----------------------------------
+
     CreateNumberText(150.0f, 100.0f, std::to_string(Kills));
 
+    //----------------------------------
     // 最大コンボ
+    //----------------------------------
+
     CreateNumberText(150.0f, 50.0f, std::to_string(Combo));
 
-    // 戦闘時間 (分：秒秒)
-// 1. データの計算
-    int TotalSeconds = (int)data.playTime;
-    int Mins = TotalSeconds / 60; // 分
-    int Secs = TotalSeconds % 60; // 秒
+    //----------------------------------
+    // 生存時間
+    //----------------------------------
 
-    //「分」の表示 
+    int Mins = Seconds / 60;
+    int Secs = Seconds % 60;
+
     CreateNumberText(150.0f, 0.0f, std::to_string(Mins));
 
-    //「秒」の表示
     char SecBuf[3];
-    sprintf_s(SecBuf, "%02d", Secs); // 9秒なら "09" になる
+    sprintf_s(SecBuf, "%02d", Secs);
+
     CreateNumberText(210.0f, 0.0f, SecBuf);
 
+    //----------------------------------
     // 合計スコア
+    //----------------------------------
+
     CreateNumberText(100.0f, -80.0f, std::to_string(TotalScore));
 
-    //文字
+    //----------------------------------
+    // UI文字
+    //----------------------------------
+
     ScoreText_Text = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
         ->SetSize(300.0f, 180.0f, 0.0f);
     ScoreText_Text->Init("asset/scoretext_moji.png");
     ScoreText_Text->SetUI(true);
-
 
     ScoreText_Score = AddObject()
         ->SetPos(-80.0f, -130.0f, 0.0f)
@@ -73,32 +103,43 @@ void Result::InitScene()
     ScoreText_Coron = AddObject()
         ->SetPos(219.0f, -51.0f, 0.0f)
         ->SetSize(80.0f, 80.0f, 0.0f);
-    ScoreText_Coron->Init("asset/coron.png");
+    ScoreText_Coron->Init("asset/colon.png");
     ScoreText_Coron->SetUI(true);
-    
 
-    //キャラクター
+    //----------------------------------
+    // キャラクター表示
+    //----------------------------------
+
     PlayerCharacter = AddObject()
         ->SetPos(-270.0f, 0.0f, 0.0f)
         ->SetSize(220.0f, 250.0f, 0.0f);
-    if (Clear == true) {
+
+    if (Clear)
         PlayerCharacter->Init("asset/clearplayer.png", 8, 3);
-    }
     else
-    {
         PlayerCharacter->Init("asset/overplayer.png", 8, 3);
-    }
+
     PlayerCharacter->SetSpriteSheet(8, 3);
     PlayerCharacter->SetUI(true);
 
-    //次へボタン　
+    //----------------------------------
+    // 次へ
+    //----------------------------------
+
     NextWindow = AddObject()
         ->SetPos(300.0f, -200.0f, 0.0f)
         ->SetSize(200.0f, 50.0f, 0.0f);
     NextWindow->Init("asset/nextwindow.png");
     NextWindow->SetUI(true);
 
-    std::cout << "(Debug) ResultScene!" << std::endl;
+    //----------------------------------
+    // デバッグ
+    //----------------------------------
+
+    std::cout << "Kills  : " << Kills << std::endl;
+    std::cout << "Combo  : " << Combo << std::endl;
+    std::cout << "Time   : " << Seconds << std::endl;
+    std::cout << "Score  : " << TotalScore << std::endl;
 }
 
 void Result::UpdateScene(float deltaTime)
@@ -124,7 +165,7 @@ void Result::CreateNumberText(float startX, float y, std::string text)
 {
     float spacing = 32.0f; // 1文字進む幅（フォントサイズに合わせて調整）
 
-    for (int i = 0; i < text.length(); ++i) {
+    for (size_t i = 0; i < text.length(); ++i) {
         float nU = 0.0f;
 
         // 文字に応じた numU を設定

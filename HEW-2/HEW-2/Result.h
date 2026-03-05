@@ -8,8 +8,6 @@ class Result :
 public:
     Result();
 
-    ResultData data;
-
     //リザルトUIオブジェクト一覧
     Object* ResultWindow; //リザルトのウィンドウ
     Object* PlayWallpaper; //リザルトのウィンドウ
