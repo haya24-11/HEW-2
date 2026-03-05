@@ -1,5 +1,6 @@
 #include "Title.h"
 #include "Game.h"
+#include "CameraGlobals.h"
 #include <Xinput.h>
 #pragma comment(lib, "Xinput.lib")
 
@@ -12,8 +13,8 @@ void Title::InitScene()
 {
 	std::cout << "(Debug) TitleScene!" << std::endl;
 
-	//g_cameraX = 0.0f;
-	//g_cameraY = 0.0f;
+	g_cameraX = 0.0f;
+	g_cameraY = 0.0f;
 
 	// =========================
 	// タイトル背景
@@ -23,7 +24,7 @@ void Title::InitScene()
 		->SetSize(1670.0f, 940.0f, 0.0f)
 		->SetAngle(0.0f);
 	TitleBackground->Init("asset/Title/titlebackground.png");
-	TitleBackground->SetUI(true);
+	TitleBackground->SetUI(false);
 
 	// =========================
 	// 先読み
@@ -35,7 +36,7 @@ void Title::InitScene()
 	// =========================
 	// スライム 9体（種類ごとに3体）
 	// =========================
-	const float baseX = -1200.0f;     // 左の出現基準
+	const float baseX = -700.0f;     // 左の出現基準
 	const float xStep = 30.0f;        // 3体のズラし
 	const float size = 90.0f;
 
@@ -133,8 +134,6 @@ void Title::InitScene()
 		m_red[i].speed = m_red[i].baseSpeed;
 	}
 
-	// 背景はワールド描画にする
-	TitleBackground->SetUI(true);
 	// 背景ロゴ
 	TitleBackLogo = AddObject();
 	TitleBackLogo->Init("asset/Title/title_backlogo.png");
@@ -332,68 +331,53 @@ void Title::UpdateScene(float deltaTime)
 void Title::DrawScene()
 {
 	// =============================
-	// ① ワールド描画（UI以外）
-	// =============================
-	for (auto& obj : objects)
-	{
-		// =========================
-		// メニューUI（2x1）
-		// =========================
-		if (obj.get() == GameStartLogo) { obj->Draw((int)GameStartLogo->numU); continue; }
-		if (obj.get() == ScoreLogo) { obj->Draw((int)ScoreLogo->numU);     continue; }
-		if (obj.get() == ExitLogo) { obj->Draw((int)ExitLogo->numU);      continue; }
-
-		// =========================
-		// ✅ スライムは Draw(frameIndex) で描画（FlipX を反映させる）
-		// =========================
-		bool drewSlime = false;
-
-		// 緑3
-		for (int i = 0; i < 3 && !drewSlime; ++i)
-		{
-			if (obj.get() == m_green[i].obj)
-			{
-				const int frame = (int)(m_green[i].obj->numV) * 8 + (int)(m_green[i].obj->numU);
-				obj->Draw(frame);
-				drewSlime = true;
-			}
-		}
-		// 青3
-		for (int i = 0; i < 3 && !drewSlime; ++i)
-		{
-			if (obj.get() == m_blue[i].obj)
-			{
-				const int frame = (int)(m_blue[i].obj->numV) * 8 + (int)(m_blue[i].obj->numU);
-				obj->Draw(frame);
-				drewSlime = true;
-			}
-		}
-		// 赤3
-		for (int i = 0; i < 3 && !drewSlime; ++i)
-		{
-			if (obj.get() == m_red[i].obj)
-			{
-				const int frame = (int)(m_red[i].obj->numV) * 8 + (int)(m_red[i].obj->numU);
-				obj->Draw(frame);
-				drewSlime = true;
-			}
-		}
-
-		if (drewSlime) continue;
-
-		// =========================
-		// その他（通常描画）
-		// =========================
-		if (obj->IsUI()) continue;
-		obj->Draw();
-	}
-
-	// =============================
-	// ② UI描画
+	// 0) UI背景だけ先に描く（最背面）
 	// =============================
 	for (auto& obj : objects)
 	{
 		if (!obj->IsUI()) continue;
+		if (obj.get() == TitleBackground || obj.get() == TitleBackLogo)
+		{
+			obj->Draw();
+		}
+	}
+
+	// =============================
+	// 1) ワールド描画（スライム含む）
+	// =============================
+	for (auto& obj : objects)
+	{
+		if (obj->IsUI()) continue;
+
+		bool drewSlime = false;
+
+		for (int i = 0; i < 3 && !drewSlime; ++i)
+			if (obj.get() == m_green[i].obj) { obj->Draw((int)m_green[i].obj->numV * 8 + (int)m_green[i].obj->numU); drewSlime = true; }
+
+		for (int i = 0; i < 3 && !drewSlime; ++i)
+			if (obj.get() == m_blue[i].obj) { obj->Draw((int)m_blue[i].obj->numV * 8 + (int)m_blue[i].obj->numU);  drewSlime = true; }
+
+		for (int i = 0; i < 3 && !drewSlime; ++i)
+			if (obj.get() == m_red[i].obj) { obj->Draw((int)m_red[i].obj->numV * 8 + (int)m_red[i].obj->numU);   drewSlime = true; }
+
+		if (drewSlime) continue;
+
+		obj->Draw();
+	}
+
+	// =============================
+	// 2) UI前景（メニュー/ロゴなど）
+	// =============================
+	for (auto& obj : objects)
+	{
+		if (!obj->IsUI()) continue;
+
+		if (obj.get() == TitleBackground || obj.get() == TitleBackLogo) continue;
+
+		if (obj.get() == GameStartLogo) { obj->Draw((int)GameStartLogo->numU); continue; }
+		if (obj.get() == ScoreLogo) { obj->Draw((int)ScoreLogo->numU);     continue; }
+		if (obj.get() == ExitLogo) { obj->Draw((int)ExitLogo->numU);      continue; }
+
 		obj->Draw();
 	}
 }
