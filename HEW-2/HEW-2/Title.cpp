@@ -7,9 +7,13 @@ Title::Title() : Scene(SceneType::Title)
 {
 }
 
+
 void Title::InitScene()
 {
 	std::cout << "(Debug) TitleScene!" << std::endl;
+
+	//g_cameraX = 0.0f;
+	//g_cameraY = 0.0f;
 
 	// =========================
 	// タイトル背景
@@ -130,7 +134,7 @@ void Title::InitScene()
 	}
 
 	// 背景はワールド描画にする
-	TitleBackground->SetUI(false);
+	TitleBackground->SetUI(true);
 	// 背景ロゴ
 	TitleBackLogo = AddObject();
 	TitleBackLogo->Init("asset/Title/title_backlogo.png");
