@@ -7,12 +7,12 @@ class Title : public Scene
 public:
     Title();
 
-    // ƒeƒXƒg‘€ì—p
+    // ï¿½eï¿½Xï¿½gï¿½ï¿½ï¿½ï¿½p
     int TitleMenu = 1;
     int m_count = 0;
     WORD m_prevButtons = 0;
 
-    // ƒ^ƒCƒgƒ‹UIƒIƒuƒWƒFƒNƒgˆê——
+    // ï¿½^ï¿½Cï¿½gï¿½ï¿½UIï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ê——
     Object* TitleLogo = nullptr;
     Object* TitleBackground = nullptr;
     Object* title_backlogo = nullptr;
@@ -20,19 +20,34 @@ public:
     Object* ScoreLogo = nullptr;
     Object* ExitLogo = nullptr;
 
+    //ï¿½^ï¿½Cï¿½gï¿½ï¿½UIï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ê——
+    Object* TitleLogo; //ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½ï¿½S
+    Object* TitleTM;
+    Object* TitleBackground; //ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½Ê‚Ì”wï¿½i
+    Object* GameStartLogo; //ï¿½Qï¿½[ï¿½ï¿½ï¿½Xï¿½^ï¿½[ï¿½gï¿½ï¿½ï¿½ï¿½
+    Object* ScoreLogo; //ï¿½Xï¿½Rï¿½Aï¿½ï¿½ï¿½ï¿½
+    Object* ExitLogo; //ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+    Object* TitleBackLogo = nullptr;
+
+    float m_logoTime = 0.0f;     // ï¿½hï¿½êï¿½ï¿½
+    float m_logoCenterX = 0.0f;  // ï¿½ï¿½ï¿½ï¿½Xï¿½Ê’u
+    float m_logoBreathTime = 0.0f;
+
+    //ï¿½Vï¿½[ï¿½ï¿½ï¿½Ì“ï¿½ï¿½ï¿½
     void InitScene() override;
     void UpdateScene(float deltaTime) override;
     void DrawScene() override;
     void UninitScene() override;
 
     // =========================
-    // ƒ^ƒCƒgƒ‹‰æ–ÊFƒXƒ‰ƒCƒ€•às‰‰o—p
+    // ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½ÊFï¿½Xï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½oï¿½p
     // =========================
     struct WalkAnim
     {
-        int start = 0;       // ŠJnƒtƒŒ[ƒ€i0j
+        int start = 0;       // ï¿½Jï¿½nï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½i0ï¿½j
         int count = 32;      // 8x4=32
-        float sec = 0.10f;   // 1ƒtƒŒ[ƒ€ŠÔ
+        float sec = 0.10f;   // 1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         bool loop = true;
     };
 
@@ -45,7 +60,7 @@ public:
         float frameTimer = 0.0f;
 
         float speed = 25.0f;     // px/sec
-        float dir = 1.0f;        // ‰E=+1 / ¶=-1
+        float dir = 1.0f;        // ï¿½E=+1 / ï¿½ï¿½=-1
         float y = 0.0f;
 
         float baseY = 0.0f;    
@@ -53,10 +68,10 @@ public:
         float waveSpd = 1.5f;  
         float waveT = 0.0f;    
 
-        float baseSpeed = 20.0f;     // Šî€‘¬“x
-        float spdAmp = 6.0f;         // ‘¬“x‚ä‚ç‚¬•
-        float spdSpd = 1.2f;         // ‘¬“x‚ä‚ç‚¬‘¬“x
-        float spdT = 0.0f;           // “à•”ƒ^ƒCƒ}[
+        float baseSpeed = 20.0f;     // ï¿½î€ï¿½ï¿½ï¿½x
+        float spdAmp = 6.0f;         // ï¿½ï¿½ï¿½xï¿½ï¿½ç‚¬ï¿½ï¿½
+        float spdSpd = 1.2f;         // ï¿½ï¿½ï¿½xï¿½ï¿½ç‚¬ï¿½ï¿½ï¿½x
+        float spdT = 0.0f;           // ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½Cï¿½}ï¿½[
 
         float xMin = -1200.0f;
         float xMax = 1200.0f;

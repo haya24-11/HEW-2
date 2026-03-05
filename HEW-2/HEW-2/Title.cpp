@@ -3,8 +3,6 @@
 #include <Xinput.h>
 #pragma comment(lib, "Xinput.lib")
 
-Object* obj = new Object;
-
 Title::Title() : Scene(SceneType::Title)
 {
 }
@@ -141,6 +139,32 @@ void Title::InitScene()
 	title_backlogo->Init("asset/Title/title_backlogo.png");
 	title_backlogo->SetUI(true);
 
+	// 背景はワールド描画にする
+	TitleBackground->SetUI(false);
+	// 背景ロゴ
+	TitleBackLogo = AddObject();
+	TitleBackLogo->Init("asset/Title/title_backlogo.png");
+	TitleBackLogo->SetPos(0, 0, 0);
+	TitleBackLogo->SetSize(1674.0f, 940.0f, 0.0f);
+	TitleBackLogo->SetUI(true);
+
+	// ★中心位置を保存
+	m_logoCenterX = 0.0f;
+
+	// タイトルロゴ
+	Object* TitleLogo = AddObject();
+	TitleLogo->Init("asset/Title/title_logo.png");
+	TitleLogo->SetPos(-65,145, 0);
+	TitleLogo->SetSize(891.3f, 651.0f, 0.0f);      // ★ここでサイズ調整
+	TitleLogo->SetUI(true);
+	// =========================
+	// ™マーク
+	// =========================
+	TitleTM = AddObject();
+	TitleTM->Init("asset/Title/title_tm.png"); // ™画像
+	TitleTM->SetPos(320, -87, 0);              // ←ロゴ右上あたりに配置
+	TitleTM->SetSize(75.0f, 45.0f, 0.0f);      // サイズは好みで
+	TitleTM->SetUI(true);
 	// =========================
 	// タイトルロゴ
 	// =========================
@@ -194,6 +218,38 @@ void Title::UpdateScene(float deltaTime)
 {
 	if (deltaTime > 0.05f) deltaTime = 0.05f; 
 	m_count++;
+
+	// =========================
+	// タイトルバックロゴ揺れ
+	// =========================
+
+	// 時間加算
+	m_logoTime++;
+
+	// 無限に増えるの防止
+	if (m_logoTime > 1000.0f)
+	{
+		m_logoTime = 0.0f;
+	}
+
+	// 1往復の時間（秒）
+	float period = 200.0f;
+
+	// メトロノーム角度
+	float t = m_logoTime * DirectX::XM_2PI / period;
+
+	// 振れ角
+	float maxAngle = 6.0f;
+
+	float angle = sinf(t) * maxAngle;
+
+	// 位置は固定
+	TitleBackLogo->SetPos(
+		m_logoCenterX,
+		0.0f,
+		0.0f
+	);
+	TitleBackLogo->SetAngle(angle);
 
 	// =========================
 	// XInput：トリガー（押した瞬間だけ true）
@@ -291,6 +347,9 @@ void Title::UpdateScene(float deltaTime)
 }
 void Title::DrawScene()
 {
+	// =============================
+	// ① ワールド描画（UI以外）
+	// =============================
 	for (auto& obj : objects)
 	{
 		// =========================
@@ -341,6 +400,16 @@ void Title::DrawScene()
 		// =========================
 		// その他（通常描画）
 		// =========================
+		if (obj->IsUI()) continue;
+		obj->Draw();
+	}
+
+	// =============================
+	// ② UI描画
+	// =============================
+	for (auto& obj : objects)
+	{
+		if (!obj->IsUI()) continue;
 		obj->Draw();
 	}
 }
