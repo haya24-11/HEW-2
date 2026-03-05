@@ -18,6 +18,12 @@ public:
     Object* ScoreLogo; //スコア文字
     Object* ExitLogo; //終了文字
 
+    Object* TitleBackLogo = nullptr;
+
+    float m_logoTime = 0.0f;     // 揺れ時間
+    float m_logoCenterX = 0.0f;  // 元のX位置
+    float m_logoBreathTime = 0.0f;
+
     //シーンの動作
     void InitScene() override;
     void UpdateScene(float deltaTime) override;

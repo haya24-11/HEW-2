@@ -22,11 +22,14 @@ void Title::InitScene()
 	// 背景はワールド描画にする
 	TitleBackground->SetUI(false);
 	// 背景ロゴ
-	Object* TitleBackLogo = AddObject();
+	TitleBackLogo = AddObject();
 	TitleBackLogo->Init("asset/Title/title_backlogo.png");
 	TitleBackLogo->SetPos(0, 0, 0);
-	TitleBackLogo->SetSize(1674.0f, 940.0f, 0.0f);  // ★ここでサイズ調整
+	TitleBackLogo->SetSize(1674.0f, 940.0f, 0.0f);
 	TitleBackLogo->SetUI(true);
+
+	// ★中心位置を保存
+	m_logoCenterX = 0.0f;
 
 	// タイトルロゴ
 	Object* TitleLogo = AddObject();
@@ -84,6 +87,38 @@ void Title::InitScene()
 void Title::UpdateScene(float deltaTime)
 {
 	m_count++;
+
+	// =========================
+	// タイトルバックロゴ揺れ
+	// =========================
+
+	// 時間加算
+	m_logoTime++;
+
+	// 無限に増えるの防止
+	if (m_logoTime > 1000.0f)
+	{
+		m_logoTime = 0.0f;
+	}
+
+	// 1往復の時間（秒）
+	float period = 200.0f;
+
+	// メトロノーム角度
+	float t = m_logoTime * DirectX::XM_2PI / period;
+
+	// 振れ角
+	float maxAngle = 6.0f;
+
+	float angle = sinf(t) * maxAngle;
+
+	// 位置は固定
+	TitleBackLogo->SetPos(
+		m_logoCenterX,
+		0.0f,
+		0.0f
+	);
+	TitleBackLogo->SetAngle(angle);
 
 	// =========================
 	// XInput：トリガー（押した瞬間だけ true）
