@@ -14,19 +14,12 @@ public:
 
     // �^�C�g��UI�I�u�W�F�N�g�ꗗ
     Object* TitleLogo = nullptr;
+    Object* TitleTM = nullptr;
     Object* TitleBackground = nullptr;
     Object* title_backlogo = nullptr;
     Object* GameStartLogo = nullptr;
     Object* ScoreLogo = nullptr;
     Object* ExitLogo = nullptr;
-
-    //�^�C�g��UI�I�u�W�F�N�g�ꗗ
-    Object* TitleLogo; //�^�C�g�����S
-    Object* TitleTM;
-    Object* TitleBackground; //�^�C�g����ʂ̔w�i
-    Object* GameStartLogo; //�Q�[���X�^�[�g����
-    Object* ScoreLogo; //�X�R�A����
-    Object* ExitLogo; //�I������
 
     Object* TitleBackLogo = nullptr;
 

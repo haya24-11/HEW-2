@@ -129,16 +129,6 @@ void Title::InitScene()
 		m_red[i].speed = m_red[i].baseSpeed;
 	}
 
-	// =========================
-	// バックタイトルロゴ
-	// =========================
-	title_backlogo = AddObject()
-		->SetPos(0.0f, 000.0f, 0.0f)
-		->SetSize(1550.0f, 950.0f, 0.0f)
-		->SetAngle(0.0f);
-	title_backlogo->Init("asset/Title/title_backlogo.png");
-	title_backlogo->SetUI(true);
-
 	// 背景はワールド描画にする
 	TitleBackground->SetUI(false);
 	// 背景ロゴ
@@ -165,16 +155,6 @@ void Title::InitScene()
 	TitleTM->SetPos(320, -87, 0);              // ←ロゴ右上あたりに配置
 	TitleTM->SetSize(75.0f, 45.0f, 0.0f);      // サイズは好みで
 	TitleTM->SetUI(true);
-	// =========================
-	// タイトルロゴ
-	// =========================
-
-	TitleLogo = AddObject()
-		->SetPos(-30.0f, 150.0f, 0.0f)
-		->SetSize(800.0f, 650.0f, 0.0f)
-		->SetAngle(0.0f);
-	TitleLogo->Init("asset/Title/title_logo.png");
-	TitleLogo->SetUI(true);
 
 
 	// =========================
