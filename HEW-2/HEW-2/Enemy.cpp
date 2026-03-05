@@ -322,7 +322,7 @@ void Enemy::StartHitFlash(float sec)
 
     if (m_object)
     {
-        m_object->SetColor(1.0f, 0.2f, 0.2f, 1.0f);
+        m_object->SetColor(0.15f, 0.15f, 0.15f, 1.0f);
     }
 }
 
@@ -335,7 +335,11 @@ void Enemy::UpdateHitFlash(float dt)
 
     const float blinkSpeed = 8.0f; // 点滅速度
     float s = (fmodf(m_hitFlashTimer * blinkSpeed, 1.0f) < 0.5f) ? 1.0f : 0.3f;
-    m_object->SetColor(1.0f, 0.2f * s, 0.2f * s, 1.0f);
+
+    // ✅ 黒(暗め)フラッシュ：赤い敵でも見える
+    const float base = 0.15f;           // 基本の暗さ（0.10～0.25 推奨）
+    const float v = base * s;           // 点滅
+    m_object->SetColor(v, v, v, 1.0f);
 
     if (m_hitFlashTimer <= 0.0f)
     {

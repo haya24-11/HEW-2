@@ -69,4 +69,7 @@ private:
     bool isFadeOut = false;
     // クロスフェード用
     bool  m_isCrossFade = false;
+
+
+
 };

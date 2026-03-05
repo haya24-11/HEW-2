@@ -10,6 +10,8 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "NormalEnemy.h"
+#include "NormalEnemyred.h"
+#include "NormalEnemyblue.h"
 #include "Texture.h"
 #include "CameraGlobals.h"
 #include <cmath>
@@ -140,7 +142,9 @@ void GamePlay::InitScene()
     // カメラも初期値に（必要なら）
     m_camera = Camera2D();
 
-
+    PreloadTexture(g_pDevice, "asset/Texture/BossWalk.png");        
+    //PreloadTexture(g_pDevice, "asset/Texture/boss_attack.png");
+   // PreloadTexture(g_pDevice, "asset/Texture/boss_die.png");
 
     // ===== プレイヤー関連テクスチャを事前ロード =====
     PreloadTexture(g_pDevice, "asset/Texture/player_idle.png");
@@ -204,7 +208,8 @@ void GamePlay::InitScene()
         m_player.get()      // Player本体を渡す
     );
     m_spawner.RegisterType<NormalEnemy>(1.0f);
-
+    m_spawner.RegisterType<NormalEnemyred>(1.0f);
+    m_spawner.RegisterType<NormalEnemyblue>(1.0f);
     std::cout << "(Debug) GamePlayScene!" << std::endl;
 
     /////////////////////////////////////////////////////////////////////////////
@@ -314,6 +319,33 @@ void GamePlay::InitScene()
     m_levelLabel->SetUI(true);
     m_levelLabel->SetSize(120.0f, 30.0f, 0.0f);  // ★ここ調整ポイント①
 
+
+    //2026 3 5 ui
+ 
+    // =========================
+// 左下キーガイドUI
+// =========================
+
+// 1段目（A D W S）
+    UI_KeyboardGuide = AddObject()
+        ->SetPos(-490.0f, -410.0f, 0.0f)
+        ->SetSize(700.0f, 100.0f, 0.0f)
+        ->SetAngle(0.0f);
+    UI_KeyboardGuide->Init("asset/UI/Keyboard.png");
+    UI_KeyboardGuide->SetUI(true);
+
+    UI_PadGuide = AddObject()
+        ->SetPos(-490.0f, -410.0f, 0.0f)
+        ->SetSize(700.0f, 100.0f, 0.0f)
+        ->SetAngle(0.0f);
+    UI_PadGuide->Init("asset/UI/Pad.png");
+    UI_PadGuide->SetUI(true);
+
+    UI_KeyboardGuide->SetColor(1, 1, 1, 1.0f);
+    UI_PadGuide->SetColor(1, 1, 1, 0.0f);
+
+    m_lastInput = InputDevice::Keyboard;
+    m_prevPadButtonsUI = 0;
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -321,18 +353,74 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
+    // ==========================================
+    // ✅ 入力デバイス判定用（Keyboard / Pad）
+    // ==========================================
+    auto AnyKeyboardInput = [&]() -> bool
+        {
+            // WASD
+            if (Input::GetKeyTrigger('W')) return true;
+            if (Input::GetKeyTrigger('A')) return true;
+            if (Input::GetKeyTrigger('S')) return true;
+            if (Input::GetKeyTrigger('D')) return true;
 
+            // よく使うキー
+            if (Input::GetKeyTrigger(VK_RETURN)) return true;
+            if (Input::GetKeyTrigger(VK_ESCAPE)) return true;
+            if (Input::GetKeyTrigger(VK_SHIFT))  return true;
+            if (Input::GetKeyTrigger(VK_SPACE))  return true;
+
+            return false;
+        };
+
+    auto AnyPadInput = [&]() -> bool
+        {
+            XINPUT_STATE st{};
+            if (XInputGetState(0, &st) != ERROR_SUCCESS)
+                return false;
+
+            const WORD buttons = st.Gamepad.wButtons;
+
+            // ボタン押した瞬間
+            if ((buttons & ~m_prevPadButtonsUI) != 0)
+                return true;
+
+            // スティック/トリガー（デッドゾーン）
+            const int dz = 8000;
+            if (abs(st.Gamepad.sThumbLX) > dz) return true;
+            if (abs(st.Gamepad.sThumbLY) > dz) return true;
+            if (abs(st.Gamepad.sThumbRX) > dz) return true;
+            if (abs(st.Gamepad.sThumbRY) > dz) return true;
+
+            if (st.Gamepad.bLeftTrigger > 30) return true;
+            if (st.Gamepad.bRightTrigger > 30) return true;
+
+            return false;
+        };
+
+    // ==========================================
+    // deltaTime 調整
+    // ==========================================
     float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
 
+    // ==========================================
+    // プレイヤー更新
+    // ==========================================
     const bool wasHeavyDashing = m_player->IsHeavyDashing();
 
-    // プレイヤー更新
     m_player->Update(deltaTime);
-    //combo
     m_combo.Update(deltaTime);
+
     // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
     const bool isHeavyDashing = m_player->IsHeavyDashing();
+
+    // ✅ ここに追加：強攻撃ダッシュが「今」始まった瞬間 → コンボ開始
+    if (!wasHeavyDashing && isHeavyDashing)
+    {
+        m_combo.BeginAttack();
+    }
+
     if (wasHeavyDashing && !isHeavyDashing)
     {
         m_player->StartNoHitAnim(1.0f);
@@ -345,11 +433,47 @@ void GamePlay::UpdateScene(float deltaTime)
 
     const auto oldPos = playerObj->GetPos();
 
+    // ==========================================
+    // ✅ 入力デバイス判定（ここでUIを切り替える）
+    //  - パッド入力があれば Pad 表示
+    //  - それ以外でキーボード入力があれば Keyboard 表示
+    // ==========================================
+    {
+        const bool padNow = AnyPadInput();
+        const bool keyNow = AnyKeyboardInput();
 
+        if (padNow)
+            m_lastInput = InputDevice::Pad;
+        else if (keyNow)
+            m_lastInput = InputDevice::Keyboard;
 
+        // 表示切り替え（アルファ）
+        if (UI_KeyboardGuide && UI_PadGuide)
+        {
+            if (m_lastInput == InputDevice::Keyboard)
+            {
+                UI_KeyboardGuide->SetColor(1, 1, 1, 1.0f);
+                UI_PadGuide->SetColor(1, 1, 1, 0.0f);
+            }
+            else
+            {
+                UI_KeyboardGuide->SetColor(1, 1, 1, 0.0f);
+                UI_PadGuide->SetColor(1, 1, 1, 1.0f);
+            }
+        }
+
+        // 次フレーム用に pad buttons を保存
+        XINPUT_STATE st{};
+        if (XInputGetState(0, &st) == ERROR_SUCCESS)
+            m_prevPadButtonsUI = st.Gamepad.wButtons;
+        else
+            m_prevPadButtonsUI = 0;
+    }
+
+    // ==========================================
     // 弱攻撃エフェクト
-    bool attackStart =
-        m_player->ConsumeAttackEffectRequest();
+    // ==========================================
+    bool attackStart = m_player->ConsumeAttackEffectRequest();
 
     if (attackStart)
     {
@@ -358,32 +482,33 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (attackStart)
     {
-        std::cout << "[GamePlay] attackStart TRUE -> create slash\n";
-        m_attackEffects.push_back(
-            new AttackSlashEffect(
-                this,
-                m_player->GetObject(),
-                m_player->GetAttackDir(),
-                m_player->IsFacingRight(),
-                m_player->GetPower()
-            )
-        );
-    }
-    else
-    {
-        static float s_t = 0.0f;
-        s_t += deltaTime;
-        if (s_t > 1.0f) { s_t = 0.0f; std::cout << "[GamePlay] attackStart FALSE\n"; }
+        // ✅ 強攻撃中（チャージ/ダッシュ）は AttackSlashEffect を出さない
+        const bool isHeavy = m_player->IsHeavyCharging() || m_player->IsHeavyDashing();
+
+        if (!isHeavy)
+        {
+            m_attackEffects.push_back(
+                new AttackSlashEffect(
+                    this,
+                    m_player->GetObject(),
+                    m_player->GetAttackDir(),
+                    m_player->IsFacingRight(),
+                    m_player->GetPower()
+                )
+            );
+        }
     }
 
+    // 全体接触CD
     if (s_touchHitCD_All > 0.0f)
     {
         s_touchHitCD_All -= deltaTime;
         if (s_touchHitCD_All < 0.0f) s_touchHitCD_All = 0.0f;
     }
-    /* ================================
-   ★ 攻撃エフェクトの更新＆破棄
-   ================================ */
+
+    // ==========================================
+    // 攻撃エフェクトの更新＆破棄
+    // ==========================================
     for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
     {
         AttackSlashEffect* e = *it;
@@ -408,6 +533,9 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    // ==========================================
+    // スポーナー更新
+    // ==========================================
     m_spawner.Update(deltaTime);
 
     // 強攻撃ヒットCD更新
@@ -417,6 +545,7 @@ void GamePlay::UpdateScene(float deltaTime)
         if (it->second <= 0.0f) it = s_heavyHitCD.erase(it);
         else ++it;
     }
+
     // 接触ヒットCD更新（敵ごと）
     for (auto it = s_touchHitCD.begin(); it != s_touchHitCD.end(); )
     {
@@ -424,29 +553,19 @@ void GamePlay::UpdateScene(float deltaTime)
         if (it->second <= 0.0f) it = s_touchHitCD.erase(it);
         else ++it;
     }
+
+    // ==========================================
+    // 魔法陣回転
+    // ==========================================
     m_rotation += m_rotationSpeed * deltaTime;
     MagicCircle->SetAngle(m_rotation);
 
-    // 360度超えたら戻す（任意だけどおすすめ）
     if (m_rotation >= 360.0f)
         m_rotation -= 360.0f;
 
-    // =========================
- // ★ プレイヤー vs 敵：接触判定・押し出し（3回反復）
- // 目的：
- //  - 1回目で押し出して「めり込み0」になっても、接触中なら2回目以降も判定できるようにする
- //  - 強攻撃入力直後（チャージ中）に被ダメでモーションが上書きされるのを防ぐ
- //  - 敵がノックバック中でも「被ダメ判定」は試す（無敵判定は Player::TakeDamage 内）
- // =========================
-    // =========================
-// ★ プレイヤー vs 敵：接触判定・押し出し（3回反復）
-// 目的：
-//  - 1回目で押し出して「めり込み0」になっても、接触中なら2回目以降も判定できるようにする
-//  - 強攻撃入力直後（チャージ中）に被ダメでモーションが上書きされるのを防ぐ
-//  - 敵がノックバック中でも「被ダメ判定」は試す（無敵判定は Player::TakeDamage 内）
-// =========================
-    // ✅ 強攻撃直後：一定時間「接触被弾アニメ」を禁止する（Player側タイマー）
-
+    // ==========================================
+    // プレイヤー vs 敵：接触判定・押し出し（3回反復）
+    // ==========================================
     for (int iter = 0; iter < 3; ++iter)
     {
         bool pushed = false;
@@ -457,23 +576,20 @@ void GamePlay::UpdateScene(float deltaTime)
 
             Object* enemyObj = e->GetObject();
             if (!enemyObj) continue;
-            // ====== （プレイヤー対敵） 接触／演出／強攻撃処理 ======
-            const float kTouchMargin = 10.0f; // 必要に応じて15〜30まで上げてテスト
+
+            const float kTouchMargin = 10.0f;
 
             const bool chk = playerObj->CheckCollision(*enemyObj);
             const bool touch = IsTouching(playerObj, enemyObj, kTouchMargin);
             const bool contact = chk || touch;
 
-
             if (!contact) continue;
 
-            // 強攻撃ダッシュ中は被撃演出の代わりにピンボールヒット
             if (m_player->IsHeavyDashing())
             {
                 HeavyPinballHit(m_player.get(), playerObj, e.get(), enemyObj);
                 pushed = true;
             }
-            // 強攻撃を占有中の場合は被撃演出禁止（押し出すだけ）
             else if (m_player->IsHeavyCharging())
             {
                 PushOutCircle(playerObj, enemyObj);
@@ -483,16 +599,15 @@ void GamePlay::UpdateScene(float deltaTime)
             {
                 if (!m_player->IsNoHitAnim())
                 {
-                    const float touchCooldown = 10.0f; // ✅ 全モンスター共通CT（秒）
+                    const float touchCooldown = 10.0f;
 
-                    // ✅ 全モンスター共通：一度当たったら一定時間は誰に触れても追加被弾なし
                     if (s_touchHitCD_All <= 0.0f)
                     {
                         m_player->TakeDamage(e->GetPower());
                         s_touchHitCD_All = touchCooldown;
                     }
                 }
-                // ✅ 押し出しは従来どおり
+
                 if (!e->IsKnockBacking())
                 {
                     PushOutCircle(playerObj, enemyObj);
@@ -515,9 +630,13 @@ void GamePlay::UpdateScene(float deltaTime)
                 }
             }
         }
+
         if (!pushed) break;
     }
-    //PAD処理シ－ン切り替え
+
+    // ==========================================
+    // PAD処理シ－ン切り替え
+    // ==========================================
     static WORD prevButtons = 0;
 
     XINPUT_STATE pad{};
@@ -535,7 +654,9 @@ void GamePlay::UpdateScene(float deltaTime)
         SetNextScene(SceneType::Result);
     }
 
+    // ==========================================
     // ✅ すべての移動/衝突処理が終わった「最後」にカメラを確定する
+    // ==========================================
     {
         auto p = playerObj->GetPos();
         float camX = p.x, camY = p.y;
@@ -558,7 +679,6 @@ void GamePlay::UpdateScene(float deltaTime)
             float loY = bottom + halfVH;
             float hiY = top - halfVH;
 
-            // ✅ lo > hi の場合（ビューがマップより大きい等）は中心固定
             if (loX > hiX) camX = (left + right) * 0.5f;
             else           camX = ClampFloat(camX, loX, hiX);
 
@@ -570,26 +690,10 @@ void GamePlay::UpdateScene(float deltaTime)
         g_cameraX = camX;
         g_cameraY = camY;
     }
-    // ===== プレイヤーをマップ外に出さない =====
-   /* if (m_map && playerObj)
-    {
-        auto p = playerObj->GetPos();
-        auto mp = m_map->GetPos();
-        auto ms = m_map->GetSize();
 
-        float r = playerObj->GetCollisionRadius();
-
-        float left = mp.x - ms.x * 0.5f + r;
-        float right = mp.x + ms.x * 0.5f - r;
-        float bottom = mp.y - ms.y * 0.5f + r;
-        float top = mp.y + ms.y * 0.5f - r;
-
-        p.x = ClampFloat(p.x, left, right);
-        p.y = ClampFloat(p.y, bottom, top);
-
-        playerObj->SetPos(p.x, p.y, p.z);
-    }*/
-
+    // ==========================================
+    // ボス死亡→Result
+    // ==========================================
     {
         bool bossFound = false;
         bool bossAlive = false;
@@ -606,11 +710,10 @@ void GamePlay::UpdateScene(float deltaTime)
                 if (e->IsAlive())
                     bossAlive = true;
 
-                break; // ボスは1体想定
+                break;
             }
         }
 
-        // ✅ 今プレイで出現済みなのに、今は居ない/死んでいる → Resultへ
         if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
             ResultData data;
@@ -628,6 +731,10 @@ void GamePlay::UpdateScene(float deltaTime)
         SetNextScene(SceneType::GameOver);
         return;
     }
+
+    // ==========================================
+    // マップ外Clamp
+    // ==========================================
     if (m_map)
     {
         ClampObjectToMap(playerObj, m_map);
@@ -654,26 +761,20 @@ void GamePlay::UpdateScene(float deltaTime)
 
         rate = std::clamp(rate, 0.0f, 1.0f);
 
-        // -----------------------------
-        // 最大幅（UI画像に合わせる）
-        // -----------------------------
         const float maxWidth = 1600.0f;
-
         float width = maxWidth * rate;
 
-        // 横だけ変える
         ExpBarGauge->SetSize(width, 40.0f, 0.0f);
     }
+
     // =======================================
-   // レベル数字 左上固定表示
-   // =======================================
+    // レベル数字 左上固定表示
+    // =======================================
     int level = m_player->GetLevel();
 
-    // 全部非表示
     for (auto d : m_levelDigits)
         d->SetActive(false);
 
-    // 文字列に変換（←これが一番安全）
     std::string levelStr = std::to_string(level);
 
     float halfW = SCREEN_WIDTH * 0.5f;
@@ -682,13 +783,12 @@ void GamePlay::UpdateScene(float deltaTime)
     float startX = -halfW + 380.0f;
     float startY = halfH - 70.0f;
 
-    // ★数字サイズから間隔を計算
     float digitWidth = 96.0f;
-    float spacing = digitWidth - 67.0f;   // ← 数字間を詰める（ここ調整可）
+    float spacing = digitWidth - 67.0f;
 
-    for (int i = 0; i < levelStr.size(); i++)
+    for (int i = 0; i < (int)levelStr.size(); i++)
     {
-        if (i >= m_levelDigits.size()) break;
+        if (i >= (int)m_levelDigits.size()) break;
 
         int num = levelStr[i] - '0';
 
@@ -696,28 +796,17 @@ void GamePlay::UpdateScene(float deltaTime)
         obj->SetActive(true);
         obj->SetAnimFrame(num);
 
-        obj->SetPos(
-            startX + i * spacing,
-            startY,
-            0.0f
-        );
-    }
-    // ============================
-    // LEVEL. の位置
-    // ============================
-    if (m_levelLabel)
-    {
-        m_levelLabel->SetPos(
-            startX - 90.0f,   // ★調整ポイント②（数字との距離）
-            startY,
-            0.0f
-        );
+        obj->SetPos(startX + i * spacing, startY, 0.0f);
     }
 
-    // レベル数字を強制初期表示
-    for (int i = 0; i < m_levelDigits.size(); i++)
+    if (m_levelLabel)
     {
-        if (i < levelStr.size())
+        m_levelLabel->SetPos(startX - 90.0f, startY, 0.0f);
+    }
+
+    for (int i = 0; i < (int)m_levelDigits.size(); i++)
+    {
+        if (i < (int)levelStr.size())
         {
             m_levelDigits[i]->SetActive(true);
             m_levelDigits[i]->SetAnimFrame(levelStr[i] - '0');
@@ -728,20 +817,8 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
-    // レベルアップ時の演出（未実装）
-    /*
-    if (m_player->IsJustLeveledUp())
-{
-    // エフェクト生成
-    auto effect = AddObject();
-    effect->Init("asset/UI/levelup.png");
-    effect->SetUI(true);
-    effect->SetPos(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0);
-
-    m_player->ResetLevelUpFlag();
-}
-    */
     prevButtons = buttons;
+
     UpdateUIFollowCamera();
 }
 

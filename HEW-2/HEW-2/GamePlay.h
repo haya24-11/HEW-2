@@ -27,7 +27,14 @@ public:
     Object* ExpBarBack = nullptr; // 経験値ゲージ（背景）
     Object* ExpBarGauge = nullptr; // 経験値ゲージ（ゲージ）
     Object* ExpBarFrame = nullptr; // 経験値ゲージ（フレーム）
+    //ui
+    Object* UI_KeyboardGuide = nullptr;
+    Object* UI_PadGuide = nullptr;
 
+    enum class InputDevice { Keyboard, Pad };
+    InputDevice m_lastInput = InputDevice::Keyboard;
+
+    WORD m_prevPadButtonsUI = 0;
     // シーンの動作
     void InitScene() override;
     void UpdateScene(float deltaTime) override;

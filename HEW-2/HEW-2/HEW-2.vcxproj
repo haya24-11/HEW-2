@@ -166,6 +166,8 @@
     <ClCompile Include="Mode.cpp" />
     <ClCompile Include="ModeManager.cpp" />
     <ClCompile Include="NormalEnemy.cpp" />
+    <ClCompile Include="NormalEnemyblue.cpp" />
+    <ClCompile Include="NormalEnemyred.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="GamePlay.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -209,6 +211,8 @@
     <ClInclude Include="GameOver.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="GamePlay.h" />
+    <ClInclude Include="NormalEnemyblue.h" />
+    <ClInclude Include="NormalEnemyred.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="ResultData.h" />
     <ClInclude Include="SaveScore.h" />

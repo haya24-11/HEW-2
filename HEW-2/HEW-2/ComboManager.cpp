@@ -12,7 +12,6 @@ void ComboManager::Init(GamePlay* scene)
     m_debugText = nullptr;
 
     // 状態を初期化
-    m_comboCount = 0;
     m_attackActive = false;
     m_visible = false;
     m_timer = 0.0f;
@@ -110,25 +109,25 @@ void ComboManager::EndAttack()
     m_attackActive = false;
     m_timer = COMBO_DISPLAY_TIME; // 3�b�\��
 }
-
 void ComboManager::Update(float deltaTime)
 {
-
     // =====================
-    // �|�b�v�A�j��
+    // ポップアニメ
     // =====================
     if (m_popTimer > 0.0f)
     {
         m_popTimer -= deltaTime;
         float t = m_popTimer / POP_TIME;
-        // 1.5�{ �� 1�{
-        m_popScale = 1.0f + t * 0.5f;
+        m_popScale = 1.0f + t * 0.5f; // 1.5 → 1.0
     }
     else
     {
         m_popScale = 1.0f;
     }
 
+    // =====================
+    // 表示タイマー
+    // =====================
     if (m_visible)
     {
         m_timer -= deltaTime;
@@ -136,14 +135,14 @@ void ComboManager::Update(float deltaTime)
         {
             m_visible = false;
 
+            // ✅ 表示が終わった時だけ0に戻す
             m_comboCount = 0;
 
             for (auto d : m_digits)
-                d->SetActive(false);
+                if (d) d->SetActive(false);
 
             return;
         }
-        m_comboCount = 0; // �\��������Ɠ����ɃJ�E���g�����Z�b�g
 
     }
 
