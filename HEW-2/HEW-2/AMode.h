@@ -1,14 +1,14 @@
 #pragma once
+#include "Skill.h"
 #include "Mode.h"
 
 class AMode : public Mode
 {
-    // Mode‚²‚Æ‚Ì“Áêƒ‹[ƒ‹
 private:
-   int weakAtk = 2;
-   int strongAtkMin = 3;
-   int skillIdmin = 0;
-   int skillIdMax = 10;
+    int weakAtk = 2;
+    int strongAtkMin = 3;
+    int skillIdmin = 0;
+    int skillIdMax = 10;
 
 public:
     bool CanLearnSkill(int skillId) const override;

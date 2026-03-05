@@ -1,5 +1,6 @@
 #pragma once
 #include "BuffSkill.h"
+#include"Player.h"
 class Skillpowerbuff :public BuffSkill
 {
 private:
@@ -7,6 +8,8 @@ private:
 	int m_buffValue;//çUåÇóÕè„è∏ó 
 	int m_AtkBufflv = 0;
 
+	
+	int m_skilllLevel;
 public:
 	Skillpowerbuff(int value);
 
