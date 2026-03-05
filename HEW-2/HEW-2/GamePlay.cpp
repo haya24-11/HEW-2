@@ -322,6 +322,16 @@ void GamePlay::InitScene()
 void GamePlay::UpdateScene(float deltaTime)
 {
 
+    if (m_paused)
+    {
+        // UI の Update だけ通す
+        if (m_skillUI)
+            m_skillUI->Update(deltaTime);
+
+        return; // ゲームロジック停止
+    }
+
+
     float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
 
@@ -329,6 +339,26 @@ void GamePlay::UpdateScene(float deltaTime)
 
     // プレイヤー更新
     m_player->Update(deltaTime);
+
+    // ★ レベルアップ検知
+    if (m_player->IsJustLeveledUp())
+    {
+        Pause();
+
+        std::vector<Skill*> options = m_player->GetRandomSkillChoices(2);
+
+        m_skillUI = new SkillSelectUI(this, options);
+
+        m_player->ResetLevelUpFlag();
+    }
+
+    // ★ UI が存在するなら UI の Update のみ実行
+    if (m_skillUI)
+    {
+        m_skillUI->Update(deltaTime);
+        return; // ゲームロジック停止
+    }
+
     //combo
     m_combo.Update(deltaTime);
     // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
@@ -796,6 +826,14 @@ void GamePlay::DrawScene()
 void GamePlay::UninitScene()
 {
    // m_combo = ComboManager();
+
+    if (m_skillUI)
+    {
+        m_skillUI->Uninit();
+        delete m_skillUI;
+        m_skillUI = nullptr;
+    }
+
 
     std::cout << "UninitScene(GamePlay)" << std::endl;
 

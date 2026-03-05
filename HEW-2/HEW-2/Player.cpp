@@ -25,6 +25,10 @@ Player::Player()
     m_heavyStartAnim = { 8, 19, 0.20f, false };
 
     // 被ダメは m_damagedAnim(横5枚) を使用
+
+    // レベルアップUIで選べるスキル一覧
+    m_skillPool.push_back(new Skillpowerbuff(0));
+
 }
 
 Player::~Player()
@@ -535,8 +539,8 @@ void Player::LevelUp()
 
     // ===== 今は確認用 =====
     printf("LEVEL UP! -> Lv %d\n", m_level);
-    //スキル取得
-    ApplyAbility(new Skillpowerbuff(0));
+    // ★ レベルアップUIを出すトリガー
+    m_justLeveledUp = true;
 }
 
 SM::Vector2 Player::GetMoveInput() const
@@ -630,7 +634,23 @@ void Player::Attack()
     // Mode / Skill 側で実装（ここでは未使用）
 }
 
-void Player::ApplyAbility(auto* skill)
+std::vector<Skill*> Player::GetRandomSkillChoices(int count)
+{
+    std::vector<Skill*> result;
+
+    if (m_skillPool.empty()) return result;
+
+    for (int i = 0; i < count; i++)
+    {
+        int idx = rand() % m_skillPool.size();
+        result.push_back(m_skillPool[idx]);
+    }
+
+    return result;
+
+}
+
+void Player::ApplyAbility(Skill* skill)
 {
     // スキルを保持（適用）
     if (!skill) return;

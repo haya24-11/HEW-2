@@ -7,6 +7,7 @@
 #include "Camera2D.h"
 #include "EnemySpawner.h"
 #include "ComboManager.h"
+#include "SkillSelectUI.h"
 
 class AttackSlashEffect; // 前方宣言
 
@@ -36,6 +37,10 @@ public:
 
     void UpdateUIFollowCamera();
 
+    //一知事停止、再開
+    void Pause() { m_paused = true; }
+    void Resume() { m_paused = false; }
+
     // combo
     ComboManager& GetCombo() { return m_combo; }
     Player* GetPlayer() const { return m_player.get(); }
@@ -50,6 +55,9 @@ private:
     Camera2D m_camera;
 
     ComboManager m_combo;
+
+    bool m_paused = false;
+    SkillSelectUI* m_skillUI = nullptr;
 
     Object* m_map = nullptr;
 

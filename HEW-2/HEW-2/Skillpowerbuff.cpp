@@ -20,6 +20,6 @@ void Skillpowerbuff::Apply(Player* player)
 const char* Skillpowerbuff::GetIconPath() const
 {
 
-	return "asset/Texture/skill_buff_default.png";
+	return "asset/UI/buff_special.png";
 	
 }

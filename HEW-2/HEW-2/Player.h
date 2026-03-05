@@ -84,21 +84,18 @@ public:
     // 攻撃処理の入口
     void Attack() override;
 
-    //スキル抽選
-    void SelectSkill();
+    
+    // スキル候補抽選
+    std::vector<Skill*> GetRandomSkillChoices(int count);
     // スキル取得時の共通処理
-    void ApplyAbility(auto* skill);
-   
-    //取得したスキル一覧
-    const std::vector<Skill*>& GetLearnedSkills() const;
-
-
-
     void ApplyAbility(Skill* skill);
    
     //取得したスキル一覧
     const std::vector<Skill*>& GetLearnedSkills() const;
 
+    //レベルアップフラグゲッターセッター
+    bool IsJustLeveledUp() const { return m_justLeveledUp; }
+    void ResetLevelUpFlag() { m_justLeveledUp = false; }
 
 
     int GetPower() const;
@@ -206,6 +203,8 @@ private:
     int exp = 0;
     int level = 1;
 
+    // 抽選用スキルプール（最初から持っている候補）
+    std::vector<Skill*> m_skillPool;
     // 所持スキル 所有権を持つ
     std::vector<Skill*> skills;
 

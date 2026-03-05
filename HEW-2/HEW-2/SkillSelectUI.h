@@ -4,6 +4,7 @@
 #include "Skill.h"
 
 class Scene;
+class GamePlay;
 
 class SkillSelectUI
 {
@@ -23,6 +24,6 @@ private:
     Object* m_frameL = nullptr;  // 左選択枠
     Object* m_frameR = nullptr;  // 右選択枠
 
-    std::vector<Skill*> m_options; // 抽選された2つ
+    std::vector<Skill*> m_options; // 2つのスキル
     int m_selected = 0;            // 0=左, 1=右
 };
