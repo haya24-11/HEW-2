@@ -135,6 +135,13 @@ void EnemySpawner::Update(float deltaTime)
     }
 }
 
+void EnemySpawner::DebugAddKill(int value)
+{
+    m_killCount += value;
+
+    std::cout << "[DEBUG] KillCount = " << m_killCount << std::endl;
+}
+
 float EnemySpawner::RandFloat(float a, float b)
 {
     std::uniform_real_distribution<float> dist(a, b);
@@ -348,6 +355,8 @@ void EnemySpawner::ResolveEnemyCollisions()
         }
     }
 }
+
+
 
 void EnemySpawner::CleanupDeadEnemies()
 {

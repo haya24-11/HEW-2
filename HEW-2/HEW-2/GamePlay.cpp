@@ -116,11 +116,12 @@ void GamePlay::InitScene()
     m_levelDigits.clear();
 
     // エフェクト完全削除
-    for (auto* e : m_attackEffects)
+    for (auto& e : m_attackEffects)
     {
-        if (!e) continue;
-        e->Uninit();
-        delete e;
+        if (e)
+        {
+            e->Uninit();
+        }
     }
     m_attackEffects.clear();
 
@@ -346,6 +347,36 @@ void GamePlay::InitScene()
 
     m_lastInput = InputDevice::Keyboard;
     m_prevPadButtonsUI = 0;
+    // ============================
+    // タイマーUI
+    // ============================
+
+    // 数字 (MMSS → 4桁)
+    for (int i = 0; i < 4; i++)
+    {
+        Object* digit = AddObject();
+        digit->Init("asset/UI/timer_number.png", 5, 2); // 0〜9横並び
+        digit->SetSpriteSheet(5, 2);
+        digit->SetUI(true);
+        digit->SetSize(96.0f, 96.0f, 0.0f);
+
+        m_timerDigits.push_back(digit);
+    }
+
+    // 「:」
+    m_timerColon = AddObject();
+    m_timerColon->Init("asset/UI/colon.png");
+    m_timerColon->SetUI(true);
+    m_timerColon->SetSize(96.0f, 96.0f, 0.0f);
+
+    m_timer = 0.0f;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i < m_timerDigits.size())
+            m_timerDigits[i]->SetAnimFrame(0);
+    }
+
     // ★重要：最初のフレームからUI位置を確定（2回目開始のズレ防止）
     UpdateUIFollowCamera();
 }
@@ -403,10 +434,70 @@ void GamePlay::UpdateScene(float deltaTime)
     // ==========================================
     float realDT = deltaTime;
     if (deltaTime > 0.1f) deltaTime = 0.1f;
+    
+    // =======================================
+    // デバッグ操作
+    // =======================================
 
-    // ==========================================
-    // プレイヤー更新
-    // ==========================================
+    // F1 : タイム +10秒
+    if (Input::GetKeyTrigger(VK_F1))
+    {
+        m_timer += 10.0f;
+
+        std::cout << "[DEBUG] Time = " << m_timer << std::endl;
+    }
+
+    // F2 : 討伐数 +10
+    if (Input::GetKeyTrigger(VK_F2))
+    {
+        m_spawner.DebugAddKill(10);
+    }
+
+    // F3 : コンボ +1
+    if (Input::GetKeyTrigger(VK_F3))
+    {
+        m_combo.AddCombo(1);
+    }
+
+
+    // =============================
+    // 生存タイマー
+    // =============================
+    {
+        // 更に遅くさせてリアルタイムの時間速度に合わせるための変数
+        float timerSpeed = 0.15f;   // ★ここで遅さ調整（0.5 = 半分の速度）
+
+        float add = deltaTime * timerSpeed;
+
+        if (add > 0.1f)
+            add = 0.1f;
+
+        m_timer += add;
+
+        int totalSec = (int)m_timer;
+
+        // 安全制限（極端な低FPS対策）
+        if (totalSec > 3599)
+            totalSec = 3599;
+
+        int minute = totalSec / 60;
+        int second = totalSec % 60;
+
+        int digits[4] =
+        {
+            minute / 10,
+            minute % 10,
+            second / 10,
+            second % 10
+        };
+
+        // UI反映
+        for (int i = 0; i < 4; i++)
+        {
+            if (i >= m_timerDigits.size()) break;
+            m_timerDigits[i]->SetAnimFrame(digits[i]);
+        }
+    }
     const bool wasHeavyDashing = m_player->IsHeavyDashing();
 
     m_player->Update(deltaTime);
@@ -511,7 +602,7 @@ void GamePlay::UpdateScene(float deltaTime)
     // ==========================================
     for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
     {
-        AttackSlashEffect* e = *it;
+        auto& e = *it;
 
         if (!e)
         {
@@ -524,7 +615,6 @@ void GamePlay::UpdateScene(float deltaTime)
         if (e->IsDead())
         {
             e->Uninit();
-            delete e;
             it = m_attackEffects.erase(it);
         }
         else
@@ -651,6 +741,13 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (Input::GetKeyTrigger(VK_SPACE) || PadTrigger(XINPUT_GAMEPAD_RIGHT_SHOULDER))
     {
+        m_resultData.monsterKills = m_spawner.GetKillCount();
+        m_resultData.maxCombo = m_combo.GetMaxCombo();
+        m_resultData.playTime = m_timer;
+        m_resultData.isClear = true;
+
+        Scene::SetResultData(m_resultData);
+
         SetNextScene(SceneType::Result);
     }
 
@@ -716,11 +813,12 @@ void GamePlay::UpdateScene(float deltaTime)
 
         if (m_bossHasSpawned && (!bossFound || !bossAlive))
         {
-            ResultData data;
-            data.monsterKills = m_spawner.GetKillCount();
-            data.maxCombo = m_combo.GetMaxCombo();
-            data.playTime = m_playtime;
-            data.isClear = true;
+            m_resultData.monsterKills = m_spawner.GetKillCount();
+            m_resultData.maxCombo = m_combo.GetMaxCombo();
+            m_resultData.playTime = m_timer;
+            m_resultData.isClear = true;
+
+            Scene::SetResultData(m_resultData);
             SetNextScene(SceneType::Result);
             return;
         }
@@ -728,6 +826,7 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (m_player->GetHp() <= 0)
     {
+
         SetNextScene(SceneType::GameOver);
         return;
     }
@@ -877,12 +976,14 @@ void GamePlay::UninitScene()
     std::cout << "UninitScene(GamePlay)" << std::endl;
 
     // ✅ 攻撃エフェクトを確実に破棄（Scene内Objectも安全に除去）
-    for (auto* e : m_attackEffects)
+    for (auto& e : m_attackEffects)
     {
-        if (!e) continue;
-        e->Uninit();
-        delete e;
+        if (e)
+        {
+            e->Uninit();
+        }
     }
+
     m_attackEffects.clear();
 
     // ✅ Enemy* をキーにした静的クールダウンはリプレイで必ずクリア（アドレス再利用でバグる）
@@ -906,6 +1007,9 @@ void GamePlay::UninitScene()
 
     m_player.reset();
     m_map = nullptr;
+
+    m_timerDigits.clear();
+    m_timerColon = nullptr;
 
     // ✅ Spawnerも念のため初期化（内部Enemy配列を破棄）
     m_spawner = EnemySpawner();
@@ -1031,6 +1135,40 @@ void GamePlay::UpdateUIFollowCamera()
             0.0f
         );
         ExpBarFrame->SetPos(hpBarX + 665.0f, hpBarY + gapY, 0.0f);  // 経験値バー フレーム
+    }
+
+    // ============================
+    // タイマーUI（画面上中央）
+    // ============================
+    {
+        float timerY = halfH - 60.0f;   // ← 上からの位置調整
+        float timerX = 0.0f;            // ← 画面中央
+
+        float digitWidth = 96.0f;       // ← 数字サイズ
+        float spacing = digitWidth - 30.0f;   // ← ★数字間隔調整ポイント
+
+        for (int i = 0; i < m_timerDigits.size(); i++)
+        {
+            if (!m_timerDigits[i]) continue;
+
+            float x = timerX + (i - 1.5f) * spacing;
+
+            m_timerDigits[i]->SetPos(
+                x,
+                timerY,
+                0.0f
+            );
+        }
+
+        // コロン
+        if (m_timerColon)
+        {
+            m_timerColon->SetPos(
+                timerX,
+                timerY,
+                0.0f
+            );
+        }
     }
 }
 

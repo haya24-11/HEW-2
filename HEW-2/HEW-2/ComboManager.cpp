@@ -42,9 +42,9 @@ void ComboManager::Init(GamePlay* scene)
 void ComboManager::BeginAttack()
 {
     m_attackActive = true;
-    m_comboCount = 0; // �U���J�n�ŃR���{���Z�b�g
-    m_visible = false; // �U���J�n���͕\��
-    m_timer = 0.0f;  // �^�C�}�[���Z�b�g
+    m_comboCount = 0; 
+    m_visible = false; 
+    m_timer = 0.0f;  
 }
 
 void ComboManager::AddHit()
@@ -52,7 +52,7 @@ void ComboManager::AddHit()
     if (!m_attackActive) return;
 
     m_comboCount++;
-    std::cout << "Combo = " << m_comboCount << std::endl; // �f�o�b�O�\��
+    std::cout << "Combo = " << m_comboCount << std::endl; 
 
     m_visible = true;
     m_timer = COMBO_DISPLAY_TIME;
@@ -83,9 +83,7 @@ void ComboManager::UpdateDraw()
             obj->SetActive(true);
             obj->SetAnimFrame(num);
 
-            // =====================
-            // �����˃T�C�Y�K�p
-            // =====================
+
             obj->SetSize(
                 64.0f * m_popScale,
                 64.0f * m_popScale,
@@ -114,6 +112,23 @@ void ComboManager::Update(float deltaTime)
     // =====================
     // ポップアニメ
     // =====================
+
+void ComboManager::AddCombo(int value)
+{
+    m_comboCount += value;
+
+    if (m_comboCount > m_maxCombo)
+        m_maxCombo = m_comboCount;
+
+    m_visible = true;
+    m_timer = COMBO_DISPLAY_TIME;
+
+    std::cout << "[DEBUG] Combo = " << m_comboCount << std::endl;
+}
+
+void ComboManager::Update(float deltaTime)
+{
+
     if (m_popTimer > 0.0f)
     {
         m_popTimer -= deltaTime;
@@ -135,14 +150,14 @@ void ComboManager::Update(float deltaTime)
         {
             m_visible = false;
 
-            // ✅ 表示が終わった時だけ0に戻す
-            m_comboCount = 0;
+            
 
             for (auto d : m_digits)
                 if (d) d->SetActive(false);
 
             return;
         }
+        //m_comboCount = 0;
 
     }
 

@@ -52,6 +52,12 @@ public:
     // Result掲載用
     int GetKillCount() const { return m_killCount; }
 
+    // ★ デバッグ / 即スポーン用
+   // Enemy* SpawnOneImmediate();
+
+    // デバッグ用：討伐数追加
+    void DebugAddKill(int value);
+
 private:
     // 乱数ユーティリティ
     float RandFloat(float a, float b);
