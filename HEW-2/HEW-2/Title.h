@@ -56,10 +56,10 @@ public:
         float dir = 1.0f;        // �E=+1 / ��=-1
         float y = 0.0f;
 
-        float baseY = 0.0f;    
-        float waveAmp = 12.0f;  
-        float waveSpd = 1.5f;  
-        float waveT = 0.0f;    
+        float baseY = 0.0f;
+        float waveAmp = 12.0f;
+        float waveSpd = 1.5f;
+        float waveT = 0.0f;
 
         float baseSpeed = 20.0f;     // ����x
         float spdAmp = 6.0f;         // ���x��炬��
