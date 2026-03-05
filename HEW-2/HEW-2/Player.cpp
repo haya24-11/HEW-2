@@ -1,5 +1,6 @@
 ﻿#include "Player.h"
 #include "Skill.h"
+#include "Skills.h"
 #include "dinput.h"
 #include <Windows.h>   // GetAsyncKeyState
 #include <Xinput.h>    // XInput

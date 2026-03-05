@@ -417,7 +417,7 @@ void GamePlay::UpdateScene(float deltaTime)
         if (m_skillUI)
             m_skillUI->Update(deltaTime);
 
-        return; // ゲームロジック停止
+        return false; // ゲームロジック停止
     }
 
 

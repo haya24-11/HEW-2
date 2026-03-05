@@ -47,6 +47,7 @@ public:
     //一知事停止、再開
     void Pause() { m_paused = true; }
     void Resume() { m_paused = false; }
+    void ClearSkillUI() { m_skillUI = nullptr; }
 
     // combo
     ComboManager& GetCombo() { return m_combo; }

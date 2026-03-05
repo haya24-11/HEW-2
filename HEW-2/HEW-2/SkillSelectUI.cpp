@@ -114,6 +114,7 @@ void SkillSelectUI::Update(float dt)
         // UIíœ & ƒQ[ƒ€ÄŠJ
         Uninit();
         gameplay->Resume();
+        gameplay->ClearSkillUI();
     }
 }
 
