@@ -1,6 +1,6 @@
 ﻿#include "Player.h"
-#include "Skills.h"
-
+#include "Skill.h"
+#include "dinput.h"
 #include <Windows.h>   // GetAsyncKeyState
 #include <Xinput.h>    // XInput
 #include <cmath>       // fabsf
@@ -41,18 +41,40 @@ Player::~Player()
 
 void Player::Update(float deltaTime)
 {
+
+    // ===============================================
+    // ✅ タイマー用deltaTimeをクランプ（無敵が一瞬で消えるのを防ぐ）
+    //    ・描画/移動は元のdeltaTimeでOK（ここはタイマーだけ安定化）
+    // ===============================================
+    float tdt = deltaTime;
+
+    // 既存の保険に合わせる（極端に大きいdeltaTimeを抑える）
+    if (tdt > 1.0f) tdt *= 0.0001f;
+
+    // HeavyDash側と同じ思想：上限0.05秒（20fps相当）に丸める
+    if (tdt > 0.05f) tdt = 0.05f;
+
+    // ===============================================
     // 強攻撃後の「被弾アニメ禁止」タイマー更新（GamePlay から参照）
+    // ===============================================
     if (m_noHitAnimTimer > 0.0f)
     {
-        m_noHitAnimTimer -= deltaTime;
+        m_noHitAnimTimer -= tdt;
         if (m_noHitAnimTimer < 0.0f) m_noHitAnimTimer = 0.0f;
     }
 
+    // ===============================================
+    // 無敵タイマー更新
+    // ===============================================
     if (m_invincibleTimer > 0.0f)
     {
-        m_invincibleTimer -= deltaTime;
+        m_invincibleTimer -= tdt;
         if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
     }
+
+    // ===============================================
+    // 無敵中の表示（点滅）
+    // ===============================================
     if (m_object)
     {
         if (m_invincibleTimer > 0.0f)
@@ -75,11 +97,7 @@ void Player::Update(float deltaTime)
             m_invincibleBlink = true; // ✅ 次の無敵（被ダメ無敵）は点滅ありに戻す
         }
     }
-    if (m_hitInvTimer > 0.0f)
-    {
-        m_hitInvTimer -= deltaTime;
-        if (m_hitInvTimer < 0.0f) m_hitInvTimer = 0.0f;
-    }
+
 
     m_attackInputTriggered = false;
 
@@ -106,12 +124,19 @@ void Player::Update(float deltaTime)
     const bool attackLightPad = PadTrigger(XINPUT_GAMEPAD_B);
 
     // ===== キーボード攻撃 =====
-    const bool attackLightKey = Input::GetKeyTrigger(VK_RETURN);
-    const bool attackHeavyKey = (GetAsyncKeyState(VK_SHIFT) & 0x8000) && Input::GetKeyTrigger(VK_RETURN);
+    const bool enterTrig = Input::GetKeyTrigger(VK_RETURN);
+    const bool shiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
 
-    // 攻撃入力（キーボード or パッド）
-    const bool attackLightInput = attackLightKey || attackLightPad;
-    const bool attackHeavyInput = attackHeavyKey || attackHeavyPad;
+    // 弱攻撃：Enter（ただし Shift を押していない時だけ）
+    const bool attackLightKey = enterTrig && !shiftHeld;
+
+    // 強攻撃：Shift + Enter
+    const bool attackHeavyKey = enterTrig && shiftHeld;
+
+    // ===== 攻撃入力（キーボード or パッド）=====
+    // 強攻撃が入ったフレームは弱攻撃を必ず無効化して二重発動を防ぐ
+    const bool attackHeavyInput = (attackHeavyKey || attackHeavyPad);
+    const bool attackLightInput = (attackLightKey || attackLightPad) && !attackHeavyInput;
 
     // 早期returnが多いので、return直前に必ず前フレームボタンを更新する
     auto CommitPad = [&]()
@@ -364,10 +389,7 @@ void Player::Update(float deltaTime)
             // ✅ 強攻撃終了後：1秒間は接触で被弾アニメを出さない
             if (wasHeavy)
             {
-                if (m_hitInvTimer < 1.5f) m_hitInvTimer = 1.5f;
-
-                if (m_invincibleTimer < 1.5f) m_invincibleTimer = 1.5f;
-
+                if (m_invincibleTimer < 2.0f) m_invincibleTimer =2.0f;
                 m_invincibleBlink = false;
             }
         }
@@ -614,13 +636,12 @@ bool Player::UpdateHeavyDash(float deltaTime)
     m_heavyDashTimer -= dt;
     if (m_heavyDashTimer < 0.0f) m_heavyDashTimer = 0.0f;
 
-    // ✅ 強攻撃ダッシュが終わった瞬間から1秒は接触被弾アニメを禁止
+    // ✅ 強攻撃ダッシュが終わった瞬間：被弾アニメ禁止＋完全無敵（HPも減らない）
     if (prevDash > 0.0f && m_heavyDashTimer == 0.0f)
     {
-        StartNoHitAnim(2.0f);
-        if (m_hitInvTimer < 2.0f) m_hitInvTimer = 2.0f;
+        StartNoHitAnim(1.5f);
+        m_invincibleBlink = false;
     }
-
     auto p = m_object->GetPos();
     p.x += m_heavyDashDir.x * m_heavyDashSpeed * dt;
     p.y += m_heavyDashDir.y * m_heavyDashSpeed * dt;
@@ -700,22 +721,30 @@ bool Player::ConsumeAttackEffectRequest()
 void Player::TakeDamage(int dmg)
 {
     if (dmg <= 0) return;
-    //damaged debug
-    std::cout << "[TakeDamage] inv=" << m_invincibleTimer
-        << " hp=" << hp
-        << " dmg=" << dmg << "\n";
-    if (IsHeavyCharging() || IsHeavyDashing())
-        return;
 
-    // ✅ 無敵中は「ダメージも演出も」完全無視
-    if (m_invincibleTimer > 0.0f)
+    // ✅ 먼저 차단 조건 판단
+    if (IsHeavyCharging() || IsHeavyDashing())
+    {
+        std::cout << "[TakeDamage] BLOCKED(heavy) inv=" << m_invincibleTimer
+            << " hp=" << hp << " dmg=" << dmg << "\n";
         return;
+    }
+
+    if (m_invincibleTimer > 0.0f)
+    {
+        std::cout << "[TakeDamage] BLOCKED(inv) inv=" << m_invincibleTimer
+            << " hp=" << hp << " dmg=" << dmg << "\n";
+        return;
+    }
+
+    // ✅ 여기부터가 “진짜 데미지 적용”
+    std::cout << "[TakeDamage] APPLY inv=" << m_invincibleTimer
+        << " hp=" << hp << " dmg=" << dmg << "\n";
 
     Chara::TakeDamage(dmg);
     if (hp <= 0) return;
 
     m_state = State::Damaged;
-
     m_lockFacing = false;
     m_heavyDashTimer = 0.0f;
 
@@ -732,9 +761,8 @@ void Player::TakeDamage(int dmg)
     m_animator.Play(m_idleAnim);
     m_animator.Play(m_damagedAnim);
 
-    // ✅ ここで無敵開始
     m_invincibleTimer = m_invincibleDuration;
-    m_invincibleBlink = true;   // ✅ 被ダメ無敵は点滅あり（強攻撃後と区別）
+    m_invincibleBlink = true;
 
     m_hitReactCD = m_hitReactCooldown;
 }
@@ -742,7 +770,6 @@ void Player::TakeDamage(int dmg)
 void Player::PlayHitReaction()
 {
     if (m_invincibleTimer > 0.0f) return;
-    if (m_hitInvTimer > 0.0f) return;
     if (IsHeavyCharging() || IsHeavyDashing()) return;
 
     m_state = State::Damaged;
@@ -762,7 +789,6 @@ void Player::PlayHitReaction()
     m_animator.Play(m_idleAnim);
     m_animator.Play(m_damagedAnim);
 
-    m_hitInvTimer = m_hitInvDuration;
 }
 int Player::GetNextLevelExp() const
 {

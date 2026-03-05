@@ -37,19 +37,11 @@ public:
 
     bool IsKnockBacking() const { return knockBackTimer > 0.0f; }
 
-
     void StopKnockBack()
     {
         knockBackTimer = 0.0f;
         knockBackVelocity = { 0.0f, 0.0f };
     }
-
-    //void SetKnockBackVelocity(const DirectX::SimpleMath::Vector2& v)
-    //{
-    //    knockBackVelocity = v;
-    //    if (knockBackTimer <= 0.0f)
-    //        knockBackTimer = knockBackDuration;
-    //}
 
     // ✅ 強攻撃など「吹き飛び終わってから死ぬ」をON/OFF
     void EnableDeathAfterKnockback(bool enable) { m_deathAfterKnockback = enable; }
@@ -62,6 +54,13 @@ public:
     // 「死亡後、さらに何秒残してから消すか（任意）」
     void SetDisappearDelay(float sec) { m_disappearDelay = (sec < 0.0f) ? 0.0f : sec; }
     float GetDisappearDelay() const { return m_disappearDelay; }
+
+    // =========================
+    // ✅ Spawner（タイプ別aliveCount管理用）
+    // =========================
+    // 日本語コメント：この敵がどのEntry（タイプ）から生成されたか
+    void SetSpawnerEntryIndex(int idx) { m_spawnerEntryIndex = idx; }
+    int  GetSpawnerEntryIndex() const { return m_spawnerEntryIndex; }
 
     // =========================
     // SpawnConfig
@@ -204,6 +203,9 @@ protected:
     int m_expValue = 10; // デフォルト経験値
 
 private:
+    // ✅ Spawner（タイプ別aliveCount管理用）
+    int m_spawnerEntryIndex = -1;
+
     // ヒットフラッシュ
     float m_hitFlashTimer = 0.0f;
     float m_hitFlashDuration = 0.10f;

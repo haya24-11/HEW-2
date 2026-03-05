@@ -23,7 +23,6 @@ void EnemySpawner::Init(Scene* ownerScene, Object* playerObj, Player* player)
 
     m_enemies.clear();
     m_entries.clear();
-    m_spawnTimer = 0.0f;
 
     m_killCount = 0;
     m_bossSpawned = false;
@@ -37,50 +36,60 @@ void EnemySpawner::Update(float deltaTime)
     if (!m_scene || !m_player) return;
     if (m_entries.empty()) return;
 
-    // (1) update enemies
+    // =========================
+    // (1) 既存の敵を毎フレーム更新
+    // =========================
     for (auto& e : m_enemies)
     {
         if (e) e->Update(deltaTime);
     }
 
-    // cleanup dead enemies
+    //衝突エフェクト更新
+    UpdateImpactEffects(deltaTime);
+
+    // =========================
+    // (1.2) 死亡した敵を掃除（aliveCountも更新）
+    // =========================
     CleanupDeadEnemies();
 
-    // (1.5) enemy-enemy collision pushout
+    // =========================
+    // (1.5) 敵同士の当たり判定（押し出し）
+    // =========================
     for (int iter = 0; iter < 3; ++iter)
     {
         ResolveEnemyCollisions();
     }
 
-    // (2) spawn timer
-    m_spawnTimer += deltaTime;
-
-    int idx = RandIndexByWeight();
-    if (idx < 0 || idx >= (int)m_entries.size()) return;
-
-    std::unique_ptr<Enemy> temp = m_entries[idx].createFn();
-    if (!temp) return;
-    Enemy::SpawnConfig cfg = temp->GetSpawnConfig();
-
-    if ((int)m_enemies.size() >= cfg.maxAlive) return;
-
-    if (m_spawnTimer >= cfg.interval)
+    // =========================
+    // (2) タイプ別スポーン（interval / maxAlive / timer / aliveCount）
+    // =========================
+    for (int i = 0; i < (int)m_entries.size(); ++i)
     {
-        m_spawnTimer = 0.0f;
+        auto& ent = m_entries[i];
 
-        std::unique_ptr<Enemy> enemy = m_entries[idx].createFn();
-        if (!enemy) return;
+        // 日本語コメント：タイプ別タイマー進行
+        ent.timer += deltaTime;
 
-        cfg = enemy->GetSpawnConfig();
+        // 日本語コメント：このタイプの最大数に達しているならスキップ
+        if (ent.aliveCount >= ent.maxAlive)
+            continue;
+
+        // 日本語コメント：まだインターバル未満ならスキップ
+        if (ent.timer < ent.interval)
+            continue;
+
+        // 日本語コメント：このタイプをスポーンする
+        std::unique_ptr<Enemy> enemy = ent.createFn ? ent.createFn() : nullptr;
+        if (!enemy) continue;
+
+        Enemy::SpawnConfig cfg = enemy->GetSpawnConfig();
 
         Object* obj = m_scene->AddObject();
-        if (!obj) return;
+        if (!obj) continue;
 
         obj->Init(cfg.texture, cfg.sheetX, cfg.sheetY);
         if (cfg.useSheet)
-        {
             obj->SetSpriteSheet(cfg.sheetX, cfg.sheetY);
-        }
 
         obj->SetSize(cfg.sizeX, cfg.sizeY, 0.0f);
         obj->SetCollisionRadius(cfg.collisionRadius);
@@ -110,11 +119,27 @@ void EnemySpawner::Update(float deltaTime)
         if (cfg.stopDist > 0.0f) enemy->SetChaseStopDistance(cfg.stopDist);
         else                    enemy->SetChaseStopDistance(0.0f);
 
+        // ✅重要：この敵がどのタイプ（Entry）から出たかを覚えさせる
+        enemy->SetSpawnerEntryIndex(i);
+
+        // ✅重要：タイプ別の生存数を増やす
+        ent.aliveCount++;
+
         m_enemies.emplace_back(std::move(enemy));
+
+        // ✅スポーンしたのでタイプ別タイマーリセット
+        ent.timer = 0.0f;
 
         // ★同期（保険）
         m_stopLock.assign(m_enemies.size(), 0);
     }
+}
+
+void EnemySpawner::DebugAddKill(int value)
+{
+    m_killCount += value;
+
+    std::cout << "[DEBUG] KillCount = " << m_killCount << std::endl;
 }
 
 float EnemySpawner::RandFloat(float a, float b)
@@ -175,7 +200,7 @@ void EnemySpawner::ResolveEnemyCollisions()
     {
         Enemy* a = m_enemies[i].get();
         if (!a) continue;
-        if (!a->IsAlive()) continue;                // ✅ 追加：死んでる敵は処理しない
+        if (!a->IsAlive()) continue; // ✅ 死んでる敵は処理しない
 
         Object* oa = a->GetObject();
         if (!oa) continue;
@@ -183,10 +208,10 @@ void EnemySpawner::ResolveEnemyCollisions()
         for (size_t j = i + 1; j < m_enemies.size(); ++j)
         {
             Enemy* b = m_enemies[j].get();
-            if (!b || !b->IsAlive()) continue;   // ✅ b 체크
+            if (!b || !b->IsAlive()) continue;
 
             Object* ob = b->GetObject();
-            if (!ob) continue;                   // ✅ ob 체크
+            if (!ob) continue;
 
             if (!oa->CheckCollision(*ob)) continue;
 
@@ -213,6 +238,10 @@ void EnemySpawner::ResolveEnemyCollisions()
                 if (a->TryConsumeImpactDamage(impact))
                 {
                     b->TakeDamage(impact);
+                    const float hitX = (pa3.x + pb3.x) * 0.5f;
+                    const float hitY = (pa3.y + pb3.y) * 0.5f;
+                    SpawnImpactEffect(hitX, hitY);
+                    if (a->GetGamePlay()) a->GetGamePlay()->GetCombo().AddHit();
                 }
             }
             else if (!aFly && bFly)
@@ -221,6 +250,10 @@ void EnemySpawner::ResolveEnemyCollisions()
                 if (b->TryConsumeImpactDamage(impact))
                 {
                     a->TakeDamage(impact);
+                    const float hitX = (pa3.x + pb3.x) * 0.5f;
+                    const float hitY = (pa3.y + pb3.y) * 0.5f;
+                    SpawnImpactEffect(hitX, hitY);
+                    if (b->GetGamePlay()) b->GetGamePlay()->GetCombo().AddHit();
                 }
             }
 
@@ -323,6 +356,8 @@ void EnemySpawner::ResolveEnemyCollisions()
     }
 }
 
+
+
 void EnemySpawner::CleanupDeadEnemies()
 {
     for (auto it = m_enemies.begin(); it != m_enemies.end(); )
@@ -336,6 +371,17 @@ void EnemySpawner::CleanupDeadEnemies()
 
         if (!e->IsAlive())
         {
+            // ✅ タイプ別 aliveCount を減らす（erase前にやる）
+            {
+                const int idx = e->GetSpawnerEntryIndex();
+                if (0 <= idx && idx < (int)m_entries.size())
+                {
+                    if (m_entries[idx].aliveCount > 0)
+                        m_entries[idx].aliveCount--;
+                }
+            }
+
+            // EXP付与（1回だけ）
             if (!e->IsRewardGiven())
             {
                 if (m_playerLogic)
@@ -345,6 +391,7 @@ void EnemySpawner::CleanupDeadEnemies()
                 e->MarkRewardGiven();
             }
 
+            // キルカウント（ボス以外）
             if (!e->IsBoss())
             {
                 m_killCount++;
@@ -354,6 +401,7 @@ void EnemySpawner::CleanupDeadEnemies()
                 }
             }
 
+            // Object削除
             if (Object* o = e->GetObject())
             {
                 if (m_scene) m_scene->RemoveObject(o);
@@ -412,9 +460,87 @@ void EnemySpawner::SpawnBoss()
     boss->SetChaseEnabled(true);
     if (cfg.stopDist > 0.0f) boss->SetChaseStopDistance(cfg.stopDist);
 
+    // 日本語コメント：ボスはタイプ別制限に入れない（EntryIndexは未設定のままでOK）
+    // boss->SetSpawnerEntryIndex(...); // 必要なら設定しても良い
+
     m_enemies.emplace_back(std::move(boss));
     m_bossSpawned = true;
 
     // ★同期（保険）
     m_stopLock.assign(m_enemies.size(), 0);
+}
+
+// =========================
+// Impact Effect (Enemy vs Enemy 衝突)
+// =========================
+void EnemySpawner::SpawnImpactEffect(float x, float y)
+{
+    if (!m_scene) return;
+
+    //エフェクト用オブジェクト生成
+    Object* o = m_scene->AddObject();
+    if (!o) return;
+
+    // ★スプライトシート設定（ComboEffect.pngが 5x2(計10フレーム) 想定）
+    const int sheetX = 5;
+    const int sheetY = 2;
+
+    o->Init("asset/Texture/ComboEffect.png", sheetX, sheetY);
+    o->SetSpriteSheet(sheetX, sheetY);
+
+    //サイズは好みで調整
+    o->SetSize(180.0f, 180.0f, 0.0f);
+    o->SetCollisionRadius(0.0f);
+
+    //衝突地点に出す
+    o->SetPos(x, y, 0.0f);
+
+    //最初のフレーム
+    o->SetAnimFrame(10);
+
+    ImpactFX fx;
+    fx.obj = o;
+    fx.t = 0.0f;
+    fx.frame = 0;
+    m_impactFX.push_back(fx);
+}
+
+void EnemySpawner::UpdateImpactEffects(float dt)
+{
+    // 日本語コメント：10フレームを一定間隔で進めて消す
+    const float frameTime = 0.18f;  // 1フレーム時間
+    const int totalFrames = 10;     // 5x2 = 10
+
+    for (auto it = m_impactFX.begin(); it != m_impactFX.end(); )
+    {
+        if (!it->obj)
+        {
+            it = m_impactFX.erase(it);
+            continue;
+        }
+
+        it->t += dt;
+
+        while (it->t >= frameTime)
+        {
+            it->t -= frameTime;
+            it->frame++;
+
+            if (it->frame < totalFrames)
+            {
+                it->obj->SetAnimFrame(it->frame);
+            }
+            else
+            {
+                // 日本語コメント：終了 → Sceneから削除
+                if (m_scene) m_scene->RemoveObject(it->obj);
+                it = m_impactFX.erase(it);
+                goto NEXT;
+            }
+        }
+
+        ++it;
+    NEXT:
+        ;
+    }
 }

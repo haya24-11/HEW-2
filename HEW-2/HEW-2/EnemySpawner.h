@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <SimpleMath.h>
 
-
 class Scene;
 class Object;
 class Enemy;
@@ -19,9 +18,30 @@ public:
     // Scene（AddObject を使うため）と Player（Object*）を受け取って初期化
     void Init(Scene* ownerScene, Object* playerObj, Player* player);
 
-    // 敵タイプ登録（複数タイプ登録可能）
-    template<typename T>
-    void RegisterType(float weight = 1.0f);
+    // ✅ 敵タイプ登録：TのGetSpawnConfig()から interval / maxAlive を読む
+    template<class T>
+    void RegisterType(float weight = 1.0f)
+    {
+        Entry e;
+        e.weight = (weight <= 0.0f) ? 0.0f : weight;
+
+        // 日本語コメント：TのSpawnConfigから interval/maxAlive を読む
+        T tmp;
+        auto cfg = tmp.GetSpawnConfig();
+
+        e.interval = (cfg.interval <= 0.0f) ? 0.001f : cfg.interval;
+        e.maxAlive = (cfg.maxAlive < 0) ? 0 : cfg.maxAlive;
+
+        e.timer = 0.0f;
+        e.aliveCount = 0;
+
+        e.createFn = []() -> std::unique_ptr<Enemy>
+            {
+                return std::make_unique<T>();
+            };
+
+        m_entries.push_back(std::move(e));
+    }
 
     // 毎フレーム呼び出し
     void Update(float deltaTime);
@@ -35,69 +55,69 @@ public:
     // ★ デバッグ / 即スポーン用
    // Enemy* SpawnOneImmediate();
 
-
+    // デバッグ用：討伐数追加
+    void DebugAddKill(int value);
 
 private:
-    //   Enemy* SpawnOne(); // 1体スポーン
-
-       // 乱数ユーティリティ
+    // 乱数ユーティリティ
     float RandFloat(float a, float b);
-    int   RandIndexByWeight();
+
+    // 重み抽選（使うなら）
+    int RandIndexByWeight();
 
     // 敵-敵の衝突処理（重なったら押し出す）
     void ResolveEnemyCollisions();
+
+    // 死亡した敵の掃除
+    void CleanupDeadEnemies();
+
+    void SpawnBoss(); // ✅ ボスを強制スポーン
+
 private:
     Scene* m_scene = nullptr;
     Object* m_player = nullptr;
     Player* m_playerLogic = nullptr;
 
-    // 登録された敵タイプ（ファクトリ）
+    // 登録された敵タイプ（ファクトリ + タイプ別設定）
     struct Entry
     {
-        float weight = 1.0f;                        // 抽選の重み（確率）
-        std::unique_ptr<Enemy>(*createFn)();        // 生成関数（Enemy派生を作る）
+        float weight = 1.0f;
+        std::unique_ptr<Enemy>(*createFn)() = nullptr;
+
+        // タイプ別スポーン設定
+        float interval = 1.0f;
+        int   maxAlive = 10;
+
+        // タイプ別状態
+        float timer = 0.0f;
+        int   aliveCount = 0;
     };
+
     std::vector<Entry> m_entries;
 
     // 生存している敵（ロジックを EnemySpawner が所有）
     std::vector<std::unique_ptr<Enemy>> m_enemies;
 
-    // スポーン制御（タイプ別 config によるが、現在選ばれたタイプの interval を使用）
-    float m_spawnTimer = 0.0f;
-
     // 乱数エンジン
     std::mt19937 m_rng;
-
-    void CleanupDeadEnemies();
 
     int  m_killCount = 0;
     bool m_bossSpawned = false;
 
-
-    void SpawnBoss();            // ✅ ボスを強制スポーン
-
     std::vector<unsigned char> m_stopLock; // ★このフレーム「外にいた敵」をロック
 
-    void BuildStopLock();   // ★追加：外にいた敵の印を付ける
-    void ClampStopLocked(); // ★追加：押し出しで内側に入ったら戻す
+    // =========================
+    // Impact衝突エフェクト管理
+// =========================
+    struct ImpactFX
+    {
+        Object* obj = nullptr;
+        float   t = 0.0f;
+        int     frame = 0;
+    };
+
+    std::vector<ImpactFX> m_impactFX;
+
+    void SpawnImpactEffect(float x, float y);
+    void UpdateImpactEffects(float dt);
 };
-
-// =========================
-// template の実装はヘッダに書く必要がある
-// =========================
-template<typename T>
-void EnemySpawner::RegisterType(float weight)
-{
-    Entry e;
-    e.weight = (weight <= 0.0f) ? 0.0f : weight;
-
-    // T（Enemy派生）を生成するラムダを登録
-    e.createFn = []() -> std::unique_ptr<Enemy>
-        {
-            return std::make_unique<T>();
-        };
-
-    // 登録リストに追加
-    m_entries.push_back(e);
-}
-

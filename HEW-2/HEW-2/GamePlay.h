@@ -28,7 +28,14 @@ public:
     Object* ExpBarBack = nullptr; // 経験値ゲージ（背景）
     Object* ExpBarGauge = nullptr; // 経験値ゲージ（ゲージ）
     Object* ExpBarFrame = nullptr; // 経験値ゲージ（フレーム）
+    //ui
+    Object* UI_KeyboardGuide = nullptr;
+    Object* UI_PadGuide = nullptr;
 
+    enum class InputDevice { Keyboard, Pad };
+    InputDevice m_lastInput = InputDevice::Keyboard;
+
+    WORD m_prevPadButtonsUI = 0;
     // シーンの動作
     void InitScene() override;
     void UpdateScene(float deltaTime) override;
@@ -70,7 +77,15 @@ private:
     bool  m_bossPhase = false;
     bool  m_bossHasSpawned = false;
 
-    std::vector<AttackSlashEffect*> m_attackEffects;
+    std::vector<std::unique_ptr<AttackSlashEffect>> m_attackEffects;
     std::vector<Object*> m_levelDigits;
     Object* m_levelLabel = nullptr;   // "LEVEL." 表示用
+
+    // 生存タイマー
+    float m_timer = 0.0f;
+    // タイマーUI
+    std::vector<Object*> m_timerDigits;
+    Object* m_timerColon = nullptr;
+    // リザルトにタイムを渡す
+    ResultData m_resultData;
 };
