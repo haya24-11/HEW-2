@@ -74,13 +74,7 @@ void Result::InitScene()
 
     CreateNumberText(150.0f, 0.0f, std::to_string(Mins));
 
-    // ƒRƒƒ“
-    Object* colon = AddObject()
-        ->SetPos(205.0f, -50.0f, 0.0f)
-        ->SetSize(40.0f, 40.0f, 0.0f);
-
-    colon->Init("asset/colon.png");
-    colon->SetUI(true);
+  
 
     char SecBuf[3];
     sprintf_s(SecBuf, "%02d", Secs);
@@ -184,7 +178,7 @@ void Result::CreateNumberText(float startX, float y, std::string text)
 
             Object* obj = AddObject()
                 ->SetPos(startX + (i * spacing) + 40.0f, y - 50.0f, 0.0f)
-                ->SetSize(32.0f, 32.0f, 0.0f);
+                ->SetSize(80.0f, 80.0f, 0.0f);
 
             obj->Init("asset/scoretext.png", 5, 2);
             obj->SetSpriteSheet(5, 2);

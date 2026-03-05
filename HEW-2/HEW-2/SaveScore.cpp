@@ -73,7 +73,7 @@ void SaveScore::InitScene()
 	{
 		Object* digit = AddObject()
 			->SetPos(startX + (i * spacing), y, 0.0f)
-			->SetSize(64.0f, 64.0f, 0.0f);
+			->SetSize(96.0f, 96.0f, 0.0f);
 
 		digit->Init("asset/scoretext.png", 5, 2);
 		digit->SetSpriteSheet(5, 2);
