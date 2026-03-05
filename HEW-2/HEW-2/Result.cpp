@@ -1,6 +1,7 @@
 #define NOMINMAX
 #include "Result.h"
 #include <algorithm>
+#include <cstdio>
 
 Result::Result() :Scene(SceneType::Result)
 {
@@ -25,12 +26,12 @@ void Result::InitScene()
     ResultWindow->Init("asset/resultwindow.png");
     ResultWindow->SetUI(true);
 
-    ResultData data = Scene::GetResultData();
+    resultData = Scene::GetResultData();
 
-    int Kills = data.monsterKills;
-    int Combo = data.maxCombo;
-    int Seconds = (int)data.playTime;
-    bool Clear = data.isClear;
+    int Kills = resultData.monsterKills;
+    int Combo = resultData.maxCombo;
+    int Seconds = (int)resultData.playTime;
+    bool Clear = resultData.isClear;
 
     //----------------------------------
     // スコア計算
@@ -46,7 +47,7 @@ void Result::InitScene()
     // クリアボーナス
     int clearScore = Clear ? 30000 : 0;
 
-    int TotalScore =
+    totalScore =
         killScore +
         comboScore +
         timeScore +
@@ -73,6 +74,14 @@ void Result::InitScene()
 
     CreateNumberText(150.0f, 0.0f, std::to_string(Mins));
 
+    // コロン
+    Object* colon = AddObject()
+        ->SetPos(205.0f, -50.0f, 0.0f)
+        ->SetSize(40.0f, 40.0f, 0.0f);
+
+    colon->Init("asset/colon.png");
+    colon->SetUI(true);
+
     char SecBuf[3];
     sprintf_s(SecBuf, "%02d", Secs);
 
@@ -82,7 +91,7 @@ void Result::InitScene()
     // 合計スコア
     //----------------------------------
 
-    CreateNumberText(100.0f, -80.0f, std::to_string(TotalScore));
+    CreateNumberText(100.0f, -80.0f, std::to_string(totalScore));
 
     //----------------------------------
     // UI文字
@@ -139,7 +148,7 @@ void Result::InitScene()
     std::cout << "Kills  : " << Kills << std::endl;
     std::cout << "Combo  : " << Combo << std::endl;
     std::cout << "Time   : " << Seconds << std::endl;
-    std::cout << "Score  : " << TotalScore << std::endl;
+    std::cout << "Score  : " << totalScore << std::endl;
 }
 
 void Result::UpdateScene(float deltaTime)
@@ -166,12 +175,12 @@ void Result::CreateNumberText(float startX, float y, std::string text)
     float spacing = 32.0f; // 1文字進む幅（フォントサイズに合わせて調整）
 
     for (size_t i = 0; i < text.length(); ++i) {
-        float nU = 0.0f;
 
         // 文字に応じた numU を設定
-        if (text[i] >= '0' && text[i] <= '9') {
-            nU = (float)(text[i] - '0');
-        }
+        if (text[i] < '0' || text[i] > '9')
+            continue;
+
+        float nU = (float)(text[i] - '0');
 
         Object* obj = AddObject()
             ->SetPos(startX + (i * spacing) + 40.0f, y + -50.0f, 0.0f)

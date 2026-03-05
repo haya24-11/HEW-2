@@ -24,6 +24,10 @@ public:
     void UninitScene() override;
     void CreateNumberText(float startX, float y, std::string text);
 
+    // Result用データ
+    ResultData resultData;
 
+    // 計算済みスコア
+    int totalScore = 0;
 };
 

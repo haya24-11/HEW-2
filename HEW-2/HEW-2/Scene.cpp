@@ -32,13 +32,6 @@ const SceneType Scene::GetNextScene() const
     return nextScene;
 }
 
-void Scene::ChangeScene(SceneType next, const ResultData& data)
-{
-    m_lastResult = data;
-    isChange = true;
-    nextScene = next;
-}
-
 void Scene::SetNextScene(SceneType nextScene)
 {
     // 今と同じシーンなら処理なし

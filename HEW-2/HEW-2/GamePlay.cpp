@@ -600,6 +600,13 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (Input::GetKeyTrigger(VK_SPACE) || PadTrigger(XINPUT_GAMEPAD_RIGHT_SHOULDER))
     {
+        m_resultData.monsterKills = m_spawner.GetKillCount();
+        m_resultData.maxCombo = m_combo.GetMaxCombo();
+        m_resultData.playTime = m_timer;
+        m_resultData.isClear = true;
+
+        Scene::SetResultData(m_resultData);
+
         SetNextScene(SceneType::Result);
     }
 
@@ -693,6 +700,7 @@ void GamePlay::UpdateScene(float deltaTime)
 
     if (m_player->GetHp() <= 0)
     {
+
         SetNextScene(SceneType::GameOver);
         return;
     }

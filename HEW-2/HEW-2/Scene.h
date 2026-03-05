@@ -11,12 +11,8 @@ class Scene
 private:
     SceneType nextScene = SceneType::NONE;
     SceneType sceneType;
-    ResultData m_lastResult; // 前のシーンから受け取ったデータを一時保存
 
 protected:
-    void ChangeScene(SceneType next, const ResultData& data);
-    const ResultData& GetLastResult() const { return m_lastResult; }
-
 
     std::vector<std::unique_ptr<Object>> objects;//オブジェクトの格納配列
     int objectNum = 0;//オブジェクトの数
@@ -39,6 +35,7 @@ public:
 
     bool IsChange() const;
     const SceneType GetNextScene() const;//次のシーンを取得
+
     Object* AddObject();
     void RemoveObject(Object* obj);
     void ClearObject();
