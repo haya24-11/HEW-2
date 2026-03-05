@@ -337,8 +337,8 @@ void GamePlay::InitScene()
     UI_KeyboardGuide->SetUI(true);
 
     UI_PadGuide = AddObject()
-        ->SetPos(-490.0f, -410.0f, 0.0f)
-        ->SetSize(700.0f, 100.0f, 0.0f)
+        ->SetPos(-610.0f, -410.0f, 0.0f)
+        ->SetSize(500.0f, 100.0f, 0.0f)
         ->SetAngle(0.0f);
     UI_PadGuide->Init("asset/UI/Pad.png");
     UI_PadGuide->SetUI(true);
