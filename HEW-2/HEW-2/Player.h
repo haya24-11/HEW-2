@@ -80,6 +80,7 @@ public:
 
     // 敵を飛ばす強さ（ノックバック強度）
     float GetHeavyKnockBackPower() const { return m_heavyKnockBackPower; }
+    void SetHeavyKnockBackPower(int value) { m_heavyKnockBackPower = value; }
 
     // 攻撃処理の入口
     void Attack() override;
@@ -249,7 +250,7 @@ private:
     // ===== 強攻撃ヒット（前方判定） =====
     float m_heavyHitOffset = 80.0f;
     float m_heavyHitRadius = 55.0f;
-    float m_heavyKnockBackPower = 900.0f;
+    float m_heavyKnockBackPower = 100.0f;
 
     // 強攻撃調整
     float m_heavyDamageMul = 2.0f;

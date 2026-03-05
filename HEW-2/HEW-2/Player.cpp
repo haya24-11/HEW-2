@@ -1,5 +1,4 @@
 ﻿#include "Player.h"
-#include "Skill.h"
 #include "Skills.h"
 #include "dinput.h"
 #include <Windows.h>   // GetAsyncKeyState
@@ -29,14 +28,11 @@ Player::Player()
 
     // レベルアップUIで選べるスキル一覧
     m_skillPool.push_back(new Skillpowerbuff(0));
-
+    m_skillPool.push_back(new SkillKnockbackBuff);
 }
 
 Player::~Player()
 {
-
-    for (auto* s : skills)
-        delete s;
 
 }
 
@@ -675,8 +671,16 @@ std::vector<Skill*> Player::GetRandomSkillChoices(int count)
 void Player::ApplyAbility(Skill* skill)
 {
     // スキルを保持（適用）
-    if (!skill) return;
+    printf("[DEBUG] ApplyAbility Called!\n"); // ← これが出るか？
+
+    if (!skill) {
+        printf("[DEBUG] Skill is NULL!\n"); // ← もしこれが出たら UI から空が渡されている
+        return;
+    }
+
     skills.push_back(skill);
+
+    printf("[DEBUG] Calling skill->Apply...\n"); // ← これが出るか？
     skill->Apply(this);
 }
 

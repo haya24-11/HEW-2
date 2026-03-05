@@ -1,4 +1,4 @@
-#include "SkillSelectUI.h"
+ï»¿#include "SkillSelectUI.h"
 #include "Scene.h"
 #include "GamePlay.h"
 #include "Player.h"
@@ -10,7 +10,7 @@ SkillSelectUI::SkillSelectUI(Scene* scene, const std::vector<Skill*>& options)
     m_options = options;
 
     // ============================
-    // ”¼“§–¾”wŒi
+    // åŠé€æ˜èƒŒæ™¯
     // ============================
     m_bg = scene->AddObject();
     m_bg->Init("asset/123.png");
@@ -19,7 +19,7 @@ SkillSelectUI::SkillSelectUI(Scene* scene, const std::vector<Skill*>& options)
     m_bg->SetSize(1280, 720, 0);
 
     // ============================
-    // ¶ƒXƒLƒ‹ƒAƒCƒRƒ“
+    // å·¦ã‚¹ã‚­ãƒ«ã‚¢ã‚¤ã‚³ãƒ³
     // ============================
     m_iconL = scene->AddObject();
     m_iconL->Init(m_options[0]->GetIconPath());
@@ -28,7 +28,7 @@ SkillSelectUI::SkillSelectUI(Scene* scene, const std::vector<Skill*>& options)
     m_iconL->SetSize(200, 200, 0);
 
     // ============================
-    // ‰EƒXƒLƒ‹ƒAƒCƒRƒ“
+    // å³ã‚¹ã‚­ãƒ«ã‚¢ã‚¤ã‚³ãƒ³
     // ============================
     m_iconR = scene->AddObject();
     m_iconR->Init(m_options[1]->GetIconPath());
@@ -37,7 +37,7 @@ SkillSelectUI::SkillSelectUI(Scene* scene, const std::vector<Skill*>& options)
     m_iconR->SetSize(200, 200, 0);
 
     // ============================
-    // ‘I‘ğ˜gi¶j
+    // é¸æŠæ ï¼ˆå·¦ï¼‰
     // ============================
     m_frameL = scene->AddObject();
     m_frameL->Init("asset/UI/bufficon.png");
@@ -47,7 +47,7 @@ SkillSelectUI::SkillSelectUI(Scene* scene, const std::vector<Skill*>& options)
     m_frameL->SetColor(1, 1, 0, 1);
 
     // ============================
-    // ‘I‘ğ˜gi‰Ej
+    // é¸æŠæ ï¼ˆå³ï¼‰
     // ============================
     m_frameR = scene->AddObject();
     m_frameR->Init("asset/UI/bufficon.png");
@@ -55,7 +55,7 @@ SkillSelectUI::SkillSelectUI(Scene* scene, const std::vector<Skill*>& options)
     m_frameR->SetPos(220, 0, 0);
     m_frameR->SetSize(220, 220, 0);
     m_frameR->SetColor(1, 1, 0, 1);
-    m_frameR->SetActive(false); // Å‰‚Í¶‚ª‘I‘ğ
+    m_frameR->SetActive(false); // æœ€åˆã¯å·¦ãŒé¸æŠ
 }
 
 SkillSelectUI::~SkillSelectUI()
@@ -66,10 +66,10 @@ SkillSelectUI::~SkillSelectUI()
 void SkillSelectUI::Update(float dt)
 {
     // ============================
-    // ¶‰EƒL[‚Å‘I‘ğ
+    // å·¦å³ã‚­ãƒ¼ã§é¸æŠ
     // ============================
 
-    // ƒL[ƒ{[ƒh
+    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰
     if (Input::GetKeyTrigger(VK_LEFT))
     {
         m_selected = 0;
@@ -83,7 +83,7 @@ void SkillSelectUI::Update(float dt)
         m_frameR->SetActive(true);
     }
 
-    // ƒRƒ“ƒgƒ[ƒ‰[
+    // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼
     if (Input::GetButtonTrigger(XINPUT_LEFT))
     {
         m_selected = 0;
@@ -98,7 +98,7 @@ void SkillSelectUI::Update(float dt)
     }
 
     // ============================
-    // Œˆ’èiEnter or Aƒ{ƒ^ƒ“j
+    // æ±ºå®šï¼ˆEnter or Aãƒœã‚¿ãƒ³ï¼‰
     // ============================
     if (Input::GetKeyTrigger(VK_RETURN) || Input::GetButtonTrigger(XINPUT_A))
     {
@@ -108,13 +108,21 @@ void SkillSelectUI::Update(float dt)
         Player* player = gameplay->GetPlayer();
         if (!player) return;
 
-        // ‘I‚Î‚ê‚½ƒXƒLƒ‹‚ğ“K—p
+        // 1ï¸âƒ£ ã‚¹ã‚­ãƒ«é©ç”¨ (ä¸€ç•ªæœ€åˆï¼)
         player->ApplyAbility(m_options[m_selected]);
 
-        // UIíœ & ƒQ[ƒ€ÄŠJ
-        Uninit();
+        // 2ï¸âƒ£ ã‚²ãƒ¼ãƒ å†é–‹
         gameplay->Resume();
+
+        // 3ï¸âƒ£ UIã®ãƒªã‚½ãƒ¼ã‚¹å‰Šé™¤
+        Uninit();
+
+        // 4ï¸âƒ£ æœ€å¾Œã« GamePlay å´ã®ãƒã‚¤ãƒ³ã‚¿ã‚’ null ã«ã—ã¦ã€UpdateScene ã® return ã‚’è§£ã
         gameplay->ClearSkillUI();
+
+        // 5ï¸âƒ£ (é‡è¦) ã“ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹è‡ªä½“ã‚’ç ´æ£„
+        delete this;
+        return; // ã“ã®å¾Œã¯è‡ªåˆ†è‡ªèº«(this)ãŒæ¶ˆãˆã¦ã„ã‚‹ã®ã§ä½•ã‚‚ã—ãªã„
     }
 }
 

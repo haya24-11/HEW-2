@@ -180,6 +180,8 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="SkillAxe.cpp" />
+    <ClCompile Include="SkillComboBuff.cpp" />
+    <ClCompile Include="SkillKnockbackBuff.cpp" />
     <ClCompile Include="Skillpowerbuff.cpp" />
     <ClCompile Include="SkillSelectUI.cpp" />
     <ClCompile Include="SkillSword.cpp" />
@@ -240,6 +242,8 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Skill.h" />
     <ClInclude Include="SkillAxe.h" />
+    <ClInclude Include="SkillComboBuff.h" />
+    <ClInclude Include="SkillKnockbackBuff.h" />
     <ClInclude Include="Skillpowerbuff.h" />
     <ClInclude Include="Skills.h" />
     <ClInclude Include="SkillSelectUI.h" />

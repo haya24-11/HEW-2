@@ -4,12 +4,11 @@
 class Skillpowerbuff :public BuffSkill
 {
 private:
+	int m_skilllLevel = 0;
 
 	int m_buffValue;//UŒ‚—Íã¸—Ê
 	int m_AtkBufflv = 0;
 
-	
-	int m_skilllLevel;
 public:
 	Skillpowerbuff(int value);
 
