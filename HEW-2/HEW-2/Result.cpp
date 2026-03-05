@@ -53,6 +53,14 @@ void Result::InitScene()
         timeScore +
         clearScore;
 
+    // ------------------------------------------------
+    // SaveScoreシーンへ渡すためResultDataに保存
+    // ------------------------------------------------
+    resultData.score = totalScore;
+
+    // Sceneの共有データにセット
+    Scene::SetResultData(resultData);
+
     //----------------------------------
     // 討伐数
     //----------------------------------
@@ -74,13 +82,7 @@ void Result::InitScene()
 
     CreateNumberText(150.0f, 0.0f, std::to_string(Mins));
 
-    // コロン
-    Object* colon = AddObject()
-        ->SetPos(205.0f, -50.0f, 0.0f)
-        ->SetSize(40.0f, 40.0f, 0.0f);
-
-    colon->Init("asset/colon.png");
-    colon->SetUI(true);
+  
 
     char SecBuf[3];
     sprintf_s(SecBuf, "%02d", Secs);
@@ -176,20 +178,24 @@ void Result::CreateNumberText(float startX, float y, std::string text)
 
     for (size_t i = 0; i < text.length(); ++i) {
 
-        // 文字に応じた numU を設定
-        if (text[i] < '0' || text[i] > '9')
-            continue;
+        float spacing = 32.0f;
 
-        float nU = (float)(text[i] - '0');
+        for (int i = 0; i < text.length(); i++)
+        {
+            int num = text[i] - '0';
 
-        Object* obj = AddObject()
-            ->SetPos(startX + (i * spacing) + 40.0f, y + -50.0f, 0.0f)
-            ->SetSize(64.0f, 64.0f, 0.0f); // 表示サイズ
+            Object* obj = AddObject()
+                ->SetPos(startX + (i * spacing) + 40.0f, y - 50.0f, 0.0f)
+                ->SetSize(80.0f, 80.0f, 0.0f);
 
-        obj->Init("asset/scoretext.png", 5, 2);
-        obj->SetSpriteSheet(5, 2);
-        obj->numU = nU;     // 1文字=1.0の設定を適用
-        obj->SetUI(true);   // UIとして描画
+            obj->Init("asset/scoretext.png", 5, 2);
+            obj->SetSpriteSheet(5, 2);
+
+            obj->numU = num % 5;
+            obj->numV = num / 5;
+
+            obj->SetUI(true);
+        }
     }
 }
 
