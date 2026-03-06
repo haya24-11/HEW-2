@@ -213,8 +213,6 @@ void EnemySpawner::ResolveEnemyCollisions()
             Object* ob = b->GetObject();
             if (!ob) continue;
 
-            if (!oa->CheckCollision(*ob)) continue;
-
             const bool aFly = a->IsKnockBacking();
             const bool bFly = b->IsKnockBacking();
 
@@ -231,43 +229,64 @@ void EnemySpawner::ResolveEnemyCollisions()
             float ny = dy / dist;
             Vector2 n(nx, ny);
 
-            // ---- impact damage ----
-            if (aFly && !bFly)
-            {
-                int impact = 0;
-                if (a->TryConsumeImpactDamage(impact))
-                {
-                    b->TakeDamage(impact);
-                    const float hitX = (pa3.x + pb3.x) * 0.5f;
-                    const float hitY = (pa3.y + pb3.y) * 0.5f;
-                    SpawnImpactEffect(hitX, hitY);
-                    if (a->GetGamePlay()) a->GetGamePlay()->GetCombo().AddHit();
-                }
-            }
-            else if (!aFly && bFly)
-            {
-                int impact = 0;
-                if (b->TryConsumeImpactDamage(impact))
-                {
-                    a->TakeDamage(impact);
-                    const float hitX = (pa3.x + pb3.x) * 0.5f;
-                    const float hitY = (pa3.y + pb3.y) * 0.5f;
-                    SpawnImpactEffect(hitX, hitY);
-                    if (b->GetGamePlay()) b->GetGamePlay()->GetCombo().AddHit();
-                }
-            }
-
-            // ---- pushout ----
+            // -----------------------------
+            // ここが「間隔 유지」の 핵심
+            // -----------------------------
             float ra = oa->GetCollisionRadius();
             float rb = ob->GetCollisionRadius();
 
-            float overlap = (ra + rb) - dist;
-            if (overlap <= 0.0f) continue;
+            const float kGap = 12.0f;                 // ★ 슬라임 사이 간격(원하는 만큼 조절)
+            const float desiredDist = (ra + rb) + kGap;
 
+            // desiredDist 이상 떨어져 있으면 아무 처리 안함
+            if (dist >= desiredDist) continue;
+
+            // "진짜 충돌" 여부 (데미지/핀볼은 이것만)
+            const bool isColliding = (dist < (ra + rb));
+
+            // desiredDist 기준으로는 얼마나 가까운지(간격 유지용 overlap)
+            float overlapKeep = desiredDist - dist;   // 0보다 크면 밀어내기 필요
+
+            // -----------------------------
+            // ---- impact damage ----
+            // (진짜 충돌일 때만)
+            // -----------------------------
+            if (isColliding)
+            {
+                if (aFly && !bFly)
+                {
+                    int impact = 0;
+                    if (a->TryConsumeImpactDamage(impact))
+                    {
+                        b->TakeDamage(impact);
+                        const float hitX = (pa3.x + pb3.x) * 0.5f;
+                        const float hitY = (pa3.y + pb3.y) * 0.5f;
+                        SpawnImpactEffect(hitX, hitY);
+                        if (a->GetGamePlay()) a->GetGamePlay()->GetCombo().AddHit();
+                    }
+                }
+                else if (!aFly && bFly)
+                {
+                    int impact = 0;
+                    if (b->TryConsumeImpactDamage(impact))
+                    {
+                        a->TakeDamage(impact);
+                        const float hitX = (pa3.x + pb3.x) * 0.5f;
+                        const float hitY = (pa3.y + pb3.y) * 0.5f;
+                        SpawnImpactEffect(hitX, hitY);
+                        if (b->GetGamePlay()) b->GetGamePlay()->GetCombo().AddHit();
+                    }
+                }
+            }
+
+            // -----------------------------
+            // ---- pinball impulse ----
+            // (진짜 충돌일 때만)
+            // -----------------------------
             bool aStop = IsStoppedEnemy(a, oa);
             bool bStop = IsStoppedEnemy(b, ob);
 
-            // ---- pinball impulse ----
+            if (isColliding)
             {
                 Vector2 va = aFly ? a->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
                 Vector2 vb = bFly ? b->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
@@ -314,7 +333,12 @@ void EnemySpawner::ResolveEnemyCollisions()
                 }
             }
 
+            // -----------------------------
             // ---- position pushout ----
+            // (충돌이 아니어도 "간격 유지"로 밀어냄)
+            // -----------------------------
+            float overlap = overlapKeep; // ★ 여기서 ra+rb 대신 desiredDist 기준으로 사용
+
             float pushA = overlap * 0.5f;
             float pushB = overlap * 0.5f;
 

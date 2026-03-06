@@ -147,6 +147,14 @@ public:
     // 衝突反動用：短いノックバックを付与（速度を加算）
     void AddKnockBackImpulse(const DirectX::SimpleMath::Vector2& v, float sec);
 
+    ///
+    bool IsPendingDeath() const { return m_pendingDeath; }
+    void MarkPendingDeath(float delayAfterKB = 0.0f)
+    {
+        m_pendingDeath = true;
+        m_deathDelayAfterKB = delayAfterKB;
+    }
+
 protected:
     bool isBoss = false;
 
@@ -202,6 +210,7 @@ protected:
 
     int m_expValue = 10; // デフォルト経験値
 
+    float m_deathDelayAfterKB = 0.0f;
 private:
     // ✅ Spawner（タイプ別aliveCount管理用）
     int m_spawnerEntryIndex = -1;
@@ -229,4 +238,5 @@ private:
     bool m_rewardGiven = false;
 
     GamePlay* m_gamePlay = nullptr;
+
 };
