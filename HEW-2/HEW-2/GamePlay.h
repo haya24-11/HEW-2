@@ -14,24 +14,25 @@ class GamePlay : public Scene
 public:
     GamePlay();
 
+    // ゲームプレイUIオブジェクト一覧（必ず nullptr 初期化）
+    Object* LightAttackButton = nullptr; // 弱攻撃ボタン
+    Object* HeavyAttackButton = nullptr; // 強攻撃ボタン
+    std::vector<Object*> BuffIcons;           // バフアイコン一覧
+    Object* BuffIcon = nullptr; // バフアイコン
+    Object* BuffIcon_A = nullptr; // バフアイコン
+    Object* PlayerIcon = nullptr; // プレイヤーの状態アイコン
+    Object* MagicCircle = nullptr; // 魔法陣表示
+    Object* PlayerHeartPointBar ; // プレイヤーHP
+    Object* PlayerHeartPointFrontBar ;
+    Object* ExpBarBack = nullptr; // 経験値ゲージ（背景）
+    Object* ExpBarGauge = nullptr; // 経験値ゲージ（ゲージ）
+    Object* ExpBarFrame = nullptr; // 経験値ゲージ（フレーム）
+    //ui
+    Object* UI_KeyboardGuide = nullptr;
+    Object* UI_PadGuide = nullptr;
 
-    //ゲームプレイUIオブジェクト一覧
-    Object* LightAttackButton;      //弱攻撃ボタン
-    Object* HeavyAttackButton;    //強攻撃ボタン
-    std::vector<Object*> BuffIcons;
-    Object* BuffIcon;                 // バフアイコン
-    Object* BuffIcon_A;             // バフアイコン
-    Object* PlayerIcon;             // プレイヤーの状態アイコン
-    Object* MagicCircle;           // 選択したモードの魔法陣を表示
-    Object* PlayerHeartPointBar;        // プレイヤーのHP
-    Object* PlayerHeartPointFrontBar;
-    // Object* EnemyHeartPointBar;   // 敵のHP
-    Object* ExpBarBack;       // 経験値ゲージ（背景）
-    Object* ExpBarGauge;    // 経験値ゲージ（ゲージ）
-    Object* ExpBarFrame;     // 経験値ゲージ（フレーム）
-    //Object* Combo;     // コンボ表示
-    //Object* Player;       // プレイヤー
-    //Object* Enemy;      // 敵
+    enum class InputDevice { Keyboard, Pad };
+    InputDevice m_lastInput = InputDevice::Keyboard;
 
     //シーンの動作
     void InitScene() override;
