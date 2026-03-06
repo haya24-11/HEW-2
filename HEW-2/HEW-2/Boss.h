@@ -27,7 +27,7 @@ public:
         cfg.maxDist = 800.0f;
 
         cfg.stopDist = 200.0f;  // 近づいたら止まる距離（任意）
-        cfg.hp = 20;
+        cfg.hp = 300;
         cfg.power = 10;
 
         // 死亡演出（必要なら）

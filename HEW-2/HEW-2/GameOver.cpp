@@ -27,7 +27,7 @@ void GameOver::InitScene()
 
 void GameOver::UpdateScene(float deltaTime)
 {
-	if (Input::GetKeyTrigger(VK_SPACE) || Input::GetButtonTrigger(XINPUT_RIGHT_SHOULDER))
+	if (Input::GetKeyTrigger(VK_SPACE) )
 	{
 		SetNextScene(SceneType::Title);
 	}
