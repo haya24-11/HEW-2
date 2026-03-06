@@ -96,6 +96,8 @@ public:
 
     int GetPower() const;
     void SetPower(int value);
+    
+    int GetMaxHp() const { return m_maxHp; }
 
     float GetHeavyDamageMul() const { return m_heavyDamageMul; }
     void SetHeavyDamageMul(float v) { m_heavyDamageMul = v; }
@@ -198,6 +200,11 @@ private:
     // 成長要素
     int exp = 0;
     int level = 1;
+
+    //マックスHP
+    int m_maxHp = 50;  // ← hp と同じ初期値
+
+    
 
     std::vector<Skill*> skills;
 

@@ -14,7 +14,7 @@ Player::Player()
 {
     hp = 100;
     power = 10;
-
+    m_maxHp = 50;
     moveSpeed = 30.0f;
 
     // アニメーション（開始フレーム / フレーム数 / 1フレーム時間 / ループ）
