@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActiveSkill.cpp" />
     <ClCompile Include="AMode.cpp" />
     <ClCompile Include="Animator.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -149,6 +150,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AttackSlashEffect.cpp" />
     <ClCompile Include="Boss.cpp" />
+    <ClCompile Include="BuffSkill.cpp" />
     <ClCompile Include="CameraGlobals.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Chara.cpp" />
@@ -170,12 +172,22 @@
     <ClCompile Include="NormalEnemyred.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="GamePlay.cpp" />
+    <ClCompile Include="PassiveSkill.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Result.cpp" />
     <ClCompile Include="SaveScore.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Skill.cpp" />
+    <ClCompile Include="SkillAxe.cpp" />
+    <ClCompile Include="SkillComboBuff.cpp" />
+    <ClCompile Include="SkillKnockbackBuff.cpp" />
+    <ClCompile Include="Skillpowerbuff.cpp" />
+    <ClCompile Include="SkillSelectUI.cpp" />
+    <ClCompile Include="SkillSpecialBuff.cpp" />
+    <ClCompile Include="SkillSpeedBuff.cpp" />
+    <ClCompile Include="SkillSword.cpp" />
+    <ClCompile Include="SkillWhip.cpp" />
     <ClCompile Include="SlimeEnemy.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="SoundManager.cpp" />
@@ -185,8 +197,10 @@
     <ClCompile Include="Title.cpp" />
     <ClCompile Include="UIBase.cpp" />
     <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="WeaponSkills.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActiveSkill.h" />
     <ClInclude Include="AMode.h" />
     <ClInclude Include="Animator.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -196,6 +210,7 @@
     <ClInclude Include="AttackDir.h" />
     <ClInclude Include="AttackSlashEffect.h" />
     <ClInclude Include="Boss.h" />
+    <ClInclude Include="BuffSkill.h" />
     <ClInclude Include="Camera2D.h" />
     <ClInclude Include="CameraGlobals.h" />
     <ClInclude Include="Chara.h" />
@@ -213,6 +228,7 @@
     <ClInclude Include="GamePlay.h" />
     <ClInclude Include="NormalEnemyblue.h" />
     <ClInclude Include="NormalEnemyred.h" />
+    <ClInclude Include="PassiveSkill.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="ResultData.h" />
     <ClInclude Include="SaveScore.h" />
@@ -227,6 +243,16 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Skill.h" />
+    <ClInclude Include="SkillAxe.h" />
+    <ClInclude Include="SkillComboBuff.h" />
+    <ClInclude Include="SkillKnockbackBuff.h" />
+    <ClInclude Include="Skillpowerbuff.h" />
+    <ClInclude Include="Skills.h" />
+    <ClInclude Include="SkillSelectUI.h" />
+    <ClInclude Include="SkillSpecialBuff.h" />
+    <ClInclude Include="SkillSpeedBuff.h" />
+    <ClInclude Include="SkillSword.h" />
+    <ClInclude Include="SkillWhip.h" />
     <ClInclude Include="SlimeEnemy.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="SoundManager.h" />
@@ -235,6 +261,7 @@
     <ClInclude Include="Title.h" />
     <ClInclude Include="UIBase.h" />
     <ClInclude Include="UIManager.h" />
+    <ClInclude Include="WeaponSkills.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\PixelShader.hlsl">

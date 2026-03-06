@@ -171,88 +171,84 @@ int EnemySpawner::RandIndexByWeight()
 void EnemySpawner::ResolveEnemyCollisions()
 {
     if (m_enemies.size() < 2) return;
-    if (!m_player) return;
+    if (!m_player || !m_playerLogic) return;
 
     using namespace DirectX::SimpleMath;
 
-    // プレイヤー位置（stopDist 判定用）
     auto pp3 = m_player->GetPos();
     Vector2 playerPos(pp3.x, pp3.y);
 
     auto IsStoppedEnemy = [&](Enemy* e, Object* eo) -> bool
         {
-            if (!e || !eo) return false;
-
+            if (!e || (size_t)e < 0x10000 || !eo || (size_t)eo < 0x10000) return false;
             const float stop = e->GetChaseStopDistance();
             if (stop <= 0.0f) return false;
-
-            // ノックバック中は「止まっている扱いにしない」
             if (e->IsKnockBacking()) return false;
-
             auto p3 = eo->GetPos();
             Vector2 pos(p3.x, p3.y);
             float dist = (pos - playerPos).Length();
-
             return dist <= (stop + 2.0f);
         };
 
     for (size_t i = 0; i < m_enemies.size(); ++i)
     {
         Enemy* a = m_enemies[i].get();
-        if (!a) continue;
-        if (!a->IsAlive()) continue; // ✅ 死んでる敵は処理しない
+        if (!a || (size_t)a < 0x10000 || a == (void*)0xFFFFFFFFFFFFFFFF) continue;
+        if (!a->IsAlive()) continue;
 
         Object* oa = a->GetObject();
-        if (!oa) continue;
+        if (!oa || (size_t)oa < 0x10000) continue;
 
         for (size_t j = i + 1; j < m_enemies.size(); ++j)
         {
             Enemy* b = m_enemies[j].get();
-            if (!b || !b->IsAlive()) continue;
+            if (!b || (size_t)b < 0x10000 || b == (void*)0xFFFFFFFFFFFFFFFF) continue;
+            if (!b->IsAlive()) continue;
 
             Object* ob = b->GetObject();
-            if (!ob) continue;
+            if (!ob || (size_t)ob < 0x10000) continue;
 
-            if (!oa->CheckCollision(*ob)) continue;
+            try {
+                if (!oa->CheckCollision(*ob)) continue;
+            }
+            catch (...) { continue; }
 
             const bool aFly = a->IsKnockBacking();
             const bool bFly = b->IsKnockBacking();
-
             auto pa3 = oa->GetPos();
             auto pb3 = ob->GetPos();
 
             float dx = pb3.x - pa3.x;
             float dy = pb3.y - pa3.y;
-
             float distSq = dx * dx + dy * dy;
             float dist = (distSq > 0.0001f) ? sqrtf(distSq) : 0.01f;
-
             float nx = dx / dist;
             float ny = dy / dist;
             Vector2 n(nx, ny);
 
+            // 🔴 プレイヤーから強化済みの「強攻撃ノックバック力」を取得
+            float playerKBPower = m_playerLogic->GetHeavyKnockBackPower();
+
             // ---- impact damage ----
-            if (aFly && !bFly)
-            {
+            if (aFly && !bFly) {
                 int impact = 0;
-                if (a->TryConsumeImpactDamage(impact))
-                {
+                if (a->TryConsumeImpactDamage(impact)) {
                     b->TakeDamage(impact);
-                    const float hitX = (pa3.x + pb3.x) * 0.5f;
-                    const float hitY = (pa3.y + pb3.y) * 0.5f;
-                    SpawnImpactEffect(hitX, hitY);
+                    // 🔴 スキルで上がったパワーを連鎖先の敵(b)にも一部伝える
+                    b->AddKnockBackImpulse(n * (playerKBPower * 0.4f), 0.35f);
+
+                    SpawnImpactEffect((pa3.x + pb3.x) * 0.5f, (pa3.y + pb3.y) * 0.5f);
                     if (a->GetGamePlay()) a->GetGamePlay()->GetCombo().AddHit();
                 }
             }
-            else if (!aFly && bFly)
-            {
+            else if (!aFly && bFly) {
                 int impact = 0;
-                if (b->TryConsumeImpactDamage(impact))
-                {
+                if (b->TryConsumeImpactDamage(impact)) {
                     a->TakeDamage(impact);
-                    const float hitX = (pa3.x + pb3.x) * 0.5f;
-                    const float hitY = (pa3.y + pb3.y) * 0.5f;
-                    SpawnImpactEffect(hitX, hitY);
+                    // 🔴 スキルで上がったパワーを連鎖先の敵(a)にも一部伝える
+                    a->AddKnockBackImpulse(-n * (playerKBPower * 0.4f), 0.35f);
+
+                    SpawnImpactEffect((pa3.x + pb3.x) * 0.5f, (pa3.y + pb3.y) * 0.5f);
                     if (b->GetGamePlay()) b->GetGamePlay()->GetCombo().AddHit();
                 }
             }
@@ -260,7 +256,6 @@ void EnemySpawner::ResolveEnemyCollisions()
             // ---- pushout ----
             float ra = oa->GetCollisionRadius();
             float rb = ob->GetCollisionRadius();
-
             float overlap = (ra + rb) - dist;
             if (overlap <= 0.0f) continue;
 
@@ -271,85 +266,51 @@ void EnemySpawner::ResolveEnemyCollisions()
             {
                 Vector2 va = aFly ? a->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
                 Vector2 vb = bFly ? b->GetKnockBackVelocity() : Vector2(0.0f, 0.0f);
-
                 float vrelN = (va - vb).Dot(n);
-
-                if (vrelN > 0.0f)
-                {
+                if (vrelN > 0.0f) {
                     const float e = 0.85f;
                     const float transfer = 0.80f;
                     const float dampTangent = 0.20f;
-
                     const float kickTimeB = 0.35f;
-                    const float minKickB = 180.0f;
 
-                    auto KillTangent = [&](Vector2 v) -> Vector2
-                        {
-                            float vn = v.Dot(n);
-                            Vector2 vN = vn * n;
-                            Vector2 vT = v - vN;
-                            vT *= (1.0f - dampTangent);
-                            return vN + vT;
+                    // 🔴 反射時の最低速度もプレイヤーの強化値に合わせて底上げ（止まりにくくする）
+                    const float minKickB = 180.0f + (playerKBPower * 0.1f);
+
+                    auto KillTangent = [&](Vector2 v) -> Vector2 {
+                        float vn = v.Dot(n);
+                        Vector2 vN = vn * n;
+                        Vector2 vT = v - vN;
+                        vT *= (1.0f - dampTangent);
+                        return vN + vT;
                         };
-
-                    if (aFly)
-                    {
+                    if (aFly) {
                         Vector2 vReflect = va - (1.0f + e) * vrelN * n;
                         const float reflectMix = 0.55f;
                         Vector2 vaNew = va * (1.0f - reflectMix) + vReflect * reflectMix;
                         a->SetKnockBackVelocity(KillTangent(vaNew));
                     }
-
                     Vector2 impulseB = (1.0f + e) * vrelN * n * transfer;
                     Vector2 kickB = KillTangent(impulseB);
-
                     float len = kickB.Length();
-                    if (len < minKickB)
-                    {
-                        if (len > 0.0001f) kickB *= (minKickB / len);
-                        else               kickB = n * minKickB;
-                    }
-
+                    if (len < minKickB) kickB = (len > 0.0001f) ? kickB * (minKickB / len) : n * minKickB;
                     b->AddKnockBackImpulse(kickB, kickTimeB);
                 }
             }
 
-            // ---- position pushout ----
-            float pushA = overlap * 0.5f;
-            float pushB = overlap * 0.5f;
-
-            if (aStop && !bStop)
-            {
-                pushA = 0.0f;
-                pushB = overlap;
-            }
-            else if (!aStop && bStop)
-            {
-                pushA = overlap;
-                pushB = 0.0f;
-            }
-            else if (aStop && bStop)
-            {
-                Vector2 posA(pa3.x, pa3.y);
-                Vector2 posB(pb3.x, pb3.y);
-
-                auto mid = (posA + posB) * 0.5f;
-                auto r = mid - playerPos;
+            float pushA = overlap * 0.5f, pushB = overlap * 0.5f;
+            if (aStop && !bStop) { pushA = 0.0f; pushB = overlap; }
+            else if (!aStop && bStop) { pushA = overlap; pushB = 0.0f; }
+            else if (aStop && bStop) {
+                Vector2 posA(pa3.x, pa3.y), posB(pb3.x, pb3.y);
+                auto r = (posA + posB) * 0.5f - playerPos;
                 float rlen = r.Length();
-
-                if (rlen < 0.0001f) r = { 1.0f, 0.0f };
-                else r /= rlen;
-
+                r = (rlen < 0.0001f) ? Vector2(1, 0) : r / rlen;
                 Vector2 t(-r.y, r.x);
-
-                auto ab = (posB - posA);
-                if (ab.Dot(t) < 0.0f) t = -t;
-
+                if ((posB - posA).Dot(t) < 0.0f) t = -t;
                 oa->SetPos(pa3.x - t.x * pushA, pa3.y - t.y * pushA, pa3.z);
                 ob->SetPos(pb3.x + t.x * pushB, pb3.y + t.y * pushB, pb3.z);
                 continue;
             }
-
             oa->SetPos(pa3.x - nx * pushA, pa3.y - ny * pushA, pa3.z);
             ob->SetPos(pb3.x + nx * pushB, pb3.y + ny * pushB, pb3.z);
         }
@@ -358,63 +319,49 @@ void EnemySpawner::ResolveEnemyCollisions()
 
 
 
+
 void EnemySpawner::CleanupDeadEnemies()
 {
     for (auto it = m_enemies.begin(); it != m_enemies.end(); )
     {
         Enemy* e = it->get();
-        if (!e)
-        {
+        // 🔴 ヌルチェック
+        if (!e || (size_t)e < 0x10000) {
             it = m_enemies.erase(it);
             continue;
         }
 
         if (!e->IsAlive())
         {
-            // ✅ タイプ別 aliveCount を減らす（erase前にやる）
-            {
-                const int idx = e->GetSpawnerEntryIndex();
-                if (0 <= idx && idx < (int)m_entries.size())
-                {
-                    if (m_entries[idx].aliveCount > 0)
-                        m_entries[idx].aliveCount--;
-                }
+            // タイプ別 aliveCount を減らす
+            const int idx = e->GetSpawnerEntryIndex();
+            if (0 <= idx && idx < (int)m_entries.size()) {
+                if (m_entries[idx].aliveCount > 0) m_entries[idx].aliveCount--;
             }
 
-            // EXP付与（1回だけ）
-            if (!e->IsRewardGiven())
-            {
-                if (m_playerLogic)
-                {
-                    m_playerLogic->AddExp(e->GetExpValue());
-                }
+            // EXP付与
+            if (!e->IsRewardGiven()) {
+                if (m_playerLogic) m_playerLogic->AddExp(e->GetExpValue());
                 e->MarkRewardGiven();
             }
 
-            // キルカウント（ボス以外）
-            if (!e->IsBoss())
-            {
+            // ボス出現判定
+            if (!e->IsBoss()) {
                 m_killCount++;
-                if (m_killCount >= 50 && !m_bossSpawned)
-                {
-                    SpawnBoss();
-                }
+                if (m_killCount >= 50 && !m_bossSpawned) SpawnBoss();
             }
 
-            // Object削除
-            if (Object* o = e->GetObject())
-            {
+            // 🔴 削除順序の安全化：Objectへの参照を断ってから消す
+            if (Object* o = e->GetObject()) {
+                e->SetObject(nullptr); // Enemy側のポインタを先に消す
                 if (m_scene) m_scene->RemoveObject(o);
             }
 
             it = m_enemies.erase(it);
             continue;
         }
-
         ++it;
     }
-
-    // ✅ enemy数と同期（安全）
     m_stopLock.assign(m_enemies.size(), 0);
 }
 

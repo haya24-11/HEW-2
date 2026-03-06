@@ -1,27 +1,26 @@
 #pragma once
-#include <SimpleMath.h>
 #include <string>
+#include <SimpleMath.h>
 
 class Player;
-
-/*
-    Skill
-    =====
-    ・スキルの最小単位
-    ・効果の内容は派生クラスで定義
-*/
 
 class Skill
 {
 public:
-    Skill(const std::string& name, int id);
     virtual ~Skill() = default;
 
-    // ★スキルの派生クラスを作る際に↓のコメントを外す
-   // virtual void Apply(Player* player) = 0;
-   // virtual void Remove(Player* player) = 0;
+    virtual void Apply(Player* player) = 0;
+    virtual void Remove(Player* player) = 0;
 
+    int GetId() const;
+    const std::string& GetName() const;
+
+    //スキルアイコンのパスのゲッター
+    virtual const char* GetIconPath() const = 0;
+    int GetLevel() const { return m_skilllLevel; }
 protected:
     std::string skillName;
     int skillId = 0;
+    int m_skilllLevel = 0;
 };
+

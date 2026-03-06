@@ -393,6 +393,7 @@ void GamePlay::InitScene()
 
 void GamePlay::UpdateScene(float deltaTime)
 {
+
     // ==========================================
     // ✅ 入力デバイス判定用（Keyboard / Pad）
     // ==========================================
@@ -416,27 +417,44 @@ void GamePlay::UpdateScene(float deltaTime)
     auto AnyPadInput = [&]() -> bool
         {
             XINPUT_STATE st{};
-            if (XInputGetState(0, &st) != ERROR_SUCCESS)
-                return false;
+            if (XInputGetState(0, &st) != ERROR_SUCCESS) return false;
+
+            // 🔴 修正：ここで m_skillUI->Update は絶対に呼ばない！
+            if (m_paused) return false;
 
             const WORD buttons = st.Gamepad.wButtons;
-
-            // ボタン押した瞬間
-            if ((buttons & ~m_prevPadButtonsUI) != 0)
-                return true;
-
-            // スティック/トリガー（デッドゾーン）
-            const int dz = 8000;
-            if (abs(st.Gamepad.sThumbLX) > dz) return true;
-            if (abs(st.Gamepad.sThumbLY) > dz) return true;
-            if (abs(st.Gamepad.sThumbRX) > dz) return true;
-            if (abs(st.Gamepad.sThumbRY) > dz) return true;
-
-            if (st.Gamepad.bLeftTrigger > 30) return true;
-            if (st.Gamepad.bRightTrigger > 30) return true;
-
-            return false;
+            // ... 以下ボタン判定 ...
         };
+
+    // 2. UpdateScene の冒頭にある UI 更新処理を「さらに」厳重にする
+    if (m_skillUI != nullptr)
+    {
+        SkillSelectUI* pActiveUI = m_skillUI;
+        pActiveUI->Update(deltaTime);
+
+        // 🔴 修正：UI 内で ClearSkillUI が呼ばれたら、即座に return して
+        // 後の AnyPadInput などに一切触れさせない
+        if (m_skillUI == nullptr) {
+            return;
+        }
+        return;
+    }
+
+    // ★ ここで UI を安全に更新
+    if (m_skillUI != nullptr)
+    {
+        // 別の変数にコピーして実行（実行中に m_skillUI が nullptr になっても大丈夫なようにする）
+        SkillSelectUI* pActiveUI = m_skillUI;
+        pActiveUI->Update(deltaTime);
+
+        // UI 内で決定され、m_skillUI が nullptr になっていたら、このフレームはここで終了
+        if (m_skillUI == nullptr) {
+            return;
+        }
+
+        return; // UI 表示中は、これ以降のゲームロジック（エネミー等）を一切動かさない
+    }
+
 
     // ==========================================
     // deltaTime 調整
@@ -510,6 +528,43 @@ void GamePlay::UpdateScene(float deltaTime)
     const bool wasHeavyDashing = m_player->IsHeavyDashing();
 
     m_player->Update(deltaTime);
+
+    // ★ レベルアップ検知
+    if (m_player->IsJustLeveledUp())
+    {
+        Pause();
+
+        // 1. 候補を取得（最大2つ）
+        std::vector<Skill*> options = m_player->GetRandomSkillChoices(2);
+
+        if (options.empty())
+        {
+            // 🔴 全てLv3なら何もしない
+            m_player->ResetLevelUpFlag();
+        }
+        else if (options.size() == 1)
+        {
+            // 🔴 残り1つなら強制取得（UIを出さない）
+              // 🔴 修正：options そのものではなく、0番目の要素を渡す
+            m_player->ApplyAbility(options[0]);
+
+            // 念のため、適用後にゲームが止まらないようにフラグをリセット
+            m_player->ResetLevelUpFlag();
+
+            // ログ出力（これが出れば成功）
+            printf("[DEBUG] Auto-applied last skill: %p\n", options[0]);
+        }
+        else
+        {
+            // 🔴 2つ以上あるなら通常通り選択UIを出す
+            Pause();
+            m_skillUI = new SkillSelectUI(this, options);
+            m_player->ResetLevelUpFlag();
+        }
+
+    }
+
+    //combo
     m_combo.Update(deltaTime);
 
     // ===== 強攻撃ダッシュが「今」終わった瞬間を検出
@@ -611,19 +666,19 @@ void GamePlay::UpdateScene(float deltaTime)
     // ==========================================
     for (auto it = m_attackEffects.begin(); it != m_attackEffects.end(); )
     {
-        auto& e = *it;
-
-        if (!e)
+        // 🔴 1. まず中身が空でないか、不正なアドレスでないか超厳重チェック
+        if (it->get() == nullptr || it->get() == (void*)0xFFFFFFFFFFFFFFFF)
         {
             it = m_attackEffects.erase(it);
             continue;
         }
 
-        e->Update(deltaTime);
+        // 🔴 2. 更新処理を呼ぶ。この中で Uninit() されても Dead フラグで判定する
+        (*it)->Update(deltaTime);
 
-        if (e->IsDead())
+        // 🔴 3. 死んだエフェクトを安全に削除
+        if ((*it)->IsDead())
         {
-            e->Uninit();
             it = m_attackEffects.erase(it);
         }
         else
@@ -1010,7 +1065,20 @@ void GamePlay::DrawScene()
 
 void GamePlay::UninitScene()
 {
+    for (auto& e : m_attackEffects) {
+        if (e) e->Uninit();
+    }
+    m_attackEffects.clear(); // リストを空にする
+
    // m_combo = ComboManager();
+
+    if (m_skillUI)
+    {
+        m_skillUI->Uninit();
+        delete m_skillUI;
+        m_skillUI = nullptr;
+    }
+
 
     std::cout << "UninitScene(GamePlay)" << std::endl;
 
@@ -1022,8 +1090,6 @@ void GamePlay::UninitScene()
             e->Uninit();
         }
     }
-
-    m_attackEffects.clear();
 
     // ✅ Enemy* をキーにした静的クールダウンはリプレイで必ずクリア（アドレス再利用でバグる）
     s_touchHitCD.clear();

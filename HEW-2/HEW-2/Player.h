@@ -35,7 +35,7 @@ class Player : public Chara
 {
 public:
     Player();
-    virtual ~Player() = default;
+    virtual ~Player();
 
     // 描画用 Object を取得（m_object は Chara 側にある前提）
     Object* GetObject() const { return m_object; }
@@ -80,19 +80,28 @@ public:
 
     // 敵を飛ばす強さ（ノックバック強度）
     float GetHeavyKnockBackPower() const { return m_heavyKnockBackPower; }
+    void SetHeavyKnockBackPower(int value) { m_heavyKnockBackPower = value; }
+
+    // 移動速度
+    float GetMoveSpeed() const { return moveSpeed; }
+    void SetMoveSpeed(int value) { moveSpeed = value; }
 
     // 攻撃処理の入口
     void Attack() override;
 
+    
+    // スキル候補抽選
+    std::vector<Skill*> GetRandomSkillChoices(int count);
     // スキル取得時の共通処理
-    void ApplyAbility(auto* skill);
+    void ApplyAbility(Skill* skill);
    
     //取得したスキル一覧
     const std::vector<Skill*>& GetLearnedSkills() const;
 
+    //レベルアップフラグゲッターセッター
+    bool IsJustLeveledUp() const { return m_justLeveledUp; }
+    void ResetLevelUpFlag() { m_justLeveledUp = false; }
 
-
-    void ApplyAbility(Skill* skill);
 
     int GetPower() const;
     void SetPower(int value);
@@ -206,6 +215,9 @@ private:
 
     
 
+    // 抽選用スキルプール（最初から持っている候補）
+    std::vector<Skill*> m_skillPool;
+    // 所持スキル 所有権を持つ
     std::vector<Skill*> skills;
 
     // 基本サイズ
@@ -249,7 +261,7 @@ private:
     // ===== 強攻撃ヒット（前方判定） =====
     float m_heavyHitOffset = 80.0f;
     float m_heavyHitRadius = 55.0f;
-    float m_heavyKnockBackPower = 900.0f;
+    float m_heavyKnockBackPower = 100.0f;
 
     // 強攻撃調整
     float m_heavyDamageMul = 2.0f;

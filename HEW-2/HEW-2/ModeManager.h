@@ -3,19 +3,18 @@
 #include "Mode.h"
 #include "Combo.h"
 
+class Player;
+
 class ModeManager
 {
 public:
-    void SwitchMode(const Mode& mode);
+    void SwitchMode(Mode* mode);
 
-    const Mode& GetCurrentMode() const;
+    std::vector<Skill*> GetAvailableSkills(const Player& player) const;
 
-    std::vector<Skill> GetAvailableSkills() const;
-
-    void AddComboBonus();
-    void ResetCombo();
+    int CalculateFinalExp(int baseExp) const;
 
 private:
-    Mode currentMode;
+    Mode* currentMode = nullptr;
     Combo combo;
 };
