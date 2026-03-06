@@ -14,7 +14,7 @@ Player::Player()
 {
     hp = 100;
     power = 10;
-
+    m_maxHp = 50;
     moveSpeed = 30.0f;
 
     // アニメーション（開始フレーム / フレーム数 / 1フレーム時間 / ループ）
@@ -388,8 +388,7 @@ void Player::Update(float deltaTime)
             // ✅ 強攻撃終了後：1秒間は接触で被弾アニメを出さない
             if (wasHeavy)
             {
-                if (m_invincibleTimer < 2.0f) m_invincibleTimer =2.0f;
-                m_invincibleBlink = false;
+                StartNoHitAnim(6.0f);
             }
         }
 
@@ -751,10 +750,10 @@ void Player::TakeDamage(int dmg)
 {
     if (dmg <= 0) return;
 
-    // ✅ 먼저 차단 조건 판단
-    if (IsHeavyCharging() || IsHeavyDashing())
+    // ✅ 強攻撃（チャージ含む）中はダッシュが終わっても被弾しない
+    if (IsHeavyCharging() || (m_state == State::AttackHeavy))
     {
-        std::cout << "[TakeDamage] BLOCKED(heavy) inv=" << m_invincibleTimer
+        std::cout << "[TakeDamage] BLOCKED(heavy-state) inv=" << m_invincibleTimer
             << " hp=" << hp << " dmg=" << dmg << "\n";
         return;
     }
@@ -766,7 +765,6 @@ void Player::TakeDamage(int dmg)
         return;
     }
 
-    // ✅ 여기부터가 “진짜 데미지 적용”
     std::cout << "[TakeDamage] APPLY inv=" << m_invincibleTimer
         << " hp=" << hp << " dmg=" << dmg << "\n";
 

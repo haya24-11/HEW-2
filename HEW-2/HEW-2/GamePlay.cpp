@@ -236,12 +236,20 @@ void GamePlay::InitScene()
     */
     // ===== プレイヤーHPバー UI =====
     PlayerHeartPointBar = AddObject()
-        ->SetPos(0.0f, 0.0f, 0.0f)
+        ->SetPos(60000.0f, 0.0f, 0.0f)
         ->SetSize(420.0f, 300.0f, 0.0f)
         ->SetAngle(0.0f);
     PlayerHeartPointBar->Init("asset/UI/playerheartpointbar.png");
     PlayerHeartPointBar->SetUI(true);
 
+    // ===== プレイヤーフロントHPバー UI =====
+
+    PlayerHeartPointFrontBar = AddObject()
+        ->SetPos(0.0f, 0.0f, 0.0f)
+        ->SetSize(420.0f, 300.0f, 500.0f)
+        ->SetAngle(0.0f);
+    PlayerHeartPointFrontBar->Init("asset/UI/hpfrontbar.png",3,3);
+    PlayerHeartPointFrontBar->SetUI(true);
     // ===== プレイヤーアイコン UI =====
     PlayerIcon = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
@@ -330,15 +338,15 @@ void GamePlay::InitScene()
 
 // 1段目（A D W S）
     UI_KeyboardGuide = AddObject()
-        ->SetPos(-490.0f, -410.0f, 0.0f)
-        ->SetSize(700.0f, 100.0f, 0.0f)
+        ->SetPos(-440.0f, -415.0f, 0.0f)
+        ->SetSize(800.0f, 50.0f, 0.0f)
         ->SetAngle(0.0f);
     UI_KeyboardGuide->Init("asset/UI/Keyboard.png");
     UI_KeyboardGuide->SetUI(true);
 
     UI_PadGuide = AddObject()
-        ->SetPos(-590.0f, -410.0f, 0.0f)
-        ->SetSize(500.0f, 100.0f, 0.0f)
+        ->SetPos(-640.0f, -410.0f, 0.0f)
+        ->SetSize(390.0f, 100.0f, 0.0f)
         ->SetAngle(0.0f);
     UI_PadGuide->Init("asset/UI/Pad.png");
     UI_PadGuide->SetUI(true);
@@ -749,8 +757,11 @@ void GamePlay::UpdateScene(float deltaTime)
 
                     if (s_touchHitCD_All <= 0.0f)
                     {
-                        m_player->TakeDamage(e->GetPower());
-                        s_touchHitCD_All = touchCooldown;
+                        if (!m_player->IsInvincible())
+                        {
+                            m_player->TakeDamage(e->GetPower());
+                            s_touchHitCD_All = touchCooldown;
+                        }
                     }
                 }
 
@@ -972,6 +983,33 @@ void GamePlay::UpdateScene(float deltaTime)
         }
     }
 
+    if (m_player && PlayerHeartPointFrontBar)
+    {
+
+        float rate = std::clamp(
+            (float)m_player->GetHp() / (float)m_player->GetMaxHp(),
+            0.0f, 1.0f
+        );
+        const float maxWidth = 250.0f;  // ← 要調整
+        float width = maxWidth * rate;
+        PlayerHeartPointFrontBar->SetSize(width, 33.0f, 0.0f);
+
+
+
+    }
+    // レベルアップ時の演出（未実装）
+    /*
+    if (m_player->IsJustLeveledUp())
+{
+    // エフェクト生成
+    auto effect = AddObject();
+    effect->Init("asset/UI/levelup.png");
+    effect->SetUI(true);
+    effect->SetPos(SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f, 0);
+
+    m_player->ResetLevelUpFlag();
+}
+    */
     prevButtons = buttons;
 
     UpdateUIFollowCamera();
@@ -1138,6 +1176,18 @@ void GamePlay::UpdateUIFollowCamera()
 
     if (PlayerHeartPointBar)
         PlayerHeartPointBar->SetPos(hpBarX, hpBarY - 20, 0.0f);
+
+
+    if(PlayerHeartPointFrontBar)
+    {
+        float gaugeWidth = PlayerHeartPointFrontBar->GetSize().x;
+        const float gaugeLeft = hpBarX - 50.0f;  // ← 要調整（バー画像内のゲージ開始位置）
+        PlayerHeartPointFrontBar->SetPos(
+            gaugeLeft + gaugeWidth * 0.5f,
+            hpBarY - 40.0f,
+            0.0f
+        );
+    }
 
     // アイコン
     const float hpW = 360.0f;

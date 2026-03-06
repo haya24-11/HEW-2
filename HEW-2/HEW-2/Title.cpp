@@ -1,17 +1,20 @@
 #include "Title.h"
 #include "Game.h"
+#include "CameraGlobals.h"
 #include <Xinput.h>
 #pragma comment(lib, "Xinput.lib")
-
-Object* obj = new Object;
 
 Title::Title() : Scene(SceneType::Title)
 {
 }
 
+
 void Title::InitScene()
 {
 	std::cout << "(Debug) TitleScene!" << std::endl;
+
+	g_cameraX = 0.0f;
+	g_cameraY = 0.0f;
 
 	// =========================
 	// タイトル背景
@@ -22,17 +25,141 @@ void Title::InitScene()
 		->SetAngle(0.0f);
 	TitleBackground->Init("asset/Title/titlebackground.png");
 	TitleBackground->SetUI(true);
+
 	// =========================
+	// 先読み
+	// =========================
+	PreloadTexture(g_pDevice, "asset/Texture/enemy_slime.png");
+	PreloadTexture(g_pDevice, "asset/Texture/enemy_slime_blue.png");
+	PreloadTexture(g_pDevice, "asset/Texture/enemy_slime_red.png");
+
+	// =========================
+	// スライム 9体（種類ごとに3体）
+	// =========================
+	const float baseX = -700.0f;     // 左の出現基準
+	const float xStep = 30.0f;        // 3体のズラし
+	const float size = 90.0f;
+
+	// ---- 緑 3体 ----
+	for (int i = 0; i < 3; ++i)
+	{
+		m_green[i].obj = AddObject();
+		m_green[i].obj->Init("asset/Texture/enemy_slime.png", 8, 4);
+		m_green[i].obj->SetSpriteSheet(8, 4);
+		m_green[i].obj->SetSize(size, size, 0.0f);
+
+		m_green[i].y = -340.0f + (i - 1) * 20.0f;             // ちょい上下ずらし
+		m_green[i].respawnX = baseX + i * xStep;              // ✅ 毎回このXに戻す
+		m_green[i].obj->SetPos(m_green[i].respawnX, m_green[i].y, 0.0f);
+
+		m_green[i].speed = 20.0f + i * 2.0f;                  // 微妙に速度差
+		m_green[i].dir = 1.0f;
+		m_green[i].anim = { 0, 31, 0.10f, true };             // 0～31の32枚
+		m_green[i].obj->numU = 0;
+		m_green[i].obj->numV = 0;
+
+		m_green[i].baseY = m_green[i].y;
+
+		m_green[i].waveAmp = 10.0f + i * 3.0f;     
+		m_green[i].waveSpd = 1.4f + i * 0.25f;     
+		m_green[i].waveT = (float)i * 0.7f;        
+
+		m_green[i].baseSpeed = 18.0f + i * 2.0f;   
+		m_green[i].spdAmp = 6.0f;                  
+		m_green[i].spdSpd = 1.1f + i * 0.2f;       
+		m_green[i].spdT = (float)i * 0.9f;
+
+		m_green[i].speed = m_green[i].baseSpeed;   
+	}
+
+	// ---- 青 3体 ----
+	for (int i = 0; i < 3; ++i)
+	{
+		m_blue[i].obj = AddObject();
+		m_blue[i].obj->Init("asset/Texture/enemy_slime_blue.png", 8, 4);
+		m_blue[i].obj->SetSpriteSheet(8, 4);
+		m_blue[i].obj->SetSize(size, size, 0.0f);
+
+		m_blue[i].y = -320.0f + (i - 1) * 20.0f;
+		m_blue[i].respawnX = (baseX + 100.0f) + i * xStep;    // 緑より少し右から
+		m_blue[i].obj->SetPos(m_blue[i].respawnX, m_blue[i].y, 0.0f);
+
+		m_blue[i].speed = 20.0f + i * 2.0f;
+		m_blue[i].dir = 1.0f;
+		m_blue[i].anim = { 0, 31, 0.10f, true };
+		m_blue[i].obj->numU = 0;
+		m_blue[i].obj->numV = 0;
+		m_blue[i].baseY = m_blue[i].y;
+
+		m_blue[i].waveAmp = 10.0f + i * 3.0f;
+		m_blue[i].waveSpd = 1.4f + i * 0.25f;
+		m_blue[i].waveT = (float)i * 0.7f;
+
+		m_blue[i].baseSpeed = 18.0f + i * 2.0f;
+		m_blue[i].spdAmp = 6.0f;
+		m_blue[i].spdSpd = 1.1f + i * 0.2f;
+		m_blue[i].spdT = (float)i * 0.9f;
+
+		m_blue[i].speed = m_blue[i].baseSpeed;
+	}
+
+	// ---- 赤 3体 ----
+	for (int i = 0; i < 3; ++i)
+	{
+		m_red[i].obj = AddObject();
+		m_red[i].obj->Init("asset/Texture/enemy_slime_red.png", 8, 4);
+		m_red[i].obj->SetSpriteSheet(8, 4);
+		m_red[i].obj->SetSize(size, size, 0.0f);
+
+		m_red[i].y = -360.0f + (i - 1) * 20.0f;
+		m_red[i].respawnX = (baseX -250.0f) + i * xStep;
+		m_red[i].obj->SetPos(m_red[i].respawnX, m_red[i].y, 0.0f);
+
+		m_red[i].speed = 20.0f + i * 2.0f;
+		m_red[i].dir = 1.0f;
+		m_red[i].anim = { 0, 31, 0.10f, true };
+		m_red[i].obj->numU = 0;
+		m_red[i].obj->numV = 0;
+
+		m_red[i].baseY = m_red[i].y;
+		m_red[i].waveAmp = 10.0f + i * 3.0f;
+		m_red[i].waveSpd = 1.4f + i * 0.25f;
+		m_red[i].waveT = (float)i * 0.7f;
+
+		m_red[i].baseSpeed = 18.0f + i * 2.0f;
+		m_red[i].spdAmp = 6.0f;
+		m_red[i].spdSpd = 1.1f + i * 0.2f;
+		m_red[i].spdT = (float)i * 0.9f;
+
+		m_red[i].speed = m_red[i].baseSpeed;
+	}
+
+	// 背景ロゴ
+	TitleBackLogo = AddObject();
+	TitleBackLogo->Init("asset/Title/title_backlogo.png");
+	TitleBackLogo->SetPos(0, 0, 0);
+	TitleBackLogo->SetSize(1674.0f, 940.0f, 0.0f);
+	TitleBackLogo->SetUI(true);
+
+	// ★中心位置を保存
+	m_logoCenterX = 0.0f;
+
 	// タイトルロゴ
-	// =========================
-	/*
-	TitleLogo = AddObject()
-		->SetPos(-30.0f, 200.0f, 0.0f)
-		->SetSize(550.0f, 450.0f, 0.0f)
-		->SetAngle(0.0f);
-	TitleLogo->Init("asset/titlelogo.png");
+	Object* TitleLogo = AddObject();
+	TitleLogo->Init("asset/Title/title_logo.png");
+	TitleLogo->SetPos(-65,145, 0);
+	TitleLogo->SetSize(891.3f, 651.0f, 0.0f);      // ★ここでサイズ調整
 	TitleLogo->SetUI(true);
-	*/
+	// =========================
+	// ™マーク
+	// =========================
+	TitleTM = AddObject();
+	TitleTM->Init("asset/Title/title_tm.png"); // ™画像
+	TitleTM->SetPos(320, -87, 0);              // ←ロゴ右上あたりに配置
+	TitleTM->SetSize(75.0f, 45.0f, 0.0f);      // サイズは好みで
+	TitleTM->SetUI(true);
+
+
 	// =========================
 	// SCORE（スプライトシート 2枚）
 	// =========================
@@ -64,14 +191,48 @@ void Title::InitScene()
 	// =========================
 	// スプライトシート設定（2×1）
 	// =========================
-	GameStartLogo->SetSpriteSheet(2, 1);
-	ScoreLogo->SetSpriteSheet(2, 1);
-	ExitLogo->SetSpriteSheet(2, 1);
-}
 
+
+
+
+	
+}
 void Title::UpdateScene(float deltaTime)
 {
+	if (deltaTime > 0.05f) deltaTime = 0.05f; 
 	m_count++;
+
+	// =========================
+	// タイトルバックロゴ揺れ
+	// =========================
+
+	// 時間加算
+	m_logoTime++;
+
+	// 無限に増えるの防止
+	if (m_logoTime > 1000.0f)
+	{
+		m_logoTime = 0.0f;
+	}
+
+	// 1往復の時間（秒）
+	float period = 200.0f;
+
+	// メトロノーム角度
+	float t = m_logoTime * DirectX::XM_2PI / period;
+
+	// 振れ角
+	float maxAngle = 6.0f;
+
+	float angle = sinf(t) * maxAngle;
+
+	// 位置は固定
+	TitleBackLogo->SetPos(
+		m_logoCenterX,
+		0.0f,
+		0.0f
+	);
+	TitleBackLogo->SetAngle(angle);
 
 	// =========================
 	// XInput：トリガー（押した瞬間だけ true）
@@ -157,26 +318,122 @@ void Title::UpdateScene(float deltaTime)
 		break;
 	}
 
+	// =========================
+	// ✅ スライム歩行演出（毎フレーム更新）
+	// =========================
+	for (int i = 0; i < 3; ++i) UpdateSlimeWalker(m_green[i], deltaTime);
+	for (int i = 0; i < 3; ++i) UpdateSlimeWalker(m_blue[i], deltaTime);
+	for (int i = 0; i < 3; ++i) UpdateSlimeWalker(m_red[i], deltaTime);
+
 	// 次フレーム用に保持
 	prevButtons = buttons;
 }
-
 void Title::DrawScene()
 {
+	// =============================
+	// 0) UI背景だけ先に描く（最背面）
+	// =============================
 	for (auto& obj : objects)
 	{
-		// =========================
-		// スプライトシートのフレーム指定描画
-		// numU が 0/1 で切り替わる
-		// =========================
-		if (obj.get() == GameStartLogo) obj->Draw(GameStartLogo->numU);
-		else if (obj.get() == ScoreLogo) obj->Draw(ScoreLogo->numU);
-		else if (obj.get() == ExitLogo) obj->Draw(ExitLogo->numU);
-		else obj->Draw();
+		if (!obj->IsUI()) continue;
+		if (obj.get() == TitleBackground || obj.get() == TitleBackLogo)
+		{
+			obj->Draw();
+		}
+	}
+
+	// =============================
+	// 1) ワールド描画（スライム含む）
+	// =============================
+	for (auto& obj : objects)
+	{
+		if (obj->IsUI()) continue;
+
+		bool drewSlime = false;
+
+		for (int i = 0; i < 3 && !drewSlime; ++i)
+			if (obj.get() == m_green[i].obj) { obj->Draw((int)m_green[i].obj->numV * 8 + (int)m_green[i].obj->numU); drewSlime = true; }
+
+		for (int i = 0; i < 3 && !drewSlime; ++i)
+			if (obj.get() == m_blue[i].obj) { obj->Draw((int)m_blue[i].obj->numV * 8 + (int)m_blue[i].obj->numU);  drewSlime = true; }
+
+		for (int i = 0; i < 3 && !drewSlime; ++i)
+			if (obj.get() == m_red[i].obj) { obj->Draw((int)m_red[i].obj->numV * 8 + (int)m_red[i].obj->numU);   drewSlime = true; }
+
+		if (drewSlime) continue;
+
+		obj->Draw();
+	}
+
+	// =============================
+	// 2) UI前景（メニュー/ロゴなど）
+	// =============================
+	for (auto& obj : objects)
+	{
+		if (!obj->IsUI()) continue;
+
+		if (obj.get() == TitleBackground || obj.get() == TitleBackLogo) continue;
+
+		if (obj.get() == GameStartLogo) { obj->Draw((int)GameStartLogo->numU); continue; }
+		if (obj.get() == ScoreLogo) { obj->Draw((int)ScoreLogo->numU);     continue; }
+		if (obj.get() == ExitLogo) { obj->Draw((int)ExitLogo->numU);      continue; }
+
+		obj->Draw();
 	}
 }
 
 void Title::UninitScene()
 {
 	// 必要ならここで解放処理
+}
+
+
+void Title::UpdateSlimeWalker(SlimeWalker& s, float dt)
+{
+	if (!s.obj) return;
+
+	// ---- アニメ更新 ----
+	s.frameTimer += dt;
+	if (s.frameTimer >= s.anim.sec)
+	{
+		while (s.frameTimer >= s.anim.sec) s.frameTimer -= s.anim.sec;
+
+		s.frame++;
+		if (s.frame >= s.anim.count) s.frame = 0;
+
+		const int idx = s.anim.start + s.frame; // 0..31
+		s.obj->numU = (float)(idx % 8);
+		s.obj->numV = (float)((idx / 8) % 4);
+	}
+
+	// ---- 速度ゆらぎ（前後に混ざる）----
+	s.spdT += dt;
+	const float curSpeed = s.baseSpeed + sinf(s.spdT * s.spdSpd) * s.spdAmp;
+
+	// ---- 移動 ----
+	auto p = s.obj->GetPos();
+	p.x += curSpeed * s.dir * dt;
+
+	// ---- 上下ウェーブ（上下に混ざる）----
+	s.waveT += dt;
+	p.y = s.baseY + sinf(s.waveT * s.waveSpd) * s.waveAmp;
+
+	s.obj->SetPos(p.x, p.y, p.z);
+
+	// ---- 向き（ゲームプレイ方式：FlipX）----
+	s.obj->SetFlipX(s.dir > 0.0f);
+
+	// ---- ループ（毎回同じ開始位置へ）----
+	if (p.x > s.xMax)
+	{
+		s.obj->SetPos(s.respawnX, s.baseY, p.z);
+		s.frame = 0;
+		s.frameTimer = 0.0f;
+		s.obj->numU = 0;
+		s.obj->numV = 0;
+
+		// ✅ ここもリセットすると挙動が安定する
+		s.waveT = 0.0f;
+		s.spdT = 0.0f;
+	}
 }
