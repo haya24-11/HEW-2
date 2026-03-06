@@ -87,3 +87,4 @@ void Scene::SetResultData(const ResultData& data)
 {
     g_resultData = data;
 }
+
