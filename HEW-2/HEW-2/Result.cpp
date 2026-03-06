@@ -1,5 +1,6 @@
 #define NOMINMAX
 #include "Result.h"
+#include "CameraGlobals.h"
 #include <algorithm>
 #include <cstdio>
 
@@ -12,6 +13,11 @@ Result::Result() :Scene(SceneType::Result)
 
 void Result::InitScene()
 {
+
+    g_cameraX = 0.0f;
+    g_cameraY = 0.0f;
+
+
     // ”wŒi
     PlayWallpaper = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)

@@ -751,7 +751,7 @@ void GamePlay::UpdateScene(float deltaTime)
             return (buttons & mask) && !(prevButtons & mask);
         };
 
-    if (Input::GetKeyTrigger(VK_SPACE) || PadTrigger(XINPUT_GAMEPAD_RIGHT_SHOULDER))
+    if (Input::GetKeyTrigger(VK_SPACE) )
     {
         m_resultData.monsterKills = m_spawner.GetKillCount();
         m_resultData.maxCombo = m_combo.GetMaxCombo();
