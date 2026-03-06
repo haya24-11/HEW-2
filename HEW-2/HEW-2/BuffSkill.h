@@ -12,7 +12,8 @@ public:
     void Apply(Player* player) override;
     void Remove(Player* player) override;
     const char* GetIconPath() const override;
+    int GetLevel() const { return m_skilllLevel; }
 protected:
-
+    int m_skilllLevel = 0;
 };
 

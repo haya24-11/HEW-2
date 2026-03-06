@@ -17,9 +17,10 @@ public:
 
     //スキルアイコンのパスのゲッター
     virtual const char* GetIconPath() const = 0;
-
+    int GetLevel() const { return m_skilllLevel; }
 protected:
     std::string skillName;
     int skillId = 0;
+    int m_skilllLevel = 0;
 };
 

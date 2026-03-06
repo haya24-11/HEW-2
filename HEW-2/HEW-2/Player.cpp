@@ -29,6 +29,8 @@ Player::Player()
     // レベルアップUIで選べるスキル一覧
     m_skillPool.push_back(new Skillpowerbuff(0));
     m_skillPool.push_back(new SkillKnockbackBuff);
+    m_skillPool.push_back(new SkillSpeedBuff);
+    m_skillPool.push_back(new SkillSpecialBuff);
 }
 
 Player::~Player()
@@ -656,16 +658,38 @@ std::vector<Skill*> Player::GetRandomSkillChoices(int count)
 {
     std::vector<Skill*> result;
 
-    if (m_skillPool.empty()) return result;
-
-    for (int i = 0; i < count; i++)
+    // 1. 現在のスキルプールから「抽選可能なもの」だけを抽出
+    std::vector<Skill*> validPool;
+    for (auto* s : m_skillPool)
     {
-        int idx = rand() % m_skillPool.size();
-        result.push_back(m_skillPool[idx]);
+        if (!s) continue;
+
+        // 🔴 Lv3以上のスキルは候補に入れない
+        if (s->GetLevel() >= 3) continue;
+
+        // 🔴 特殊バフがすでに適用済みなら入れない
+        if (dynamic_cast<SkillSpecialBuff*>(s) && SkillSpecialBuff::IsAlreadyApplied()) continue;
+
+        validPool.push_back(s);
+    }
+
+    // 2. 抽選開始
+    // 有効なスキルが要求数より少ない場合を考慮
+    int actualCount = (std::min)(count, (int)validPool.size());
+
+    for (int i = 0; i < actualCount; i++)
+    {
+        int idx = rand() % validPool.size();
+        Skill* selected = validPool[idx];
+
+        // 結果に追加
+        result.push_back(selected);
+
+        // 🔴 選んだスキルを一時プールから削除（同じ抽選回での重複を防止）
+        validPool.erase(validPool.begin() + idx);
     }
 
     return result;
-
 }
 
 void Player::ApplyAbility(Skill* skill)

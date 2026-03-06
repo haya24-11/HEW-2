@@ -82,6 +82,10 @@ public:
     float GetHeavyKnockBackPower() const { return m_heavyKnockBackPower; }
     void SetHeavyKnockBackPower(int value) { m_heavyKnockBackPower = value; }
 
+    // 移動速度
+    float GetMoveSpeed() const { return moveSpeed; }
+    void SetMoveSpeed(int value) { moveSpeed = value; }
+
     // 攻撃処理の入口
     void Attack() override;
 

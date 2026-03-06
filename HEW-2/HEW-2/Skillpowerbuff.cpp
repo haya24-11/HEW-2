@@ -36,7 +36,11 @@ void Skillpowerbuff::Apply(Player* player)
 
 const char* Skillpowerbuff::GetIconPath() const
 {
-
-	return "asset/UI/buff_special.png";
+    switch (m_skilllLevel) {
+    case 0: return "asset/UI/AttackBuff_lv1.png";
+    case 1: return "asset/UI/AttackBuff_lv2.png";
+    case 2: return "asset/UI/AttackBuff_lv3.png";
+    default: break;
+    }
 	
 }

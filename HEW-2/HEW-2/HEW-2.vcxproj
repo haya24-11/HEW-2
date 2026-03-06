@@ -184,6 +184,8 @@
     <ClCompile Include="SkillKnockbackBuff.cpp" />
     <ClCompile Include="Skillpowerbuff.cpp" />
     <ClCompile Include="SkillSelectUI.cpp" />
+    <ClCompile Include="SkillSpecialBuff.cpp" />
+    <ClCompile Include="SkillSpeedBuff.cpp" />
     <ClCompile Include="SkillSword.cpp" />
     <ClCompile Include="SkillWhip.cpp" />
     <ClCompile Include="SlimeEnemy.cpp" />
@@ -247,6 +249,8 @@
     <ClInclude Include="Skillpowerbuff.h" />
     <ClInclude Include="Skills.h" />
     <ClInclude Include="SkillSelectUI.h" />
+    <ClInclude Include="SkillSpecialBuff.h" />
+    <ClInclude Include="SkillSpeedBuff.h" />
     <ClInclude Include="SkillSword.h" />
     <ClInclude Include="SkillWhip.h" />
     <ClInclude Include="SlimeEnemy.h" />

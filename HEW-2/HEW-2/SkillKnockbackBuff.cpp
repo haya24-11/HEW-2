@@ -29,5 +29,11 @@ void SkillKnockbackBuff::Apply(Player* player) {
 
 const char* SkillKnockbackBuff::GetIconPath() const {
     // ノックバック強化用のアイコンパス
-    return "asset/UI/buff_knockback.png";
+    switch (m_skilllLevel) {
+    case 0: return "asset/UI/KnckbuckBuff_lv1.png";
+    case 1: return "asset/UI/KnckbuckBuff_lv2.png";
+    case 2: return "asset/UI/KnckbuckBuff_lv3.png";
+    default: break;
+    }
+   
 }

@@ -526,11 +526,34 @@ void GamePlay::UpdateScene(float deltaTime)
     {
         Pause();
 
+        // 1. 候補を取得（最大2つ）
         std::vector<Skill*> options = m_player->GetRandomSkillChoices(2);
 
-        m_skillUI = new SkillSelectUI(this, options);
+        if (options.empty())
+        {
+            // 🔴 全てLv3なら何もしない
+            m_player->ResetLevelUpFlag();
+        }
+        else if (options.size() == 1)
+        {
+            // 🔴 残り1つなら強制取得（UIを出さない）
+              // 🔴 修正：options そのものではなく、0番目の要素を渡す
+            m_player->ApplyAbility(options[0]);
 
-        m_player->ResetLevelUpFlag();
+            // 念のため、適用後にゲームが止まらないようにフラグをリセット
+            m_player->ResetLevelUpFlag();
+
+            // ログ出力（これが出れば成功）
+            printf("[DEBUG] Auto-applied last skill: %p\n", options[0]);
+        }
+        else
+        {
+            // 🔴 2つ以上あるなら通常通り選択UIを出す
+            Pause();
+            m_skillUI = new SkillSelectUI(this, options);
+            m_player->ResetLevelUpFlag();
+        }
+
     }
 
     //combo

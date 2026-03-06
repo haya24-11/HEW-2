@@ -10,6 +10,7 @@ public:
 
     virtual bool CanLearnSkill(int skillId) const = 0;
     virtual bool CanUseSkill(const Skill& skill) const = 0;
-    virtual float CalculateComboMultiplier(int comboCount) const = 0;
+    virtual float CalculateComboMultiplier(int 
+    ) const = 0;
 
 };
