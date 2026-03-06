@@ -202,7 +202,8 @@ void GamePlay::InitScene()
         ->SetAngle(0.0f);
     PlayerHeartPointFrontBar->Init("asset/UI/hpfrontbar.png",3,3);
     PlayerHeartPointFrontBar->SetUI(true);
-    // ===== プレイヤーアイコン UI =====
+
+
     PlayerIcon = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)
         ->SetSize(72.0f, 72.0f, 0.0f)
