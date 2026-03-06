@@ -244,12 +244,12 @@ void GamePlay::InitScene()
 
     // ===== プレイヤーフロントHPバー UI =====
 
-    PlayerHeartPointFrontBar = AddObject()
-        ->SetPos(0.0f, 0.0f, 0.0f)
-        ->SetSize(420.0f, 300.0f, 500.0f)
-        ->SetAngle(0.0f);
-    PlayerHeartPointFrontBar->Init("asset/UI/hpfrontbar.png",3,3);
-    PlayerHeartPointFrontBar->SetUI(true);
+    //PlayerHeartPointFrontBar = AddObject()
+    //    ->SetPos(0.0f, 0.0f, 0.0f)
+    //    ->SetSize(420.0f, 300.0f, 500.0f)
+    //    ->SetAngle(0.0f);
+    //PlayerHeartPointFrontBar->Init("asset/UI/hpfrontbar.png",3,3);
+    //PlayerHeartPointFrontBar->SetUI(true);
     // ===== プレイヤーアイコン UI =====
     PlayerIcon = AddObject()
         ->SetPos(0.0f, 0.0f, 0.0f)

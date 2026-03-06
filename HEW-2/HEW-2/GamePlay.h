@@ -25,6 +25,7 @@ public:
     Object* PlayerIcon = nullptr; // プレイヤーの状態アイコン
     Object* MagicCircle = nullptr; // 魔法陣表示
     Object* PlayerHeartPointBar = nullptr; // プレイヤーHP
+    Object* PlayerHeartPointFrontBar =nullptr;
     Object* ExpBarBack = nullptr; // 経験値ゲージ（背景）
     Object* ExpBarGauge = nullptr; // 経験値ゲージ（ゲージ）
     Object* ExpBarFrame = nullptr; // 経験値ゲージ（フレーム）
