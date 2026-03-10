@@ -100,7 +100,7 @@ void SkillSelectUI::Update(float dt)
     // ============================
     // 決定（Enter or Aボタン）
     // ============================
-    if (Input::GetKeyTrigger(VK_RETURN) || Input::GetButtonTrigger(XINPUT_A))
+    if (Input::GetKeyTrigger(VK_RETURN) || Input::GetButtonTrigger(XINPUT_X))
     {
         GamePlay* gameplay = dynamic_cast<GamePlay*>(m_scene);
         if (!gameplay) return;
